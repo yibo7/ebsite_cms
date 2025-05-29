@@ -22,12 +22,11 @@ def create_app():  # run_mode
     创建app
     :return: FlaskApp
     """
- 
-    # 检查文件是否存在
+
     base_setting = XsJson("conf/setting.json").load()
-    db_conn = os.environ.get('MONGODB_SERV', None)
-    if db_conn:
-        base_setting["MONGODB_SERV"] = db_conn
+    # db_conn = os.environ.get('MONGODB_SERV', None)
+    # if db_conn:
+    #     base_setting["MONGODB_SERV"] = db_conn
     theme_name = base_setting["ThemeName"]
     theme_template_path = os.path.join('themes', theme_name, 'templates')
     theme_static_path = os.path.join('themes', theme_name, 'static')
