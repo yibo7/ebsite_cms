@@ -1,5 +1,5 @@
 
-# 一、关于 EbSite For Vercel
+# 一、关于 EbSite CMS
 
 你可以一键将EbSite CMS，可以部署在python环境下，也可以部署在vercel平台上，只需一个申请免费的MongoDb，
 即可永久拥有免费而强大的独立网站。
@@ -39,8 +39,7 @@
 # 四、部署
 
 立即创建我的网站：
-
- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyibo7%2Febsite_py.git&env=SITE_KEY,MONGODB_SERV&envDescription=SITE_KEY%E6%98%AF%E7%BD%91%E7%AB%99%E5%AF%86%E9%92%A5%2CMONGODB_SERV%E6%98%AFMongoDb%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%9C%B0%E5%9D%80&project-name=ebsite_py&repository-name=ebsite_py)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyibo7%2Febsite_cms.git&env=SITE_KEY,MONGODB_SERV&envDescription=SITE_KEY%E6%98%AF%E7%BD%91%E7%AB%99%E5%AF%86%E9%92%A5%2CMONGODB_SERV%E6%98%AFMongoDb%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%9E%E6%8E%A5%E5%9C%B0%E5%9D%80&project-name=ebsite_cms&repository-name=ebsite_cms)
 
 > 更多请参考教程[《项目部署教程》](doc/项目部署.md)
 

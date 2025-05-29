@@ -8,5 +8,5 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "index.py" }
   ],
-  "regions": ["sin1"]
+  "regions": ["hkg1"]
 }
