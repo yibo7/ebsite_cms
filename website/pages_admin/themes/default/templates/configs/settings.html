@@ -1,0 +1,122 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>系统设置</h3>
+            </div>
+            <div class="content">
+
+                <form method="post" action="{{request.path}}">
+                    <div class="mb-3">
+                        <label>网站名称</label>
+                        <input placeholder="网站的名称" name="site_name" value="{{model.site_name}}" style="max-width:500px" class="form-control" required>
+                        <div class="invalid-feedback">请输入网站名称。</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>首页面缓存时间(单位秒，0表示不缓存)</label>
+                        <input type="number" name="index_cache_time" value="{{model.index_cache_time}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>后台错误登录几次锁定</label>
+                        <input type="number" placeholder="登录超出会锁定" name="err_login_lock" value="{{model.err_login_lock}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+
+
+                    <div class="mb-3 mt-3">
+                        <label>默认注册用户组</label>
+                        <select name="reg_group_id" style="max-width:300px" class="form-control">
+                            {{build_sel_item(group,'_id','name',model.reg_group_id)}}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>注册赠送积分</label>
+                        <input type="number" placeholder="注册成功才会赠送" name="reg_credits" value="{{model.reg_credits}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>
+                            <input name="is_open_safe_code" type="checkbox" {{ "checked" if model.is_open_safe_code }} >是否开启验证码
+                            <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_open_safe_code" value="checkbox_unchecked">
+                        </label>
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label>主题与皮肤（需要重启系统）</label>
+                        <select name="theme_name" style="max-width:300px" class="form-control">
+                             {% for item in theme_names %}
+                                <option value="{{ item }}" {% if item == theme_selected %}selected{% endif %}>{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>文件上传插件</label>
+                         <select name="uploader_id" style="max-width:300px" class="form-control">
+                            {{build_sel_item(uploaders,'id','name',model.uploader_id)}}
+                        </select>
+                    </div>
+                     <div class="mb-3">
+                        <label>短信发送插件</label>
+                         <select name="sms_sender_id" style="max-width:300px" class="form-control">
+                            {{build_sel_item(sms_senders,'id','name',model.sms_sender_id)}}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>EMAIL发送插件</label>
+                        <div style="max-width:300px"  class="input-group">
+                            <select name="email_sender_id" style="max-width:300px" class="form-control">
+                                {{build_sel_item(email_senders,'id','name',model.email_sender_id)}}
+                            </select>
+                            <button type="button" onclick="send_test_email()" class="btn btn-primary">测试发送</button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>汇报EMAIL</label>
+                        <input placeholder="接收系统信息的EMAIL，多个用逗号分开" name="report_emails" value="{{model.report_emails}}" style="max-width:800px" class="form-control" >
+                        <div class="invalid-feedback">请输入网站名称。</div>
+                    </div>
+                     <div class="mb-3">
+                        <label>允许上传文件格式</label>
+                        <input placeholder="允许上传文件格式，多个用英文逗号分开" name="upload_types" value="{{model.upload_types}}" style="max-width:800px" class="form-control" >
+                        <div class="invalid-feedback">请输入网站名称。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label>上传文件最大限制(MB)</label>
+                        <input type="number" placeholder="文件最大限制" name="upload_max_size" value="{{model.upload_max_size}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>AppToken过期时间(小时)</label>
+                        <input type="number" placeholder="App获取到Token后多长时间过期" name="app_token_expired" value="{{model.app_token_expired}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function send_test_email(){
+        if(confirm("将向汇报EMAIL中的第一个地址发一分测试邮件，请确认汇报EMAIL是否存在？")){
+            run_ajax_async_json("/admin/test_email",null,(rz)=>{
+                alert("邮件已发至："+rz.data)
+            })
+        }
+    }
+</script>
+{% endblock %} 

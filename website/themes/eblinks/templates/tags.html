@@ -1,0 +1,44 @@
+{% extends 'base_site.html' %}
+{% block title %}
+所有标签-{{SiteName}}
+{% endblock %}
+
+{% block content %}
+    <style>
+       .tag-badge {
+        margin: 5px;
+        font-size: 0.9rem;
+        border-radius: 1rem;
+        transition: opacity 0.3s;
+           padding: 3px;
+           padding-left: 10px;
+           padding-right: 10px;
+    }
+    .tag-badge:hover {
+        opacity: 0.8;
+        text-decoration: none;
+    }
+    </style>
+
+<div class="container container-fluid customize-width mt-3">
+   <div class="tabfg">
+       <div class="tabmh">
+           <h4 class="text-gray text-lg">
+             <i class="fa fa-bookmark-o"></i> <span>所有标签</span>
+           </h4> 
+        </div> 
+        <div class="tab-content mt-4 p-2">
+            {% set colors = ['primary', 'secondary', 'success', 'danger', 'warning', 'info', 'dark'] %}
+                {% for item in data_list %}
+                    {% set color = colors | random %}
+                    <a href="{{ item.get_url() }}" class="badge bg-{{ color }} text-white tag-badge">
+                        {{ item.name }}({{ item.article_count }})
+                    </a>
+                {% endfor %}
+        </div>
+    </div>
+</div>
+    <div class="container container-fluid customize-width d-flex justify-content-center">
+ {{pager}}
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+<div class="table-box">
+    <div class="btn-toolbar px-2">
+        <form method="get">
+
+            <div class="btn-group">
+                <a href="class_list_save" class="btn btn-outline-primary">
+                    添加
+                </a>
+            </div>
+            <div class="btn-group">
+                <a class="btn btn-outline-primary" onclick="return confirm('将删除包括其下的子菜单，确认要删除所选项吗？');" href="javascript: del_items('class_list_del')">
+                    删除
+                </a>
+            </div>
+            <div class="btn-group">
+                <a href="class_move" class="btn btn-outline-primary">
+                    移动菜单
+                </a>
+            </div>
+            <div class="btn-group">
+                <a href="class_reset_orderid" class="btn btn-outline-primary" onclick="return confirm('确认要重置排序吗？');">
+                    重置排序
+                </a>
+            </div>
+        </form>
+    </div>
+    {{table_html}}
+</div>
+
+{% endblock %}

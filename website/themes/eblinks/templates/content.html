@@ -1,0 +1,46 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.title}}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container container-fluid customize-width mt-3 ">
+
+        <div class="tabfg">
+           <div class="tabmh">
+               <h4 class="text-gray text-lg">
+                 <i class="fa fa-bookmark-o"></i> <a href="{{get_class_link(model.class_n_id)}}">{{model.class_name}}</a>
+                 <span class="list-title-txt fl cut">
+                    <span class="separator"></span>
+                </span>
+               </h4>
+                <div class="d-flex flex-fill flex-tab align-items-center">
+                    <div class="slider_menu mini_tab " slidertab="sliderTab">
+                        <ul class="nav nav-pills tab-auto-scrollbar menu">
+                            {% for tag_name in model.tags %}
+                                     <li>
+                                        <a href="{{ model.get_tag_url(tag_name) }}" >{{tag_name}}</a>
+                                   </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                        <div class="flex-fill"></div>
+                        <a class="btn-move tab-move text-xs ml-2" href="/tags1.html"  >More+</a>
+                </div>
+            </div>
+
+            <div class="list-group chords-row p-3">
+                 <div class="text-center">
+                     <h2>{{model.title}}</h2>
+                 </div>
+                <div class="article-content">
+                     {{model.info|safe}}
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

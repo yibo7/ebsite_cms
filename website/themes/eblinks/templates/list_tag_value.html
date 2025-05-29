@@ -1,0 +1,52 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.name}}
+{% endblock %}
+
+{% block content %}
+
+
+<div class="container container-fluid customize-width mt-3 ">  
+    
+    <div class="tabfg">
+       <div class="tabmh">
+           <h4 class="text-gray text-lg">
+             <i class="fa fa-bookmark-o"></i> {{model.name}}             
+           </h4> 
+            <div class="d-flex flex-fill flex-tab align-items-center">
+                <div class="slider_menu mini_tab " slidertab="sliderTab">
+                    <ul class="nav nav-pills tab-auto-scrollbar menu"> 
+                       
+                    </ul>
+                </div>
+                    <div class="flex-fill"></div>
+                    <a class="btn-move tab-move text-xs ml-2" href="/tags1.html"  >More+</a>
+            </div> 
+        </div> 
+
+        <div class="list-group chords-row">
+            {% for item in data_list%}
+                <a href="{{item.get_url()}}" class="list-group-item list-group-item-action d-flex gap-3 py-3 score-lst-box" aria-current="true">
+                    {% if item.small_pic %}
+                    <img style="width: 120px;height: 80px" src="{{item.small_pic}}" > 
+                    {% endif %}
+                    <div class="d-flex gap-2 w-100 justify-content-between">
+                        <div>
+                            <h5 class="mb-0">{{item.title}}</h5>
+                            <p class="mb-0 opacity-75 box-sub-info">
+                                {{item.seo_description}}                                       
+                            </p>
+                            <span style="color:darkgray;font-size:12px;"> {{item.add_time|to_time_name}}</span> 
+                        </div> 
+                    </div>
+                </a>
+            {% endfor %} 
+        </div>
+    </div> 
+</div>
+
+<div class="container container-fluid customize-width d-flex justify-content-center">   
+ {{pager}}
+</div>
+  
+{% endblock %}

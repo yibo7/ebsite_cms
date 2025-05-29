@@ -1,0 +1,213 @@
+@import url("https://cdn.bootcdn.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-weight: normal;
+    font-size: 14px;
+    word-spacing: normal;
+    text-transform: none;
+    letter-spacing: normal;
+    color: #000000;
+    background: #ffffff !important;
+}
+li {
+    list-style: none;
+}
+
+ul {
+    padding: 0;
+    margin: 0;
+}
+a:link, a:visited {
+    color: #656D77;
+    text-decoration: none;
+}
+
+a:hover, a:active {
+    color: #333;
+    text-decoration: underline;
+}
+
+img {
+    border: 0px;
+}
+
+a {
+    cursor: pointer;
+}
+
+
+table td {
+    font-size: 12px;
+    height: 40px;
+}
+
+.selectThisItemsStyle {
+    background: url(f1.gif) no-repeat;
+    text-decoration: none;
+}
+
+.resizeBar {
+    background-image: url(resizeBar.gif);
+    width: 8px;
+    cursor: pointer;
+}
+
+.BasicinfoShow {
+    margin-top: 10px;
+    display: block;
+    padding-left: 10px;
+}
+
+    .BasicinfoShow img {
+        vertical-align: middle;
+        margin-right: 5px;
+    }
+
+    .BasicinfoShow ul li {
+        font-size:14px;
+        height: 30px;
+        line-height: 20px;
+    }
+    .BasicinfoShow ul li a{
+       padding:10px;
+    }
+.treeview_unfocus {
+    background: #EBEBEB;
+    clear: none;
+    height: 35px;
+    text-indent: 10px;
+    width: 100%;
+    cursor: pointer;
+    border-bottom: #D6D6D6 1px solid;
+    font-size:16px;
+}
+
+.boxheader {
+    padding-top:8px;
+    width: 100%;
+
+    border-bottom: 1px solid #dadada;
+    margin-bottom:8px;
+
+}
+
+.eb-box {
+    width: 99%;
+    margin: 10px auto 0 !important;
+    border: 1px solid #dadada !important;
+    background: #ffffff !important;
+}
+
+
+
+/*end box*/
+/*对bootstar的扩展*/
+.dropdown-menu {
+    background-color: #e5f7ff !important;
+}
+
+
+.btn-group {
+    margin-left: 8px;
+}
+
+/*admin-index*/
+.panrent-menu {
+    color: #fff;
+    margin-left: 55px;
+    font-size: 14px;
+    line-height: 15px;
+    padding: 17px 14px 17px 13px;
+}
+
+.panrent-menu span.current {
+    padding: 17px 14px 17px 13px;
+    background: #0086C9;
+    color: #C9EDFF;
+}
+
+.panrent-menu span {
+    padding: 17px 14px 17px 13px;
+    font-size:16px;
+}
+
+.panrent-menu span:hover {
+    padding: 17px 14px 17px 13px;
+    background: #27A6E6;
+}
+
+.top_logo {
+    height: 50px;
+    width: 100%;
+    background: #00AAFF;
+}
+
+.adminlogo {
+        background-image: url(logo.png);
+        background-repeat: no-repeat;
+        height: 33px;
+        width: 120px;
+       margin-top:8px;
+       margin-left:5px;
+    }
+
+
+
+.top_sub_menu {
+    height: 35px;
+    width: 100%;
+    background: #EBF0F5;
+    cursor: default;
+    border-bottom: 1px solid #DEDEDE;
+}
+
+.menu-title {
+    height: 37px;
+    line-height:37px;
+    background-color: #EBEBEB;
+    border-bottom: solid 1px #D6D6D6;
+
+}
+    .menu-title span {
+        font-size: 16px;
+    }
+
+.pd-a a{
+    margin-right: 15px;
+}
+
+.cbrowbox-tab {
+        border-left: 1px solid #dadada !important;
+        border-right: 1px solid #dadada !important;
+        border-bottom: 1px solid #dadada !important;
+        background: #ffffff !important;
+        padding: 8px;
+    }
+.cbrowbox {
+    width: 98% !important;
+    margin: 20px auto 0 !important;
+    border: 1px solid #dadada !important;
+    background: #ffffff !important;
+    border-radius: 5px
+}
+.logotext{
+	color: #d4500d;font-weight: bold
+}
+.color-w{
+ color:#fff
+}
+.nav-box{padding:8px;border-bottom: 1px solid #ccc;font-size:16px;}
+.table-box {
+
+    background: #ffffff !important;
+}
+.btn-toolbar {
+    background: #F5F9F9;
+    height: 50px;
+    padding-top: 6px;
+    border-bottom: 1px solid #dadada !important;
+}

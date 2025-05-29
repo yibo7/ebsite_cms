@@ -1,0 +1,26 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.title}}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <nav>
+      <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">{{SiteName}}</a></li>
+          <li class="breadcrumb-item active" aria-current="page"><a href="{{get_class_link(model.class_n_id)}}">{{model.class_name}}</a></li>
+      </ol>
+    </nav>
+</div>
+ <div class="container mt-20">
+     <div class="text-center">
+         <h2>{{model.title}}</h2>
+     </div>
+    <div class="mt-10">
+       {{model.info|safe}}
+
+        <br>
+        标签：{{ widget("682f49838d2593d657508081") }}
+    </div>
+</div>
+{% endblock %}

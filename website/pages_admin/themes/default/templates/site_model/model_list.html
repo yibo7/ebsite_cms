@@ -1,0 +1,16 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+<div class="table-box">
+    <div class="btn-toolbar px-2">
+        <form method="get">
+            <div class="btn-group">
+                <a href="model_list_save?tid={{type_id}}" class="btn btn-outline-primary">
+                    添加模型
+                </a>
+            </div>
+        </form>
+    </div>
+    {{table_html}}
+</div>
+{% endblock %}

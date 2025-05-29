@@ -1,0 +1,10 @@
+{
+    "MONGODB_SERV": "mongodb://root:112233@192.168.1.12:22015/?replicaSet=cqsmg",
+    "MONGODB_NAME": "eb_site_db",
+    "ThemeName": "eblinks",
+    "REDIS_SERV": "",
+    "APP_KEY": "a0580f89a93b4a8f81c1a0595609a8dd",
+    "IsDebug": true,
+    "IsVercel": true,
+    "Port": 8066
+}

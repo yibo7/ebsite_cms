@@ -1,0 +1,36 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+ 
+<div style="max-width: 500px" class="row cbrowbox">
+    <div class="col-sm-12 col-md-12 ">
+        <div style="padding-bottom: 20px !important; display: block;" class="boxheader">
+            <h3>初始化默认数据</h3>
+            检测到某些表不存在，你可在此页面还原这些表及演示数据  <a class="text-success" href="/">返回首页</a>
+            
+        </div>
+        <div class="eb-content">
+            {% if is_allow %}
+            <form action="{{request.full_path}}" method="post" onsubmit='return post_confirm()' class="needs-validation" novalidate>
+                <button class="btn btn-primary" style="width: 120px;" type="submit">  初始化数据 </button>
+            </form>
+            {%else%}
+              <div class="alert alert-danger" role="alert">
+                   当前不允许初始化数据！
+              </div>
+            {%endif%}
+            <br>
+        </div>
+    </div>
+</div>
+ <script>
+    function post_confirm(){
+        if(confirm("确定要初始化数据吗？")){
+            blockTips("提交中...");
+            return true;
+        }
+        return false;
+        
+    }
+ </script>
+
+{% endblock %}

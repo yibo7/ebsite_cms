@@ -1,0 +1,44 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+<div class="eb-box">
+    <div class="btn-toolbar px-2">
+        <form>
+            <div class="btn-group">
+                <select name="c_id" style="max-width:300px" class="form-control">
+                            <option value="">所有插件</option>
+		                    {{build_sel_item(class_list,'ClassName','name',sel_class_name)}}
+                </select>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" type="submit">   搜索   </button>
+            </div>
+        </form>
+
+    </div>
+     <table class="table table-striped table-hover eb-table">
+        <thead>
+            <tr>
+                <th>插件名称</th>
+                <th>插件说明</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in datas %}
+
+                <tr>
+                    <td>{{item.name}}</td>
+                    <td>{{item.info}}</td>
+                    <td class="pd-a">
+                        {% if item.params_temp() %}
+                        <a href="plugin_list_save?id={{item.id}}" ><i class="fa fa-edit"></i> 设置插件 </a>
+                        {%endif%}
+                    </td>
+                </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

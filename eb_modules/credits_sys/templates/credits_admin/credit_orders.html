@@ -1,0 +1,40 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<div style="padding:10px;" >
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active"  aria-current="page" href="credits_orders">积分订单列表</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="apply_credits_admin">审核积分</a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="credit_list">积分流水</a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="credit_plan_admin" >积分套餐</a>
+      </li>
+    </ul>
+
+    <div class="eb-box">
+        <div class="btn-toolbar px-2">
+            <form method="get">
+                <div class="btn-group">
+                    <input class="form-control" placeholder="关键字" name="k" type="text" required/>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" type="submit">   搜索   </button>
+                </div>
+
+            </form>
+        </div>
+        {{table_html}}
+    </div>
+    <nav class="mt-2 px-2">
+        {{pager}}
+    </nav>
+    {% endblock %}
+
+</div>
+
+

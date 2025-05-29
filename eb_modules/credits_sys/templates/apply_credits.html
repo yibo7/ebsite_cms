@@ -1,0 +1,45 @@
+{% extends 'base_site.html' %}
+{% block title %}
+首页
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="row eb-box">
+        <div class="col-sm-12 col-md-12 ">
+            <div class="block-flat">
+                <div class="boxheader">
+                    <h3>申请积分</h3>
+                </div>
+                <div class="content">
+                    {% if is_succesfull:%}
+                    <div class="alert alert-primary" role="alert">
+                      申请已经提交！
+                    </div>
+                    {% else:%}
+                    <form method="post">
+
+                        <div class="mb-3">
+                            <label>申请积分数量</label>
+                            <input type="number"  name="credits"   style="max-width:100px" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>申请原因</label>
+                            <textarea class="form-control" name="remark" style="max-width:300px" rows="3" required></textarea>
+                        </div>
+                        <button class="btn btn-primary mb-3" type="submit">   提 交   </button>
+                        {% if err %}
+                            <div class="alert alert-info">{{err}}</div>
+                        {%endif%}
+
+                    </form>
+
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,327 @@
+@import url("https://cdn.bootcdn.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css");
+
+@media (max-width: 768px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding-top: env(safe-area-inset-top); /* 避免刘海遮挡内容 */
+  }
+}
+
+/*.header-nav{*/
+/*	background-color:#0f9997 !important;*/
+/*}*/
+.io-black-mode .page-header {
+	 background-color:#1B1D20; /* 与导航背景一致 */
+}
+
+/*浮动工具条 将工具条上移，防止被盖住*/ 
+@media (max-width: 767.98px){ #footer-tools { bottom: 60px; } }
+
+/*留出头部区域高度*/
+  :root {
+    --mainColor:#f1404b;
+    --sidebarBgColorGrey: #FFFFFF;
+    --sidebarShadowGrey: rgba(41,48,66,0.1);
+    --sidebarLineHeight: 45px;
+    --headerMenuHeight: 64px;
+    --greyPageHeaderFilter: rgba(255, 255, 255, 0.85);
+    --blackPageHeaderFilter: rgba(44, 46, 47, 0.85);
+    --backdropFilter: 10px;
+    --hy-scrollbar-width: 10px;
+    --customize-width:1900px;
+}
+
+
+/* 在谷歌浏览器内核中，使滚动条不占用容器的宽度 */
+.sidebar-nav-inner .flex-fill {
+    overflow-y: overlay;
+}
+
+
+
+@media (min-width: 768px) {
+    .page-header+.placeholder {
+        height: var(--headerMenuHeight);
+    }
+}
+
+/*mini搜索按钮调整*/
+#search button {
+	position: absolute;
+	top: 0px;
+	right: 0;
+	background: var(--mainColor);
+	border: 0;
+	width: 60px;
+	height: 100%;
+	margin: 0px 0pt 0;
+	line-height: 36px;
+	border-radius: 0px 8px 8px 0px;
+}
+/*mini搜索框调整*/
+#search-text {
+	border-radius: 10px;
+	background: rgba(126,126,126,.1);
+}
+/*大搜索美化*/
+.header-big #search-text {
+	background-color: #fff!important;
+	color: #282a2d;
+}
+
+
+
+.search-type input:checked+label, .search-type input:hover+label {
+	background-color: #ededed;
+    border-top-left-radius: 5px; /* 左上角圆角 */
+	border-top-right-radius: 5px; /* 右上角圆角 */
+}
+
+
+/*更多按钮美化*/
+a.btn-move.tab-move.text-xs.ml-2 {
+	color: #fff!important;
+	background: var(--mainColor);
+	padding: 0px 10px;
+	padding-right: 6px;
+	line-height: 24px!important;
+	margin: 5px 0px;
+	height: 24px;
+	border-radius: 7px;
+	white-space: nowrap;
+}
+
+/*左侧滚动条去除*/
+.sidebar-menu.flex-fill::-webkit-scrollbar {
+	display: none;
+}
+
+ul.nav.nav-pills.tab-auto-scrollbar.menu.overflow-x-auto::-webkit-scrollbar {
+	display: none;
+}
+
+/*首页布局*/
+@media (max-width: 1200px) {
+	.indexmh .row {
+		margin-right: 5px!important;
+		margin-left: 5px!important;
+	}
+}
+
+
+
+/*首页 - tab栏美化*/
+
+.tabfg {
+	padding-top: 10px;
+	background: #fff;
+	border-radius: 8px;
+	margin-bottom: 15px;
+	box-shadow: 0 0 2rem 0 var(--sidebarShadowGrey,transparent) !important;
+}
+
+.io-black-mode .tabfg {
+	background: #2c2e2f;
+}
+
+.slider_menu[sliderTab] {
+	background: unset;
+}
+
+@media (min-width: 992px) {
+	.tabmh {
+		padding: 0.5rem 0rem 0.1rem 0rem;
+	}
+
+	.tabmh .text-gray.text-lg {
+		float: left;
+		height: 28px;
+		line-height: 32px;
+		margin-bottom: 5px;
+	}
+
+	.tabmh .d-flex.flex-fill.flex-tab {
+		padding-left: 0rem;
+	}
+}
+
+.tabmh {
+	padding: 0.5rem 0rem 0.1rem 0rem;
+}
+
+.tabmh .slider_menu[sliderTab] .anchor {
+	background: transparent;
+	border-radius: 0px;
+}
+
+.tabmh .slider_menu[sliderTab]>.menu>li>a.active {
+	color: #777;
+}
+
+.tabmh .slider_menu[sliderTab]>.menu>li>a:hover {
+	color: #777;
+}
+
+.tabmh .slider_menu[sliderTab] .anchor:before {
+	content: '';
+	position: absolute;
+	top: auto;
+	bottom: 0;
+	height: 2px;
+	width: 20%;
+	background-color: var(--mainColor);
+	margin: 0 auto;
+	left: 50%;
+	margin-left: -10%;
+	right: 50%;
+	margin-right: -10%;
+}
+
+.indexmh .content-wrap {
+	border-radius: 8px;
+	padding-bottom: 0px;
+	margin-bottom: 15px;
+}
+
+@media (min-width: 768px) {
+	.io-mx-n2 {
+	margin-left: .2rem!important;
+    margin-right: .2rem!important;
+	}
+}
+
+.tabfg h4.text-gray.text-lg {
+	margin-left: 15px!important;
+}
+
+.d-flex.flex-fill.flex-tab {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.list-title-txt {
+	top: 0px;
+	left: 0;
+	position: relative;
+	padding-right: 33px;
+}
+
+h4 span.separator {
+	height: 11px;
+	width: 2px;
+	background: #777;
+	display: inline-block;
+	margin-left: 0;
+	margin-right: 9px;
+	position: absolute;
+	top: 7px;
+	float: right;
+	right: 0;
+}
+
+@media (max-width: 992px) {
+	.list-title-txt {
+		display: none;
+	}
+}
+
+
+/*顶部登录*/
+.nav-login a:not(.user-bookmark-body a) {
+	font-size: 14px;
+	line-height: 20px;
+	color: #fff!important;
+	padding: 4px 12px;
+	background: var(--mainColor);
+	border-radius: 20px;
+	text-shadow: none;
+}
+
+
+.type-text:after {
+    content: "\f054" !important;
+    font-family: "FontAwesome" !important;
+}
+
+.navbar-collapse ul li.menu-item-has-children:after {
+    content: "\f078" !important;
+    font-family: "FontAwesome" !important;
+
+}
+
+/* 只有当 nav-link 有 data-bs-toggle="collapse" 属性时，才显示箭头 */
+.nav-item .nav-link.dropdown-toggle[data-bs-toggle="collapse"]::after {
+    display: inline-block; /* 显示箭头 */
+}
+
+/* 展开时箭头向上 */
+.nav-item .nav-link.dropdown-toggle[data-bs-toggle="collapse"][aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+/* 你的自定义 CSS 文件，例如 style.css */
+
+/* 针对侧边栏中的顶级菜单项（如“电商新闻与资讯”） */
+.sidebar-menu .nav-item > .nav-link {
+    font-size: 1.0rem; /* 增大字体，可以根据需要调整值 */
+    /*font-weight: 600; !* 可以选择加粗，让它更突出 *!*/
+    /* 其他你可能想要的样式，例如： */
+    /* color: #333; */
+    /* padding-top: 0.75rem; */
+    /* padding-bottom: 0.75rem; */
+}
+
+/* 针对手风琴菜单内部的子菜单项 */
+.sidebar-menu .collapse .nav-item .nav-link {
+    font-size: 0.9rem; /* 稍微小一点的字体，使其成为下级菜单 */
+    /* 可以是默认值，或者你希望它比父级小，比其他文本略大 */
+    /* font-weight: normal; */
+    /* color: #666; */
+}
+
+/* 确保 nav-link 的默认 padding 保持一致或根据需要调整 */
+.sidebar-menu .nav-link {
+    padding-left: 1rem; /* 保持与 Bootstrap 默认一致或调整 */
+    padding-right: 1rem;
+}
+
+.list-group-item {
+        border: none;
+    }
+
+  .article-content {
+    line-height: 1.8;
+    font-size: 1.0rem;
+    color: #333;
+  }
+.index-so-box{
+    padding:15px;
+}
+.io-black-mode .offcanvas {
+  background-color: #2c2c2c !important;
+  color: #fff !important;
+}
+.io-black-mode .offcanvas a {
+  color: #B2B8BE !important;
+}
+
+.io-black-mode .list-group-item {
+  background-color: #2c2c2c !important;
+}
+.io-black-mode .article-content,
+.io-black-mode .article-content * {
+  color: #C6C9CF !important;
+}
+.io-black-mode .article-content a {
+  color: #C6C9CF !important; /* 夜间亮色链接 */
+}
+
+#offcanvas-menus a{
+	color: #646464;
+}
+#myOffcanvas .sidebar-scroll {
+  max-height: calc(100vh - 100px); /* 根据实际 UI 结构设置 */
+  overflow-y: auto;
+}

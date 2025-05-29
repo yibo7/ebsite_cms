@@ -1,0 +1,79 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<div class="container-fluid nav-box">
+      <a href="javascript:history.back()">模型管理</a>->{{model.name}}
+</div>
+
+<div id="vue_app" class="table-box">
+    <div class="btn-toolbar px-2">
+        <form method="post">
+            <div class="btn-group">
+                 <select name="name" style="max-width:300px" class="form-control" required>
+                     <option value="">选择字段</option>
+                     {% for name in fields %}
+                        <option {% if name == field_item.name %}selected{% endif %} value="{{name}}">{{name}}</option>
+                     {%endfor%}
+                 </select>
+            </div>
+            <div class="btn-group">
+                 <select name="control_id" style="max-width:300px" class="form-control" required>
+                     <option value="">选择控件</option>
+                     {{build_sel_item(controls,'value','name',field_item.control_id)}}
+                 </select>
+            </div>
+            <div class="btn-group">
+                 <select name="control_size" style="max-width:300px" class="form-control" required>
+                     <option value="">控件大小</option>
+                     {% for i in range(1,11) %}
+                        <option {% if i == field_item.control_size|int %}selected{% endif %} value="{{i}}">{{i}}</option>
+                     {%endfor%}
+                 </select>
+            </div>
+             <div class="btn-group">
+                <input class="form-control" value="{{field_item.show_name}}" placeholder="展示名称" name="show_name" type="text" required/>
+            </div>
+            <div class="btn-group">
+                {% if field_item.name %}
+                <button class="btn btn-primary">修改字段</button>
+                <a href="?_id={{model._id}}" class="btn btn-info">取消</a>
+                {% else %}
+                <button class="btn btn-primary">添加字段</button>
+                {% endif %}
+
+            </div>
+        </form>
+    </div>
+    <table class="table table-hover eb-table">
+        <thead>
+            <tr>
+                <th>展示名称</th>
+                <th>字段名称</th>
+                <th>控件</th>
+                <th>控件大小</th>
+                <th>操作</th>
+            </tr>
+        </thead>
+        <tbody>
+                {% for item in model.fields %}
+                <tr v-for="item in fields">
+                    <td>{{ item.get('show_name') }}</td>
+                    <td>{{ item.get('name') }}</td>
+                    <td>{{ item.get('control_name') }}</td>
+                    <td>{{ item.get('control_size') }}</td>
+                    <td class="pd-a">
+                        <a href="?_id={{model._id}}&field_name={{ item.get('name') }}"  ><i class="fa fa-arrow-up" ></i> 修 改 </a>
+                        <a href="model_fields_del?_id={{model._id}}&field_name={{ item.get('name') }}" onclick="return confirm('确认要删除所选项吗？');" ><i class="fa fa-remove" > </i>删 除 </a>
+                        <a href="model_fields_move?t=0&_id={{model._id}}&field_name={{ item.get('name') }}"  ><i class="fa fa-arrow-up" ></i> 上移 </a>
+                        <a href="model_fields_move?t=1&_id={{model._id}}&field_name={{ item.get('name') }}"  ><i class="fa fa-arrow-down" ></i> 下移 </a>
+                    </td>
+                </tr>
+                {%endfor%}
+        </tbody>
+    </table>
+   <div class="container">
+        {% if err %}
+            <div class="alert alert-danger">{{err}}</div>
+        {%endif%}
+   </div>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+ <div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>添加或修改模型</h3>
+            </div>
+            <div class="content">
+                <form method="post" >
+                    <div class="mb-3">
+                        <label>模型名称</label>
+                        <input name="name" value="{{model.name}}" minlength="3" style="max-width:500px" class="form-control" required>
+                    </div>
+                    <input hidden value="{{type_id}}"  name="tid" >
+                    <input hidden value="{{model._id}}"  name="_id" >
+                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                    {% if err %}
+                        <div class="alert alert-danger">err</div>
+                    {%endif%}
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

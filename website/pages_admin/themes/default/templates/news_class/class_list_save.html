@@ -1,0 +1,94 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+     <link href="{{config.cdn}}/gh/yibo7/ebcdn@0.9/umeditor/themes/default/_css/umeditor.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="{{config.cdn}}/gh/yibo7/ebcdn@0.9/umeditor/third-party/template.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{config.cdn}}/gh/yibo7/ebcdn@0.9/umeditor/umeditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{config.cdn}}/gh/yibo7/ebcdn@0.9/umeditor/xs_index/editor_api.js"></script>
+    <script type="text/javascript" src="{{config.cdn}}/gh/yibo7/ebcdn@0.9/umeditor/lang/zh-cn/zh-cn.js"></script>
+
+    <link href="{{ admin_path }}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploaderpic.js"></script>
+
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>添加或修改分类</h3>
+            </div>
+            <div class="content">
+                <form method="post" >
+                <ul class="nav nav-tabs">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tag1" type="button" >分类信息</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tag2" type="button" >基础设置</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" >
+
+                            <div class="tab-pane active" id="tag1" >
+                                <div class="mb-3 mt-3">
+                                    <label>父级分类</label>
+                                    <select name="parent_id" style="max-width:300px" class="form-control">
+                                        <option value="">一级分类</option>
+                                        {{build_sel_item(p_class_list,'_id','class_name',model.parent_id)}}
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label>分类名称<span style="color: #ccc">(如果批量添加可用 # 号分开分类名称)</span></label>
+                                    <input name="class_name" value="{{model.class_name}}" minlength="1" style="max-width:300px" class="form-control" required>
+                                </div>
+                                   {{model_html|safe}}
+                            </div>
+                            <div class="tab-pane" id="tag2" >
+
+
+                             <div class="mb-3 mt-3">
+                                <label>分类模板</label>
+                                <select name="class_temp_id" style="max-width:300px" class="form-control" required>
+                                    {{build_sel_item(temp_class,'_id','name',model.class_temp_id)}}
+                                </select>
+                            </div>
+                             <div class="mb-3 mt-3">
+                                <label>分类模型</label>
+                                <select name="class_model_id" style="max-width:300px" class="form-control">
+                                    <option selected value="">默认分类模型</option>
+                                    {{build_sel_item(model_class,'_id','name',model.class_model_id)}}
+                                </select>
+                            </div>
+
+                             <div class="mb-3 mt-3">
+                                <label>内容模板</label>
+                                <select name="content_temp_id" style="max-width:300px" class="form-control" required>
+                                    {{build_sel_item(temp_content,'_id','name',model.content_temp_id)}}
+                                </select>
+                            </div>
+                            <div class="mb-3 mt-3">
+                                <label>内容模型</label>
+                                <select name="content_model_id" style="max-width:300px" class="form-control" required>
+                                    {{build_sel_item(model_content,'_id','name',model.content_model_id)}}
+                                </select>
+                            </div>
+                            </div>
+
+
+
+                            <input hidden value="{{model._id}}" id="_id" name="_id" >
+                            <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                            {% if err %}
+                                <div class="alert alert-danger">err</div>
+                            {%endif%}
+
+
+
+                </div>
+                    </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

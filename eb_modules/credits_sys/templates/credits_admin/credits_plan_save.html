@@ -1,0 +1,51 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>保存积分套餐</h3>
+            </div>
+            <div class="content">
+                <form method="post" >
+                    <div class="mb-3">
+                        <label>套餐名称</label>
+                        <input name="title" value="{{model.title}}" minlength="3" style="max-width:500px" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>原价</label>
+                        <input name="price" placeholder="单位为元" value="{{model.price}}" type="number" style="max-width:100px" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>实际价</label>
+                        <input name="real_price" placeholder="单位为元" value="{{model.real_price}}" type="number" required   style="max-width:100px" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>可得积分</label>
+                        <input name="credits" placeholder="购买的积分数量" value="{{model.credits}}" type="number" required style="max-width:100px" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label>套餐简介</label>
+                        <input name="info" value="{{model.info}}"   style="max-width:500px" class="form-control" >
+                    </div>
+                    <div class="mb-3">
+                        <label>图标代码</label>
+                        <input name="ico_tag" value="{{model.ico_tag}}"   style="max-width:500px" class="form-control" >
+                    </div>
+
+                    <input hidden value="{{model._id}}" id="_id" name="_id" >
+                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                    {% if err %}
+                        <div class="alert alert-danger">err</div>
+                    {%endif%}
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

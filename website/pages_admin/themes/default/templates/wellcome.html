@@ -1,0 +1,55 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="boxheader">
+            <h3><i class="icon-spinner4 spinner"></i>系统运行状况</h3>
+        </div>
+        <div>
+            <div class="mb-3 mt-3">
+                <label class="form-label">账号：{{admin_token.name}}</label>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">姓名：{{admin_token.ni_name}}</label>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">角色：{{admin_token.group_name}}</label>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">运行环境：{{version_info}}</label>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">数据库：{{db_version}}</label>
+            </div>
+            <div class="mb-3">
+                
+                <button type="button" onclick="backup_data(1)" class="btn btn-primary btn-sm">备份重要表数据</button>
+                <button type="button" onclick="backup_data(2)"  class="btn btn-success btn-sm">备份所有表数据</button>
+                <button type="button" onclick="backup_data(3)" class="btn btn-primary btn-sm">重建索引</button>
+            </div>
+            <div id="backup_tips" class="alert alert-info" style="display: none;" role="alert">备份结果</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function backup_data(backup_type){
+        let tips  = "vercel下备份可能会失败，确认后会覆盖当前备份目录下现在有数据，确定要备份数据吗？";
+        if(backup_type===3){
+            tips = "一般情况下不需要重建索引，除非你认识你的索引已经丢失，确认重建索引吗？";
+        }
+        if(confirm(tips)){
+            blockTips("备份中...")
+            let prams = {"t":backup_type}
+            post_form("{{ admin_path }}api/databack", prams, (rz)=>{
+                unBlock();      
+                $("#backup_tips").text(rz.msg);
+                $("#backup_tips").show();
+            });
+        }        
+    }
+    
+</script>
+
+{% endblock %} 

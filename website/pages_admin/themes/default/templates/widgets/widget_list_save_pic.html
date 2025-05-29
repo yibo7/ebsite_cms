@@ -1,0 +1,57 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<link href="{{admin_path}}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploader.min.js"></script>
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploaderpic.js"></script>
+
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>添加或修改部件</h3>
+            </div>
+            <div class="content">
+                <form method="post" >
+                    <div class="mb-3">
+                        <label>部件名称</label>
+                        <input name="name" value="{{model.name}}"  style="max-width:300px" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                      <label>上传图片</label>
+                      <input type="hidden" name="info" id="info" value="{{model.info}}" />
+                      <div class='bduploader'>
+                          <div><div id='imglisttbuUploadImg' class='uploader-imglist'></div></div>
+                          <div id='filedatatbuUploadImg'>选择图片</div>
+                      </div>
+                      <script>InitImgUpload('filedatatbuUploadImg','imglisttbuUploadImg','info',80,80,true);</script>
+                    </div>
+                    <div class="mb-3">
+                        <label>数据绑定模板(flask模板语法)</label>
+                        <div style="width:100%;min-height:300px;" id="temp_code_div">{{model.temp_code}}</div>
+                        <textarea style="display:none" id="temp_code" name="temp_code" class="form-control" rows="10" cols="100" required>{{model.temp_code}}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>缓存时间(秒)</label>
+                        <input name="cache_time" value="{{model.cache_time}}" style="max-width:100px" type="number" class="form-control" required>
+                    </div>
+                    <div class="alert alert-info">默认0表示不缓存，缓存可减少部件模板渲染处理频率，特别是有慢数据查询时效果显著</div>
+                    <input hidden value="{{model._id}}" name="_id" >
+                    <input hidden value="{{model.temp_type}}" name="temp_type" >
+                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                    {% if err %}
+                        <div class="alert alert-danger">err</div>
+                    {%endif%}
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function(){
+        init_ace("temp_code_div","temp_code");
+    });
+  </script>
+{% endblock %}

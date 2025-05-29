@@ -1,0 +1,49 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<div style="padding:10px;" >
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="credits_orders">积分订单列表</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active"  aria-current="page" href="apply_credits_admin">审核积分</a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="credit_list">积分流水</a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="credit_plan_admin">积分套餐</a>
+      </li>
+    </ul>
+    <div class="table-box">
+        <div class="btn-toolbar px-2">
+            <form method="get">
+                <div class="btn-group">
+                    <input class="form-control" placeholder="关键字" name="k" type="text"/>
+                </div>
+                <div class="btn-group">
+                    <select name="tid" style="max-width:300px" class="form-control">
+                            {{build_sel_item(types,'id','name','')}}
+                    </select>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" type="submit">   搜 索   </button>
+                </div>
+                <div class="btn-group">
+                    <a class="btn btn-outline-primary" onclick="return confirm('确认要删除所选项吗？');" href="javascript: del_items('files_del')">
+                        删 除
+                    </a>
+                </div>
+            </form>
+        </div>
+        {{table_html}}
+    </div>
+    <nav class="mt-2 px-2">
+        {{pager}}
+    </nav>
+
+    <div style="padding:10px">
+    注：积分的申请在前台由用户登录后发起。
+    </div>
+</div>
+{% endblock %}

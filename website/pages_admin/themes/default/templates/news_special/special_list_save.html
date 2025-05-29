@@ -1,0 +1,60 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+
+
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>添加或修改用户</h3>
+            </div>
+            <div class="content">
+                <form method="post" >
+                     <div class="mb-3 mt-3">
+                        <label>父级专题</label>
+                        <select name="parent_id" style="max-width:300px" class="form-control">
+                            <option value="">一级专题</option>
+		                    {{build_sel_item(p_list,'_id','name',model.parent_id)}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>专题名称</label>
+                        <input name="name" value="{{model.name}}"  style="max-width:300px" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>专题简介</label>
+                        <textarea style="max-width:500px" name="info" class="form-control" rows="4" cols="50">{{model.info}}</textarea>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label>专题模板</label>
+                        <select name="temp_id" style="max-width:300px" class="form-control">
+		                    {{build_sel_item(temp_special,'_id','name',model.temp_id)}}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>排序权重</label>
+                        <input type="number" name="order_id" value="{{model.order_id}}"  style="max-width:100px" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>每页显示</label>
+                        <input type="number" name="page_size" value="{{model.page_size}}"  style="max-width:100px" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>
+                            <input name="is_good" type="checkbox" {% if model.is_good %}checked{% endif %}>是否推荐
+                            <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_good" value="checkbox_unchecked">
+                        </label>
+                    </div>
+                    <input hidden value="{{model._id}}" id="_id" name="_id" >
+                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                    {% if err %}
+                        <div class="alert alert-danger">{{err}}</div>
+                    {%endif%}
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

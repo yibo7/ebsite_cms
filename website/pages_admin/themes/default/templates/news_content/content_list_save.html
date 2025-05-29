@@ -1,0 +1,52 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+     <link href="{{ admin_path }}js/umeditor/themes/default/_css/umeditor.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="{{ admin_path }}js/umeditor/third-party/template.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ admin_path }}js/umeditor/umeditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="{{ admin_path }}js/umeditor/xs_index/editor_api.js"></script>
+    <script type="text/javascript" src="{{ admin_path }}js/umeditor/lang/zh-cn/zh-cn.js"></script>
+
+    <link href="{{ admin_path }}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploader.min.js"></script>
+    <script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploaderpic.js"></script>
+    <script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploaderfile.js"></script>
+<div class="row eb-box">
+    <div class="col-sm-12 col-md-12 ">
+        <div class="block-flat">
+            <div class="boxheader">
+                <h3>添加或修改内容</h3>
+            </div>
+            <div class="content">
+                <form method="post">
+                    <div class="mb-3 mt-3">
+                        分类:{{class_name}}
+                    </div>
+
+                    {{model_html|safe}}
+
+                    <div class="mb-3">
+                        <label>标签</label>
+                        <input name="tagstr"  value="{{model.get_tag_string()}}" minlength="3" style="max-width:500px" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>
+                            <input name="is_good" type="checkbox" {% if model.is_good %}checked{% endif %}>是否推荐
+                            <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_good" value="checkbox_unchecked">
+                        </label>
+                    </div>
+                    <input hidden value="{{model._id}}" id="_id" name="_id" >
+                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                    {% if err %}
+                        <div class="alert alert-danger">err</div>
+                    {%endif%}
+
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

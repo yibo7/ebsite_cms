@@ -1,0 +1,107 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>UMEDITOR 完整demo</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <link href="https://cdn.jsdelivr.net/gh/yibo7/ebcdn@0.6/umeditor/themes/default/_css/umeditor.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/yibo7/ebcdn@0.6/umeditor/third-party/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/yibo7/ebcdn@0.6/umeditor/third-party/template.min.js"></script>
+    <script type="text/javascript" charset="utf-8" src="https://cdn.jsdelivr.net/gh/yibo7/ebcdn@0.6/umeditor/umeditor.config.js"></script>
+    <script type="text/javascript" charset="utf-8" src="https://cdn.jsdelivr.net/gh/yibo7/ebcdn@0.6/umeditor/xs_index/editor_api.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/yibo7/ebcdn@0.6/umeditor/lang/zh-cn/zh-cn.js"></script>
+  
+</head>
+<body> 
+<!--style给定宽度可以影响编辑器的最终宽度-->
+<script type="text/plain" id="myEditor" style="width:100%;height:100%;">
+</script>  
+<script type="text/javascript">
+    //实例化编辑器
+    var um = UM.getEditor('myEditor');
+     
+    //按钮的操作
+    function insertHtml(html) { 
+        um.execCommand('insertHtml', html.Data)
+    }
+    function isFocus(){
+        alert(um.isFocus())
+    }
+    function doBlur(){
+        um.blur()
+    }
+    function createEditor() {
+        enableBtn();
+        um = UM.getEditor('myEditor');
+    }
+    function getAllHtml() {
+        alert(UM.getEditor('myEditor').getAllHtml())
+    }
+    function getContent() {
+        const html = UM.getEditor('myEditor').getContent();  
+        return html;
+    }
+    function getPlainTxt() {
+        return UM.getEditor('myEditor').getPlainTxt();
+    }
+    function setContent(html,isAppendTo) { 
+        UM.getEditor('myEditor').setContent(html.Data, isAppendTo); 
+    }
+    function setDisabled() {
+        UM.getEditor('myEditor').setDisabled('fullscreen');
+        disableBtn("enable");
+    }
+
+    function setEnabled() {
+        UM.getEditor('myEditor').setEnabled();
+        enableBtn();
+    }
+
+    function getText() {
+        //当你点击按钮时编辑区域已经失去了焦点，如果直接用getText将不会得到内容，所以要在选回来，然后取得内容
+        var range = UM.getEditor('myEditor').selection.getRange();
+        range.select();
+        var txt = UM.getEditor('myEditor').selection.getText();
+        return txt;
+    }
+
+    function getContentTxt() {
+         return UM.getEditor('myEditor').getContentTxt();
+    }
+    function hasContent() {
+        var arr = [];
+        arr.push("使用editor.hasContents()方法判断编辑器里是否有内容");
+        arr.push("判断结果为：");
+        arr.push(UM.getEditor('myEditor').hasContents());
+        alert(arr.join("\n"));
+    }
+    function setFocus() {
+        UM.getEditor('myEditor').focus();
+    }
+    function deleteEditor() {
+        disableBtn();
+        UM.getEditor('myEditor').destroy();
+    }
+    function disableBtn(str) {
+        var div = document.getElementById('btns');
+        var btns = domUtils.getElementsByTagName(div, "button");
+        for (var i = 0, btn; btn = btns[i++];) {
+            if (btn.id == str) {
+                domUtils.removeAttributes(btn, ["disabled"]);
+            } else {
+                btn.setAttribute("disabled", "true");
+            }
+        }
+    }
+    function enableBtn() {
+        var div = document.getElementById('btns');
+        var btns = domUtils.getElementsByTagName(div, "button");
+        for (var i = 0, btn; btn = btns[i++];) {
+            domUtils.removeAttributes(btn, ["disabled"]);
+        }
+    }
+</script>
+
+</body>
+</html>
