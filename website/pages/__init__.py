@@ -23,12 +23,20 @@ def inject_site_name():
 
     return {'SiteName': current_app.config['site_name'] or 'ebsite'}
 
+from flask import Request
+from werkzeug.test import EnvironBuilder
 def render_and_cache_index():
     with current_app.app_context():
-        rendered = render_template("index.html")
-        eb_cache.set_data(rendered, ex_second=0, key=CacheKeys.INDEX_HTML)
-        eb_cache.set_data(time.time(), ex_second=0, key=CacheKeys.INDEX_TIME)
-        return rendered
+        # 创建一个伪请求上下文,context_processor 被正常调用，SiteName 等变量也就能注入成功
+        builder = EnvironBuilder(path='/')
+        env = builder.get_environ()
+        req = Request(env)
+        with current_app.request_context(env):
+            rendered = render_template("index.html")
+            eb_cache.set_data(rendered, ex_second=0, key=CacheKeys.INDEX_HTML)
+            eb_cache.set_data(time.time(), ex_second=0, key=CacheKeys.INDEX_TIME)
+            return rendered
+
 def run_in_app_context(app, func, *args, **kwargs):
     def wrapped():
         with app.app_context():
@@ -48,9 +56,7 @@ def index():
                 run_in_app_context(use_app, render_and_cache_index)
             return make_response(cached_html)
 
-        # 缓存失效或首次渲染
         rendered = render_and_cache_index()
-        # print(f"缓存时间：{cache_time} 秒")
         return make_response(rendered)
 
     return render_template("index.html")
