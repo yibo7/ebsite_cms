@@ -212,9 +212,9 @@ class WeiXinHelper:
 
 
 def wei_xin_bll():
-    wxzf_appid = 'wx7261621a054cff30'
-    wx_secret = '02337a893aee9f8ccf46a2d85ca59e68' # 基于web端的微信登录也使用到此key
-    wxzf_mch_id = '1684879749'
-    api_key = 'I3hy6G2M0sk7S36Ax8L29C4h7s9gW7g3'
+    wxzf_appid = 'wx72616fffffff30'
+    wx_secret = 'test' # 基于web端的微信登录也使用到此key
+    wxzf_mch_id = '1111111'
+    api_key = 'testtesttest'
 
     return WeiXinHelper(wxzf_appid, wx_secret, wxzf_mch_id, api_key)
