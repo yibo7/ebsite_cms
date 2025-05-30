@@ -59,7 +59,7 @@ def content_list_save():
         model.user_ni_name = admin_token.ni_name
 
         model.class_name = class_model.class_name
-        model.class_id = class_id
+        model.class_id = class_model._id
         model.class_n_id = class_model.id
 
         tagstr = http_helper.get_prams("tagstr")

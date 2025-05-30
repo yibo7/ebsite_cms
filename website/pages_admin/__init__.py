@@ -128,6 +128,8 @@ def setup_data():
 
     if site_key_md5 == RandomKey:
         is_allow = True
+    else:
+        print(f'输入的随机数【{site_key_md5}】与当前随机数不匹配{RandomKey}不匹配')
 
     is_exist_all_table = DataBakup().is_exist_all_table()
 

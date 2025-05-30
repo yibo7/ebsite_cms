@@ -18,7 +18,7 @@ def list(id: int, p: int):
     if model:
         bll = NewsContent()
         rewrite_rule = f'/c{id}p{{0}}.html'
-        data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule, {'class_id': str(model._id)})
+        data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule, {'class_id': model._id})
         temp_model = Templates(1).find_one_by_id(model.class_temp_id)
         if temp_model.temp_model == 1:
             return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager)

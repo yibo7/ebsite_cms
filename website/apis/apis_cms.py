@@ -209,7 +209,7 @@ def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
     model.user_ni_name = user_model.ni_name
 
     model.class_name = class_model.class_name
-    model.class_id = class_model._id
+    model.class_id = str(class_model._id)
     model.class_n_id = class_model.id
 
     if model.tags:
