@@ -35,6 +35,9 @@ class NewsClassModel(ModelBase):
         self.column_9: Any = None
         self.column_10: Any = None
 
+    def get_url(self):
+        return url_links.get_class_url(self.id)
+
     @annotation("分类名称")
     def a_class_name(self):
         return f'<a href="{url_links.get_class_url(self.id)}" target=_blank >{self.class_name}</a>'

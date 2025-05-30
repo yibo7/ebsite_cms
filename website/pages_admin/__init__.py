@@ -180,7 +180,7 @@ def admin_settings():
     email_senders = current_app.pm.get_by_email_plugins()
     uploaders = current_app.pm.get_by_uploader_plugins()
     theme_names = get_theme_folders()
-    print(theme_names)
+    # print(theme_names)
     baseSettings = current_app.config['base_settings']
     currentTheme = baseSettings["ThemeName"]
 

@@ -25,6 +25,8 @@ def inject_site_name():
 
 from flask import Request
 from werkzeug.test import EnvironBuilder
+
+
 def render_and_cache_index():
     with current_app.app_context():
         # 创建一个伪请求上下文,context_processor 被正常调用，SiteName 等变量也就能注入成功
@@ -32,9 +34,11 @@ def render_and_cache_index():
         env = builder.get_environ()
         req = Request(env)
         with current_app.request_context(env):
-            rendered = render_template("index.html")
+            temp_path = current_app.config.get('index_temp_path',"index.html")
+            rendered = render_template(temp_path)
             eb_cache.set_data(rendered, ex_second=0, key=CacheKeys.INDEX_HTML)
             eb_cache.set_data(time.time(), ex_second=0, key=CacheKeys.INDEX_TIME)
+            print("index cache updated")
             return rendered
 
 def run_in_app_context(app, func, *args, **kwargs):
@@ -45,6 +49,7 @@ def run_in_app_context(app, func, *args, **kwargs):
 
 @pages_blue.route('/', methods=['GET'])
 def index():
+    temp_path = current_app.config.get('index_temp_path',"index.html")
     cache_time = current_app.config.get('index_cache_time', 0)
     cache_time = int(cache_time)
     if cache_time > 0:
@@ -59,7 +64,7 @@ def index():
         rendered = render_and_cache_index()
         return make_response(rendered)
 
-    return render_template("index.html")
+    return render_template(temp_path)
 
 
 @pages_blue.errorhandler(404)

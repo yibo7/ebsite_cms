@@ -137,22 +137,25 @@ function trigger_lsm_mini() {
 点击左侧菜单定位scroll-target到描点
 * */
 function lefeMenuScrollToLab() {
-
   const offset = 90;
-  if (window.location.hash) {
-    const $scrollToElement = $(window.location.hash);
-    if ($scrollToElement.length) {
-      $("html, body").animate({
-        scrollTop: $scrollToElement.offset().top - offset
-      }, 1000);
-    }
-  }
 
-  $(document).on('click', '.sidebar-menu .nav-item > .nav-link', function(ev) {
+  // 页面加载时如果有 hash，则滚动到对应元素
+  // if (window.location.hash) {
+  //   const $scrollToElement = $(window.location.hash);
+  //   if ($scrollToElement.length) {
+  //     $("html, body").animate({
+  //       scrollTop: $scrollToElement.offset().top - offset
+  //     }, 1000);
+  //   }
+  // }
+
+  // 菜单点击事件处理
+  $(document).on('click', '.sidebar-menu .nav-item > .nav-link', function (ev) {
     const _this = $(this);
     const scrollTargetId = _this.data('scroll-target') || _this.attr('href');
     const isHashLink = scrollTargetId && scrollTargetId.startsWith('#');
     const isHomePage = location.pathname === '/' || location.pathname === '/index.html';
+    const fallbackUrl = _this.data('link'); // 备用跳转链接
 
     if (isHashLink) {
       ev.preventDefault();
@@ -163,15 +166,23 @@ function lefeMenuScrollToLab() {
           $("html, body").animate({
             scrollTop: $scrollToElement.offset().top - offset
           }, 500);
+        } else if (fallbackUrl) {
+          window.location.href = fallbackUrl + scrollTargetId;
         }
       } else {
-        // 不在首页时，跳转到首页 + hash
-        window.location.href = '/' + scrollTargetId;
+        // 不在首页时直接跳转（使用 fallbackUrl 优先）
+        if (fallbackUrl) {
+            window.location.href = fallbackUrl
+          // window.location.href = fallbackUrl + scrollTargetId;
+        }
+        // else {
+        //   window.location.href = '/' + scrollTargetId;
+        // }
       }
     }
   });
-
 }
+
 function ChkSo(ob) {
 
     if (ob.k.value == "") {

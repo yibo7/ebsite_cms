@@ -1,0 +1,117 @@
+{% extends 'base_site.html' %}
+{% block title %}
+首页
+{% endblock %}
+
+{% block content %}
+
+<!-- 搜索 -->
+<div class="container container-fluid customize-width">
+  <div id="search" class="s-search mx-auto my-4">
+    <div  class="hide-type-list">       
+      <div class="search-group group-a s-current">
+        <span class="type-text text-muted">常用</span>
+        <ul class="search-type">
+          <li>
+            <input checked="checked" hidden type="radio" name="type" id="type-zhannei">
+            <label for="type-zhannei"><span class="text-muted">站内</span></label>
+          </li>
+          <li>
+            <input hidden type="radio" name="type" id="type-baidu">
+            <label for="type-baidu"><span class="text-muted">百度</span></label>
+          </li>
+          <li>
+            <input hidden type="radio" name="type" id="type-google">
+            <label for="type-google"><span class="text-muted">Google</span></label>
+          </li> 
+          <li>
+            <input hidden type="radio" name="type" id="type-bing">
+            <label for="type-bing"><span class="text-muted">Bing</span></label>
+          </li>
+        </ul>
+      </div> 
+    </div>
+    <form  method="get" target="_blank" >
+      <input type="text" id="search-text" class="form-control "  placeholder="输入关键字搜索" ></input>
+      <button type="submit">
+        <i class="fa fa-search"></i>
+      </button>
+    </form> 
+  </div>
+</div>
+<!-- 搜索END -->
+ <!-- content start -->
+<div id="content" class="container container-fluid customize-width">
+  <div class="indexmh intro-container">
+    <div class="content">
+      <div class="content-wrap">
+        <div class="content-layout">
+              
+          <div class="tabfg">
+            <div class="tabmh clearfix">
+              <h4 class="text-gray text-lg">
+                <i class="fa fa-bookmark-o"></i> <span>推荐</span>
+              </h4>
+                 <!-- tab模式菜单 -->
+                <div class="d-flex flex-fill flex-tab align-items-center">
+               
+                    <div class="flex-fill"></div>
+                   
+                </div>
+            </div>
+            <!-- tab模式菜单 end -->
+            <div class="tab-content mt-4 ">
+              <div id="tab-3592-15" class="tab-pane active">
+                <div class="row io-mx-n2 mt-4 ajax-list-body position-relative">
+
+                    {{ widget("68352bf6a3dab8f97467c619") }}
+
+                </div>
+              </div> 
+            </div>
+          </div>
+           <!-- 分类内容列表 -->
+            {{ widget("683910648e60813c95ee4cb9") }}
+        </div>
+      </div>
+    </div>
+    <h4 class="text-gray text-lg mb-4"><i class="fa fa-tags"></i> 友情链接</h4>
+    <div class="friendlink text-xs card">
+      <div class="card-body">
+        {{ widget("65533cfe260493275af1c1d2") }}         
+      </div>
+    </div>
+    
+  </div>
+</div>
+<!-- content end -->
+
+
+      <div class="container container-fluid customize-width mt-2">
+        <div class="footer-inner card rounded-xl m-0 intro-container">
+          <div class="footer-text card-body text-muted text-center text-md-left">
+            <div class="row my-4">
+              <div class="col-12 col-md-4 mb-4 mb-md-0">
+                <a class="footer-logo" href="/" >
+                  <img src="/images/logo2.png" style="max-width: 300px;" class="logo-light mb-3"  >
+                </a>
+              </div>
+              <div class="col-12 col-md-5 mb-4 mb-md-0 text-sm">
+                  {{ widget("66efd16d10df7056e43b9c4e") }}
+              </div>
+              <div class="col-12 col-md-3 text-md-right mb-4 mb-md-0">
+                <div class="footer-mini-img" data-toggle="tooltip" title="扫码加微信">
+                  <p class="bg-light rounded-lg p-1">
+                    <img  src="/images/qr.jpg" alt="扫码加微信"></p>
+                  <span class="text-muted text-ss mt-2">扫码加微信</span></div>
+              </div>
+            </div>
+            <div class="footer-copyright text-xs">Copyright © 2025
+              <a href="https://ebsite.3k2k.com"  > From EbSite </a>&nbsp;
+              <a href="https://beian.miit.gov.cn/" target="_blank" class="" rel="link noopener">粤ICP备2022142501号-1</a>&nbsp;
+            </div>
+          </div>
+        </div>
+      </div>
+     <script type="text/javascript" src="/eblinks_search.js?ver=0.1"></script>
+{% endblock %}
