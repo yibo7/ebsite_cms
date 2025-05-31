@@ -50,13 +50,18 @@
           <div class="tabfg">
             <div class="tabmh clearfix">
               <h4 class="text-gray text-lg">
-                <i class="fa fa-bookmark-o"></i> <span>推荐</span>
+                <i class="fa fa-bookmark-o"></i> <span>最新图文</span>
               </h4>
                  <!-- tab模式菜单 -->
                 <div class="d-flex flex-fill flex-tab align-items-center">
-               
+                    <div class="slider_menu mini_tab ajax-list-home into" slidertab="sliderTab" data-id="670">
+                        <ul class="nav nav-pills tab-auto-scrollbar menu overflow-x-auto" role="tablist">
+                            <li class="anchor" style="position: absolute; width: 94px; height: 28px; left: 282px; opacity: 1;"></li>
+
+                        </ul>
+                    </div>
                     <div class="flex-fill"></div>
-                   
+                    <a class="btn-move tab-move text-xs ml-2"  >本站文章由EbSite AI模块自动更新，仅供参考</a>
                 </div>
             </div>
             <!-- tab模式菜单 end -->
@@ -70,8 +75,27 @@
               </div> 
             </div>
           </div>
-           <!-- 分类内容列表 -->
-            {{ widget("683910648e60813c95ee4cb9") }}
+            <div class="tabfg">
+                <div class="tabmh">
+                  <h4 class="text-gray text-lg">
+                    <i class="fa fa-bookmark-o"></i> <span>最新文章</span>
+                    <span class="list-title-txt fl cut">
+                        <span class="separator"></span>
+                    </span>
+                  </h4>
+                    <div class="d-flex flex-fill flex-tab align-items-center">
+                        <div class="slider_menu mini_tab " slidertab="sliderTab">
+                            <ul class="nav nav-pills tab-auto-scrollbar menu">
+                              {{ widget("68351f496096ec9cdadee147") }}
+                            </ul>
+                        </div>
+                            <div class="flex-fill"></div>
+                            <a class="btn-move tab-move text-xs ml-2" href="/tags1.html"  >More+</a>
+                    </div>
+                </div>
+                <!-- 分类内容列表 -->
+                {{ widget("683910648e60813c95ee4cb9") }}
+            </div>
         </div>
       </div>
     </div>

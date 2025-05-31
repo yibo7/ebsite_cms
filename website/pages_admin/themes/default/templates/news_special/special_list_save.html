@@ -1,6 +1,8 @@
 {% extends 'base_admin.html' %}
 {% block content %}
-
+<link href="{{admin_path}}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploader.min.js"></script>
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploaderpic.js"></script>
 
 <div class="row eb-box">
     <div class="col-sm-12 col-md-12 ">
@@ -20,6 +22,15 @@
                     <div class="mb-3">
                         <label>专题名称</label>
                         <input name="name" value="{{model.name}}"  style="max-width:300px" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                      <label>上传图片</label>
+                      <input type="hidden" name="img_src" id="img_src" value="{{model.img_src}}" />
+                      <div class='bduploader'>
+                          <div><div id='imglisttbuUploadImg' class='uploader-imglist'></div></div>
+                          <div id='filedatatbuUploadImg'>选择图片</div>
+                      </div>
+                      <script>InitImgUpload('filedatatbuUploadImg','imglisttbuUploadImg','img_src',80,80,false);</script>
                     </div>
                     <div class="mb-3">
                         <label>专题简介</label>

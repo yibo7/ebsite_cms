@@ -203,13 +203,12 @@ def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
     if not model.title:
         return jsonify(api_msg.api_err("标题不能为空！"))
 
-
     model.user_id = user_model._id
     model.user_name = user_model.username
     model.user_ni_name = user_model.ni_name
 
     model.class_name = class_model.class_name
-    model.class_id = str(class_model._id)
+    model.class_id = class_model._id
     model.class_n_id = class_model.id
 
     if model.tags:

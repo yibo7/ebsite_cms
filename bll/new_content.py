@@ -43,6 +43,9 @@ class NewsContent(BllBase[NewsContentModel]):
 
         return model
 
+    def update_hits(self,content_id:ObjectId):
+        self.table.update_one({'_id': content_id}, {'$inc': {'hits': 1}})
+
     def get_new_datas(self, class_id: str, top: int) -> list[NewsContentModel]:
         """
         获取最新数据

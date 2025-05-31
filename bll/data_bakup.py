@@ -72,6 +72,8 @@ class DataBakup:
         NewsContent.create_index([("title", 1), ("info", 1)])
 
         NewsContent.create_index([("tags", pymongo.ASCENDING)])
+        # NewsContent.create_index([("ClassId", 1), ("rand_num", 1)])
+        NewsContent.create_index("rand_num")
 
     def is_exist_all_table(self):
         """

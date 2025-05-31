@@ -1,0 +1,73 @@
+{% extends 'base_site.html' %}
+{% block title %}
+首页
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-2">
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="title d-flex justify-content-between">
+                <div class="title-txt pull-left">推荐专题</div>
+                
+            </div>
+            <div class="row p-2">
+                    {{ widget("6836c2ac8e1084cb3c787310") }} 
+            </div>
+
+            <div class="title">
+                <div class="title-txt d-flex justify-content-between px-2">
+                    <a>最新发表</a>
+                    
+                    <div class="pull-right">
+                        <a rel="nofollow" href="/tags1.html"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+            </div>            
+            {{ widget("683910648e60813c95ee4cb9") }}
+
+            
+            <!---left ennd-->
+
+        </div>
+        <div class="col-lg-3 d-none d-lg-block">
+            <a href="/user/index" data-toggle="tooltip" class="share-btn">
+                <span class="share-l">个人中心</span><span style="line-height: 38px; padding-left: 10px;">发表我的文章</span>
+            </a>
+
+            <div class="eb-box mt-2">
+                <div class="right-width-tt right-width-tt03">网友最喜欢</div>
+                <ul class="news-list">
+                  {{ widget("683ac55a62a55dc3512d4425") }}
+                </ul>
+            </div>
+
+            <div class="eb-box mt-2">
+            <div class="right-width-tt right-width-tt03">标签<a href="/tags1.html">更多>></a></div>
+                <div class="taglist">
+                    {{ widget("68351f496096ec9cdadee147") }} 
+                </div>
+        </div>
+
+        </div> 
+    </div>
+</div>
+
+<div class="footer d-none d-lg-block mt-5">
+    <div class="container">
+        <div class="clearfix">
+            <div class="pull-left footer-link-l">友情链接【<a href="/c103p1.html" rel="nofollow">交换申请</a>】</div>
+            <ul class="pull-left footer-link-a clearfix">
+               {{ widget("65533cfe260493275af1c1d2") }}
+            </ul>
+        </div> 
+        <div class="footer-p">
+           <font style="color: aliceblue;font-weight: bold;">关于我们：</font>{{ widget("66efd16d10df7056e43b9c4e") }}
+        </div>
+    </div>
+
+</div>
+
+
+{% endblock %}

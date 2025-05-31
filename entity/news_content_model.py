@@ -1,3 +1,4 @@
+import random
 from typing import Any
 
 import eb_utils
@@ -24,7 +25,7 @@ class NewsContentModel(ModelBase):
         self.user_id: str = ""
         self.user_name: str = ""
         self.user_ni_name: str = ""
-        self.rand_num: int = random_int(1, 100)
+        self.rand_num = random.random()
         self.is_good: bool = False
         self.tags = []
         self.old_tags = [] # 辅助更新标签，更新后会删除

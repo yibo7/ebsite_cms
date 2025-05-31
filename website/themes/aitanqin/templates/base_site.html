@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" class="io-white-mode">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{% endblock %}-{{SiteName}}</title>
+  <link rel="icon" href="/favicon.svg" />
+  <meta name="keywords" content="EbSite,免费建站,开源CMS" />
+  <meta name="description" content="{{ widget("66efd16d10df7056e43b9c4e") }}" />
+  <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
+  <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
+</head>
+
+<body class="home blog sidebar_no theme-intro">
+
+  <div class="head-fixed bg-header">
+    <div class="container">
+      <header class="d-flex  justify-content-between py-2">
+
+        <div class="d-flex me-md-auto mb-md-0 ">
+          <a class="d-flex align-items-center topsobtn" href="/">
+            <!-- <img alt="logo" src="/images/logo.png" /> -->
+            <i class="fa fa-pied-piper fa-2x" style="color: #cf511f;"></i>
+            <span class="fs-4 logotext">{{SiteName}}</span>
+          </a>
+          <div class="me-md-auto d-none d-md-block">
+            <form onsubmit="return ChkSo(this);" method="get" action="/search.html">
+              <div class="input-group">
+                <input id="k" name="k" type="text" class="form-control" placeholder="输入关键词" />
+                <button value="搜索" class="btn btn-outline-secondary" type="submit" id="btnSearch"><i
+                    class="fa fa-search"></i></button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="d-none d-lg-block">
+          <ul class="nav nav-pills">
+            {{ widget("64d369a73d94dd897b8f5971") }}
+            <li class="nav-item">
+              <a href="/user/index" class="nav-link ">
+                <i style="font-size:22px;" class="fa fa-user-circle-o" ></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <i id="btn_open_left" class="fa fa-list-ul fa-2x d-lg-none" style="color: #797979;"></i>
+
+      </header>
+    </div>
+  </div>
+
+  {% block content %}{% endblock %}
+
+
+  <div class="footer">
+    <div class="container">
+
+      <div class="clearfix">
+        <div class="pull-left">
+          <div class="footer-color">EbSite　© 版权所有 2008-2025 All Rights Reserved　备案号：<a target="_blank" rel="nofollow"
+              href="https://beian.miit.gov.cn">粤ICP备2022142501号-1</a> </div>
+          <div class="footer-color footer-color-b">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="offcanvas offcanvas-start" style="width: 250px;" tabindex="-1" id="offcanvasATQ" aria-labelledby="offcanvasATQ">
+    <div class="top-box">
+      <div class="top-box-inner">
+        <div class="offcanvas-header">
+          <div class="offcanvas-title">
+            <a class="d-flex align-items-center topsobtn" href="/">
+              <!-- <img alt="logo" src="/logo.png" /> -->
+              <i class="fa fa-pied-piper fa-2x" style="color: #cf511f;"></i>
+              <span class="fs-4 logotext">{{SiteName}}</span>
+            </a>
+          </div>
+          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+    <div class="index-so-box">
+      <form onsubmit="return ChkSo(this);" method="get" action="/search.html">
+        <div class="input-group mt-3 mb-3">
+          <input type="text" name="k" class="form-control" placeholder="输入关键词">
+          <button type="submit" style="background-color: #ee5f11" class="btn">
+            <i style="color: #fff;" class="fa fa-search"></i>
+          </button>
+        </div>
+      </form>
+
+        <ul class="navbar-nav">
+        {{ widget("64d369a73d94dd897b8f5971") }}
+      </ul>
+    </div>
+
+  </div>
+
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
+  <script src="/js/comm.js" defer></script>
+  <script src="/extensions.js" defer></script>
+</body>
+
+</html>
