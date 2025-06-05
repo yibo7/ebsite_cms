@@ -20,7 +20,8 @@ class SiteSettings:
             "uploader_id": "UploaderMongoDb",
             "upload_max_size": "1",
             "upload_types": ".gif, .png, .jpg, .jpeg, .bmp, .rar, .zip, .txt, .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .csv, .mp3, .mp4, .avi, .mov, .wmv",
-            "app_token_expired": "24"
+            "app_token_expired": "24",
+            "list_page_size": 20
         }
         return model
 

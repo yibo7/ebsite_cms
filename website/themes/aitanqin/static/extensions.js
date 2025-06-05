@@ -1,39 +1,22 @@
-﻿In.add('vanilla-lazyload', { path:'/js/lazyload.min.js', type: 'js', charset: 'utf-8' });
- 
+﻿
 $(function () { 
-    
-    //InitLazyload();//异步加载图片
+
     var lazyLoad = null;
     In.ready('vanilla-lazyload', function () {
         lazyLoad = new LazyLoad();
     });
-    // 出如果加载图片出错，切换到另一个地址
-    $('img[data-src]').on('error', function () {
-
-        var fallbackSrc = $(this).data('src');
-        fallbackSrc = fallbackSrc.replace("f.aitanqin.com", "f3.aitanqin.com");
-        $(this).attr('src', fallbackSrc);
-        // 可选：取消错误事件的绑定，如果担心无限循环
-        $(this).off('error');
-    });
 
     $(".rank-list span").each(function (i) {
-        $(this).text(i + 1)
+    $(this).text(i + 1)
     });
 
-    $("#specialList>div").click(function () {
-        let url = $(this).find("a").attr("href");
-        gotourl(url);
-    });
-   
-
-    if ($(".nextpage").length > 0) {
+    if ($(".pagination").length > 0) {
         In.ready('infinitescroll', function () {
             
-            let $container = $('.chords-row').infiniteScroll(
+            let $container = $('.eb-list-box').infiniteScroll(
                 {
-                    path: '.nextpage', //下页连接的选择器
-                    append: '.score-lst-box',      //你要检索的所有项目的选择器,
+                    path: '.next-page', //下页连接的选择器
+                    append: '.eb-list-item',      //你要检索的所有项目的选择器,
                     button: '.load-more',   //点击哪个元素加载
                     status: '.page-load-status',
                     checkLastPage: true     //检查无限滚动是否已到达最后一页
@@ -61,6 +44,8 @@ $(function () {
             }
 
         });
+    }else {
+        $(".load_more_box").hide()
     }
     $(".taglist a").each(function (i) {
         this.style.color = "#" + randomcolor();
@@ -82,5 +67,42 @@ function randomcolor() {
         str = "0" + str;
     }
     return str;
-} 
- 
+}
+
+// 设置 cookie
+function setCookie(name, value, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${value}; expires=${expires}; path=/`;
+}
+
+// 读取 cookie
+function getCookie(name) {
+  return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
+}
+
+// 设置图标样式
+function updateIcon(theme) {
+  const icon = document.getElementById('themeIcon');
+  if (theme === 'dark') {
+    icon.className = 'fa fa-moon-o';
+  } else {
+    icon.className = 'fa fa-sun-o';
+  }
+}
+
+// 切换主题
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-bs-theme') || 'light';
+  const newTheme = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-bs-theme', newTheme);
+  setCookie('theme', newTheme);
+  updateIcon(newTheme);
+}
+
+// 页面加载时初始化
+(function () {
+  const saved = getCookie('theme') || 'light';
+  document.documentElement.setAttribute('data-bs-theme', saved);
+  updateIcon(saved);
+})();

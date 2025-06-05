@@ -188,6 +188,7 @@ def admin_settings():
 
     if request.method == 'POST':
         prams_dict = http_helper.get_prams_dict()
+        prams_dict["list_page_size"] = http_helper.get_prams_int("list_page_size")
         bll = SiteSettings(current_app.db)
         bll.save_setting(prams_dict)
         current_app.config.update(prams_dict)

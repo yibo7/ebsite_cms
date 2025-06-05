@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hans" class="io-white-mode">
+<html lang="zh-Hans" data-bs-theme="light">
 
 <head>
   <meta charset="UTF-8">
@@ -70,7 +70,7 @@
   </div>
 
 
-  <div class="offcanvas offcanvas-start" style="width: 250px;" tabindex="-1" id="offcanvasATQ" aria-labelledby="offcanvasATQ">
+  <div class="offcanvas offcanvas-start" style="width: 250px; background-color: #2C2E2F" tabindex="-1" id="offcanvasATQ" aria-labelledby="offcanvasATQ">
     <div class="top-box">
       <div class="top-box-inner">
         <div class="offcanvas-header">
@@ -101,7 +101,10 @@
     </div>
 
   </div>
-
+     <!-- 右下角浮动按钮 -->
+   <button class="btn btn-secondary theme-toggle-btn" onclick="toggleTheme()" id="themeIconBtn" title="切换主题">
+    <i class="fa" id="themeIcon"></i>
+  </button>
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
   <script src="/js/comm.js" defer></script>

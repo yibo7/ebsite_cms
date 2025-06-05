@@ -4,7 +4,13 @@
 
 In.add('jqcookie', { path: '/js/plugins/jquery.cookie.js', type: 'js', charset: 'utf-8' });
 In.add('blockui', { path: '/js/plugins/blockui.min.js', type: 'js', charset: 'utf-8' });
+In.add('vanilla-lazyload', { path:'/js/plugins/lazyload.min.js', type: 'js', charset: 'utf-8' });
 In.add('vue', { path: '/js/plugins/vue.js', type: 'js', charset: 'utf-8' });
+
+//无刷新 无限加载
+In.add('infinitescrollcss', { path: '/js/plugins/infinitescroll/css.css' });
+In.add('infinitescroll', { path: '/js/plugins/infinitescroll/js.js', type: 'js', charset: 'utf-8', rely: ['infinitescrollcss'] });
+
 In.add('boostrapjs', { path: 'https://cdn.jsdmirror.com/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js', type: 'js', charset: 'utf-8' });
 //常用插件开发
 

@@ -83,7 +83,7 @@ class MvcPager:
 
         if self.current_page < self.page_num:
             sb.append(
-                f"<li class='page-item'><a class='page-link' href='{self.build_url(self.current_page + 1)}'>下一页</a></li>")
+                f"<li class='page-item'><a class='page-link next-page' href='{self.build_url(self.current_page + 1)}'>下一页</a></li>")
             if self.current_page < (self.page_num - self.show_code_num - 1):
                 sb.append(
                     f"<li class='page-item'><a class='page-link' href='{self.build_url(self.page_num)}'>尾页</a></li>")

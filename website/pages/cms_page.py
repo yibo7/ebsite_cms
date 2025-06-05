@@ -1,7 +1,7 @@
 import threading
 from urllib.parse import quote
 
-from flask import render_template, render_template_string, abort, request, make_response
+from flask import render_template, render_template_string, abort, request, make_response, current_app
 
 from bll.new_class import NewsClass
 from bll.new_content import NewsContent
@@ -19,6 +19,7 @@ def list(id: int, p: int):
     if model:
         bll = NewsContent()
         rewrite_rule = f'/c{id}p{{0}}.html'
+        model.page_size = current_app.config["list_page_size"]
         data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule, {'class_id': model._id})
         temp_model = Templates(1).find_one_by_id(model.class_temp_id)
         if temp_model.temp_model == 1:
@@ -91,6 +92,7 @@ def special(id: int, p:int):
         temp_model = Templates(3).find_one_by_id(model.temp_id)
         query = {"id": {"$in": model.content_ids}}
         rewrite_rule = f'/s{id}p{{0}}.html'
+        model.page_size = current_app.config["list_page_size"]
         data_list, pager = NewsContent().find_pager(p, model.page_size, rewrite_rule, query)
         if temp_model.temp_model == 1:
             return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager)
@@ -108,7 +110,8 @@ def list_tag(tag_id: str, page_number: int):
         return [], ""
     s_where = {"tags": tag_model.name}
     rewrite_rule = f'/tgv{tag_id}ps{{0}}.html'
-    datas, pager = bll.find_pager(page_number, SiteConstant.PAGE_SIZE_AD, rewrite_rule, s_where)
+    page_size = current_app.config["list_page_size"]
+    datas, pager = bll.find_pager(page_number,page_size, rewrite_rule, s_where)
 
     if datas:
         return render_template("list_tag_value.html",model = tag_model, data_list=datas,pager=pager)
@@ -119,7 +122,8 @@ def list_tag(tag_id: str, page_number: int):
 def tags(p: int = 1):
     bll = ContentTags()
     rewrite_rule = f'/tags{{0}}.html'
-    data_list, pager = bll.find_pager(p, 300, rewrite_rule)
+    page_size = current_app.config["list_page_size"] * 20
+    data_list, pager = bll.find_pager(p, page_size, rewrite_rule,"","article_count")
     return render_template("tags.html", data_list=data_list, pager=pager)
 
 @pages_blue.route('/search.html', methods=['GET'])
@@ -132,9 +136,10 @@ def search():
 
     key_word = key_word
 
-    page_size = SiteConstant.PAGE_SIZE_AD
+    page_size = current_app.config["list_page_size"]
     page_number = http_helper.get_prams_int("p",1)
 
     rewrite_rule = f'/search.html?k={quote(key_word)}&p={{0}}'
+
     data_list, pager = bll.search_full(key_word,page_number,page_size, rewrite_rule)
     return render_template("search.html",key_word=key_word, data_list=data_list, pager=pager)

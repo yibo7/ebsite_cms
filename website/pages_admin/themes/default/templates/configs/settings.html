@@ -45,6 +45,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label>前端列表分页（每页显示数条）</label>
+                        <input type="number"  name="list_page_size" value="{{model.list_page_size}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label>
                             <input name="is_open_safe_code" type="checkbox" {{ "checked" if model.is_open_safe_code }} >是否开启验证码
                             <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_open_safe_code" value="checkbox_unchecked">

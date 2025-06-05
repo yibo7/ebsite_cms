@@ -309,7 +309,7 @@ class BllBase(Generic[T], ABC):
         """
 
         # 计算跳过的文档数量
-        if where is None:
+        if not where:
             where = {}
         skip_count = (page_number - 1) * page_size
         # projection = {'content': 0}

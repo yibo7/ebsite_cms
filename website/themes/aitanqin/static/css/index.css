@@ -6,9 +6,7 @@ body {
     max-width: 100%;
     overflow-x: hidden;
 }
-body {
-    background: #ebeff2 !important; 
-}
+
 li {
     list-style: none;
 }
@@ -1164,9 +1162,52 @@ a {
 .taglist a {
   display: inline-block;
   padding: 4px 10px;
-  background-color: #f0f0f0;
+  /*background-color: #f0f0f0;*/
   border-radius: 4px;
   text-decoration: none;
   color: #333;
   font-size: 14px;
 }
+
+/* 黑夜模式下：深色背景 */
+[data-bs-theme="dark"] .eb-box,
+[data-bs-theme="dark"] .card,
+[data-bs-theme="dark"] .list-group-item,
+[data-bs-theme="dark"] .share-btn {
+  background-color: #2C2E2F !important;
+  color: #f1f1f1 !important;
+  border-color: #2C2E2F !important;
+}
+[data-bs-theme="dark"] .taglist a{
+  background-color: #3A3C3D;
+}
+
+
+/* 白天模式或默认模式下：还原为亮色背景 */
+[data-bs-theme="light"] .eb-box,
+[data-bs-theme="light"] .share-btn {
+  background-color: #ffffff !important;
+  color: #212529 !important;
+  border-color: #dee2e6 !important;
+}
+[data-bs-theme="light"] body {
+    background: #ebeff2 !important;
+}
+
+[data-bs-theme="light"] .taglist a {
+  background-color: #f0f0f0;
+}
+
+/* 浮动按钮样式 */
+    .theme-toggle-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1;
+    }
