@@ -27,7 +27,10 @@ def create_app():  # run_mode
     # db_conn = os.environ.get('MONGODB_SERV', None)
     # if db_conn:
     #     base_setting["MONGODB_SERV"] = db_conn
-    theme_name = base_setting["ThemeName"]
+    default_theme = base_setting["ThemeName"]
+
+    theme_name = os.environ.get('THEME', default_theme)
+
     theme_template_path = os.path.join('themes', theme_name, 'templates')
     theme_static_path = os.path.join('themes', theme_name, 'static')
     app = Flask(__name__,template_folder=theme_template_path, static_folder=theme_static_path,static_url_path='/')
