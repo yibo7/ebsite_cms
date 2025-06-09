@@ -65,7 +65,7 @@
     - 免费申请512MB: https://cloud.mongodb.com
 - 缓存(可选): Redis
     - 免费申请30M: https://app.redislabs.com
-
+ 
  
 # 三、本地调试
 将项目clone到本地后，可用pytharm（vs code）打开。
