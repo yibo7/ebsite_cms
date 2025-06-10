@@ -79,8 +79,7 @@
 
 立即创建我的网站：
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyibo7%2Febsite_cms.git&env=SITE_KEY,MONGODB_SERV,MONGODB_NAME,THEME&envDescription=SITE_KEY%20is%20the%20site%20secret%2C%20MONGODB_SERV%20is%20the%20MongoDB%20connection%20string%2C%20MONGODB_NAME%20is%20the%20database%20name%20%28optional%2C%20uses%20default%20if%20empty%29%2C%20THEME%20%28%E7%BD%91%E7%AB%99%E4%B8%BB%E9%A2%98%EF%BC%8C%E7%9B%AE%E5%89%8D%E6%94%AF%E6%8C%81aitanqin%E3%80%81eblinks%E3%80%81default%EF%BC%8C%E4%B8%8D%E5%A1%AB%E5%86%99%E5%B0%86%E9%87%87%E7%94%A8%E9%BB%98%E8%AE%A4%E5%80%BC%29&project-name=ebsite_cms&repository-name=ebsite_cms)
-
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fyibo7%2Febsite_cms.git&env=SITE_KEY,MONGODB_SERV,MONGODB_NAME&project-name=ebsite_cms&repository-name=ebsite_cms)
 
 详细部署教程：
 - [在Vercel上运行](doc/项目部署/1.在Vercel上运行.md)
