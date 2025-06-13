@@ -16,8 +16,13 @@ from flask import current_app, Flask
 
 
 class BllBase(Generic[T], ABC):
+
+    table_name: Optional[str] = None  # 类属性，子类可以覆盖它
+
     def __init__(self, app: Optional[Flask] = None):
-        self.table_name = type(self).__name__
+        # 如果子类未设置 table_name，则使用类名
+        if self.table_name is None:
+            self.table_name = type(self).__name__
 
         cur_app = app if app else current_app
         self.app = cur_app

@@ -24,5 +24,5 @@ class WebPaths(object):
 class SiteConstant(object):
     COOKIE_AD_TOKEN_KEY = "ua_key"
     COOKIE_TOKEN_KEY = "u_key"
-    PAGE_SIZE_AD = 30
+    PAGE_SIZE_AD = 20
     SITE_KEY = os.environ.get('SITE_KEY', 'ebsite20015')

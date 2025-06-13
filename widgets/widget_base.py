@@ -8,8 +8,7 @@ from markupsafe import Markup
 from entity.widgets_model import WidgetsModel
 
 
-class WidgetTypeModel(ABC):
-    _subclasses = []  # 类变量，用来存储所有子类的引用
+class WidgetBase(ABC): 
     def __init__(self):
         self.id: int = 0 # 指定一个数字ID，注意不能重复
         self.name: str = '' # 部件类型名称

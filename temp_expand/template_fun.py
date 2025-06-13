@@ -6,8 +6,9 @@ from bson import ObjectId
 from markupsafe import Markup
 
 from bll.new_class import NewsClass
-from bll.new_content import NewsContent
-from bll.widgets import Widgets
+from bll.new_content import NewsContent 
+
+from bll.widget_bll import WidgetBll
 from eb_utils import url_links
 from entity.select_opt import SelectItem
 
@@ -54,7 +55,7 @@ def reg_temp_expand_fun(app):
 
     @app.template_global()
     def widget(data_id: str):
-        return Widgets().get_content(data_id)
+        return WidgetBll().get_content(data_id)
 
     @app.template_global()
     def get_sub_class(pid: str):

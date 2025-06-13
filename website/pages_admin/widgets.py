@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, g
 
-from bll.widgets import Widgets
+from bll.widget_bll import WidgetBll
 from entity.widgets_model import WidgetsModel
 from temp_expand import get_table_html
 from website.pages_admin import admin_blue
@@ -14,7 +14,7 @@ from eb_utils.configs import WebPaths
 def widgets_list():
     keyword = http_helper.get_prams("k")
     page_num = http_helper.get_prams_int("p", 1)
-    datas, pager = Widgets().search(keyword, page_num, 'name')
+    datas, pager = WidgetBll().search_data(keyword, page_num)
 
     del_btn = {"show_name": "删除", "url": "widget_list_del?ids=#_id#", "confirm": True}
     modify_btn = {"show_name": "修改", "url": "widget_list_save?_id=#_id#", "confirm": False}
@@ -28,7 +28,7 @@ def widgets_list():
 
 @admin_blue.route('widget_sel_type', methods=['GET'])
 def widget_sel_type():
-    data_list = Widgets().get_types()
+    data_list = WidgetBll().get_types()
     return render_template(WebPaths.get_admin_path("widgets/widget_sel_type.html"), data_list=data_list)
 
 
@@ -42,7 +42,7 @@ def widgets_list_save():
 
     model = WidgetsModel()
     model.temp_type = temp_type
-    bll = Widgets()
+    bll = WidgetBll()
     if g_id:
         model = bll.find_one_by_id(g_id)
     err = ''
@@ -72,7 +72,7 @@ def widgets_list_save():
 
 @admin_blue.route('widget_list_del', methods=['GET', 'POST'])
 def widgets_list_del():
-    Widgets().delete_from_page(http_helper.get_prams("ids"))
+    WidgetBll().delete_from_page(http_helper.get_prams("ids"))
     return redirect("widget_list")
 
 # endregion

@@ -8,7 +8,7 @@ from bll.new_class import NewsClass
 from bll.new_content import NewsContent
 from bll.new_special import NewsSpecial
 from bll.user import User
-from bll.widgets import Widgets
+from bll.widget_bll import WidgetBll
 from decorators import rate_limit_ip
 from eb_cache import cache
 from eb_utils import http_helper
@@ -43,7 +43,7 @@ def widget():
     获取某个部件模板渲染后的html代码
     """
     widget_id = http_helper.get_prams('wid')
-    data,s_title = Widgets().get_content(widget_id)
+    data,s_title = WidgetBll().get_content(widget_id)
     return jsonify(api_msg.api_succesful(data,s_title))
 
 @api_blue.route('custom_form', methods=['POST'])

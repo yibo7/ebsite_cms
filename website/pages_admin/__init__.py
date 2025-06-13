@@ -150,6 +150,13 @@ def admin_index():
     return render_template("admin_index.html", menu_data=menu)
 
 
+
+@admin_blue.route('upload_img', methods=['GET'])
+def upload_img():
+    GetSrc = http_helper.get_prams("src") or "/nopic.gif"
+
+    return render_template("upload_img.html",GetSrc=GetSrc)
+
 @admin_blue.route('wellcome', methods=['GET'])
 def admin_wellcome():
     admin_token = g.u

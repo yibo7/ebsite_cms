@@ -4,8 +4,9 @@ Custom filters, such as the "to_str" function, can be called in templates using 
 """
 from datetime import datetime
 
-from bll.user_group import UserGroup
-from bll.widgets import Widgets
+from bll.user_group import UserGroup 
+
+from bll.widget_bll import WidgetBll
 
 
 def reg_temp_expand_filter(app):
@@ -37,7 +38,7 @@ def reg_temp_expand_filter(app):
     @app.template_filter()
     def widget_type_name(data_id: int):
 
-        t = Widgets().get_type_by_id(int(data_id))
+        t = WidgetBll().get_type_by_id(int(data_id))
         if t:
             return t.name
         return 'can`t find type'

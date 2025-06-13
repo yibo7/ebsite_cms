@@ -20,6 +20,10 @@ class WidgetsModel(ModelBase):
     def a_name(self):
         return self.name
 
+    @annotation("部件ID")
+    def b_id(self):
+        return self._id
+
     @annotation("部件类型|widget_type_name")
     def b_temp_type(self):
         return self.temp_type

@@ -1,13 +1,19 @@
+import re
 from typing import Tuple
+
+from bson import ObjectId
 
 import eb_cache
 from bll.bll_base import BllBase
-from bll.widget_types import WidgetTypeModel
+from eb_utils.configs import SiteConstant
+from eb_utils.mvc_pager import pager_html_admin
 from entity.list_item import ListItem
 from entity.widgets_model import WidgetsModel
+from widgets.widget_base import WidgetBase
 
 
-class Widgets(BllBase[WidgetsModel]):
+class WidgetBll(BllBase[WidgetsModel]):
+    table_name = "Widgets" # rename for table
     def new_instance(self) -> WidgetsModel:
         return WidgetsModel()
 
@@ -43,7 +49,7 @@ class Widgets(BllBase[WidgetsModel]):
         :return:
         """
         # 通过反射获取获取直接子类，应该采用缓存
-        subclasses = WidgetTypeModel.__subclasses__()
+        subclasses = WidgetBase.__subclasses__()
 
         # 创建一个列表来存储所有子类的实例
         instances = []
@@ -53,17 +59,8 @@ class Widgets(BllBase[WidgetsModel]):
             instances.append(instance)
         return instances
 
-        # return [
-        #     {'id': 1, 'name': '分类查询部件','temp':'widget_list_save_where.html', 'info': '此部件用来获取分类相关的数据', 'bll': NewsClass()},
-        #     {'id': 2, 'name': '内容查询部件','temp':'widget_list_save_where.html', 'info': '获取内容相关的数据', 'bll': NewsContent()},
-        #     {'id': 3, 'name': '专题查询部件','temp':'widget_list_save_where.html', 'info': '查询并获取专题相关的数据', 'bll': NewsSpecial()},
-        #     {'id': 4, 'name': '用户查询部件','temp':'widget_list_save_where.html', 'info': '查询并获取用户相关的数据', 'bll': User()},
-        #     {'id': 5, 'name': '文本框内容','temp':'widget_list_save_text.html', 'info': '简单的文本框输入，并将内容呈现在模板', 'bll':None},
-        #     {'id': 6, 'name': 'HTML编辑框','temp':'widget_list_save_html.html', 'info': '可以在线编辑html内容', 'bll':None},
-        #     {'id': 7, 'name': '图集模板', 'temp': 'widget_list_save_pic.html', 'info': '通用图集模板，可上传图片并绑定图片列表，可制作幻灯片轮播图。', 'bll': None},
-        # ]
 
-    def get_type_by_id(self, data_id: int) -> WidgetTypeModel:
+    def get_type_by_id(self, data_id: int) -> WidgetBase:
         """
         调用某个部件类型，前端调用频率高，所以采用缓存，减少对get_types的调用
         :param data_id:
@@ -77,3 +74,25 @@ class Widgets(BllBase[WidgetsModel]):
             eb_cache.set_data(record,0,data_key)  # 永久缓存
             # print(f'永久缓存：{data_key}')
         return record
+
+
+    def search_data(self, keyword: str, page_number: int) -> Tuple[list[WidgetsModel], int]:
+        page_size = SiteConstant.PAGE_SIZE_AD
+        s_where = {}
+
+        if keyword:
+            regex_pattern = re.compile(f'.*{re.escape(keyword)}.*', re.IGNORECASE)
+            or_conditions = [{"name": {"$regex": regex_pattern}}]
+
+            # 如果 keyword 可能是合法的 ObjectId，则添加一个直接匹配的条件
+            try:
+                object_id = ObjectId(keyword)
+                or_conditions.append({"_id": object_id})
+            except Exception:
+                pass  # 不是合法 ObjectId 就忽略这个条件
+
+            s_where = {"$or": or_conditions}
+
+        datas, i_count = self.find_pages(page_number, page_size, s_where)
+        pager = pager_html_admin(i_count, page_number, page_size, {'k': keyword})
+        return datas, pager

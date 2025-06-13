@@ -1,0 +1,31 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<link href="{{ admin_path }}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploader.min.js"></script>
+
+<div class="row eb-box p-3">
+
+    <script type="text/javascript" src="{{ admin_path }}js/webuploader/webuploaderpic.js"></script>
+
+    <input type="hidden" name="small_pic" id="val_small_pic" value="{{ GetSrc }}" />
+    <div class='bduploader'>
+      <div><div id='list_small_pic' class='uploader-imglist'></div></div>
+      <div id='btn_small_pic'>选择图片</div>
+    </div>
+    <script>
+      InitImgUpload('btn_small_pic','list_small_pic','val_small_pic',500,500,false);
+    </script>
+
+</div>
+<script>
+    function SaveFrame() {
+        let current_img_url = $("#val_small_pic").val();
+        if (current_img_url == "") {
+            alert("请选择图片");
+            return;
+        }
+
+        window.parent.OnConfirmImg(current_img_url);
+    }
+</script>
+{% endblock %} 
