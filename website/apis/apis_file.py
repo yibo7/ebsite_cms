@@ -11,7 +11,7 @@ from website.apis import api_blue
 
 
 @api_blue.route('upfile', methods=['POST'])
-@rate_limit_ip(10,1) # 同一IP，1分钟内只允许请求5次
+# @rate_limit_ip(10,1) # 同一IP，1分钟内只允许请求10次
 @check_admin_login
 def up_file():
     request_type = request.args.get('t')  # t=ume

@@ -54,7 +54,7 @@ class ProductSku(ControlBase):
         </tr>
         <tr>
           <td>
-            
+
           </td>
           <td>
             <input type="text" v-model="newSpec.name" placeholder="规格名称" class="form-control" />
@@ -84,7 +84,7 @@ class ProductSku(ControlBase):
 
   <script src="https://cdn.jsdelivr.net/npm/vue@2.4.1/dist/vue.js"></script>
   <script>
-    
+
    const vm = new Vue({
       el: '#app',
       data() {
@@ -111,7 +111,7 @@ class ProductSku(ControlBase):
               this.specs = parsed;
             }
           }
-           
+
         } catch (e) {
           console.warn('初始化 SKU 数据失败：', e);
         }
@@ -147,14 +147,14 @@ class ProductSku(ControlBase):
     });
     window.vm = vm;
     let current_index = 0;
-    function OnConfirmImg(img_url) { 
-       
+    function OnConfirmImg(img_url) {
+
         if (window.vm && window.vm.specs && window.vm.specs[current_index]) {
           window.vm.$set(window.vm.specs[current_index], 'image', img_url);
         } else {
           console.warn("Vue 实例未准备好或索引无效");
         }
-       
+
         $('#ebiframewin').modal('hide');
     }
     function OpenUploadImg(index, src) {

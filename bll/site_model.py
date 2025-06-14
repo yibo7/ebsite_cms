@@ -185,7 +185,10 @@ class SiteModel(BllBase[SiteModelEntity]):
         for field in model.fields:
             control_id = int(field.get('control_id'))
             ctr_instance = SiteModel.get_control_by_id(control_id)
-            a_html.append(ctr_instance.get_control_temp(field))
+            if ctr_instance:
+                a_html.append(ctr_instance.get_control_temp(field))
+            else:
+                raise Exception(f"没有找到相应的控件实例，控件ID：{control_id}")
 
         s_html = ''.join(a_html)
         s_html = s_html.replace('[[', '{{').replace(']]', '}}')
