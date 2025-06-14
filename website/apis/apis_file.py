@@ -5,11 +5,14 @@ from io import BytesIO
 from flask import  request, jsonify, send_file, make_response, current_app, send_from_directory, abort
 
 from bll.file_upload import FileUpload
+from decorators import rate_limit_ip, check_admin_login
 from eb_cache import cache
 from website.apis import api_blue
 
 
 @api_blue.route('upfile', methods=['POST'])
+@rate_limit_ip(10,1) # 同一IP，1分钟内只允许请求5次
+@check_admin_login
 def up_file():
     request_type = request.args.get('t')  # t=ume
     data = {"originalName": '', "name": '', "url": '', "size": 0, "state": 'unknown err', "type": ''}

@@ -323,7 +323,7 @@ def check_admin_login(f):
 
 def check_user_login(f):
     """
-    验证后台管理是否登录
+    验证用户是否登录
     """
     @wraps(f)
     def decorated_function(*args, **kwargs):
