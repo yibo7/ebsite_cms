@@ -28,7 +28,8 @@ content_saved = my_signals.signal('content-saved')
 # 在用户注册后(包含任何一种用户注册)，也就是注册成功触发，无需返回值
 user_reged = my_signals.signal('user-reged')
 
-
+# 支付成功后触发
+pay_saved_successful = my_signals.signal('pay-saved-successful')
 
 # ------------------信号的发送示例-------------------------
 # 只发送不处理返回结果-监听函数不用返回值

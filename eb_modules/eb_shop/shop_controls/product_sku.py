@@ -78,7 +78,7 @@ class ProductSku(ControlBase):
     </table>
 
     <!-- 隐藏 input 用于提交 -->
-    <input type="hidden" name="#field_name#" value="[[model.#field_name#]]" ref="skuInput" />
+    <input type="hidden" name="#field_name#" value='[[model.#field_name# | tojson ]]' ref="skuInput" />
 
   </div>
 
@@ -127,10 +127,16 @@ class ProductSku(ControlBase):
       methods: {
         addSpec() {
           // 简单校验
-          if (!this.newSpec.name) {
-            alert('请填写规格名称');
+          if (!this.newSpec.name || !this.newSpec.sku) {
+            alert('规格名称与货号不能为空!');
             return;
-          }
+          };
+          
+           const isSkuDuplicate = this.specs.some(spec => spec.sku === this.newSpec.sku);
+           if (isSkuDuplicate) {
+             alert('不允许有相同的货号（SKU）！');
+             return;  
+           }
           this.specs.push({ ...this.newSpec });
           // 清空新增表单
           this.newSpec = {

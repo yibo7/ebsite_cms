@@ -1,0 +1,70 @@
+{% extends 'base_site.html' %}
+{% block title %}
+用户注册
+{% endblock %}
+{% block content %}
+
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm" style="width: 100%; max-width: 400px;">
+      <div class="card-body">
+        <h4 class="card-title mb-4 text-center">用户注册</h4>
+          <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Email或手机</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Email或手机号"  required>
+                        <div class="invalid-feedback">请输入有效的email或手机号。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="password">密码</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="密码" required>
+                        <div class="invalid-feedback">密码不能为空</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="repassword">确认密码</label>
+                        <input type="password" class="form-control" id="repassword" name="repassword" placeholder="确认密码" required>
+                        <div class="invalid-feedback">确认密码不能为空</div>
+                    </div>
+                    <div><label class="form-label" >验证码</label></div>
+                    <div class="btn-group btn-group-lg" role="group" aria-label="Large button group">
+
+                      <input type="text" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" required/>
+                      <div>
+                          <img  onClick="this.src+=Math.random()" src="/imgcode?" style="cursor: pointer;" />
+                      </div>
+                    </div>
+                    <div class="form-check mt-3">
+                      <input class="form-check-input " type="checkbox" value="" id="invalidCheck3" required>
+                      <label class="form-check-label" for="invalidCheck3">
+                        我已阅读《<a onclick="reg_info()" href="#">注册条款</a>》并同意
+                      </label>
+                      <div class="invalid-feedback">
+                        你必须同意条款才能注册哦
+                      </div>
+                    </div>
+                    <button onclick="on_post()" style="width: 150px" type="submit" class="btn btn-primary mt-5"> 注 册 </button>
+                    <br><br>
+                    {%if err %}
+                     <div class="alert alert-danger" role="alert">
+                         {{err}}
+                        </div>
+                    {%endif%}
+                </form>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+    function on_post(){
+        blockTips("提交中...",2)
+    }
+    function reg_info(){
+        OpenIframe("reg_info.html","服务条款","同意")
+    }
+    function agr_reg(){
+        $("#invalidCheck3").prop("checked",true);
+        $('#ebiframewin').modal('hide');  //手动关闭
+    }
+
+</script>
+{% endblock %}

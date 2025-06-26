@@ -1,12 +1,76 @@
 {% extends 'base_site.html' %}
 {% block title %}
-首页
+购物车
 {% endblock %}
 
 {% block content %}
 
- <div>
-     购物车
- </div>
+<main>
+    <section class="cart_area">
+        <div class="container">
+            <div class="cart_inner">
+                {% if shopping_cart %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">商品</th>
+                            <th scope="col">价格</th>
+                            <th scope="col">数量</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in shopping_cart %}
+                        <tr>
+                            <td>
+                                <div class="media">
+                                    <div class="d-flex">
+                                        <a target="_blank" href="{{ item.get_url }}">
+                                            <img width="50" height="50" alt="" src="{{ item.small_pic }}" /></a>
+                                    </div>
+                                    <div class="media-body truncate-text">
+                                        <p><a target="_blank" href="{{ item.get_url }}"><b>{{ item.content_title }}</b></a></p>
+                                        <p> {{ item.product_name }}</p>
+                                    </div>
+                                </div>
 
+                            </td>
+                            <td>&yen;{{ item.total_price }}</td>
+                            <td>
+                                <div class="product_count quantity">
+                                    <span class="input-number-decrement"><i class="fa fa-sort-desc" aria-hidden="true"></i></span>
+                                    <input class="input-number" type="text" data-cid="{{ item.content_id }}" data-pid="{{ item.product_id }}" value="{{ item.quantity }}" name="s{{ item.product_id }}" id="s{{ item.product_id }}">
+                                    <span class="input-number-increment"><i class="fa fa-sort-asc" aria-hidden="true"></i></span>
+                                </div>
+                            </td>
+                            <td>
+                                <button onclick='delcart("{{ item.product_id }}")' type="button" class="btn btn-outline-secondary btn-sm">删除</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-end">
+                    <div class="shipping_box">
+                        <ul class="list">
+                            <li>商品数量：{{ total_count }}</li>
+                            <li class="active">商品金额：<span>&yen;{{ total_price }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-10 mt-10">
+                    <a class="white-btn mr-10" href="javascript:clearshoppingcar()"><i class="fa fa-cart-arrow-down" aria-hidden="true"></i> 清空购物车</a>
+                    <a class="white-btn mr-10" style="background: #f74040; color: white" href="post_order"><i class="fa fa-angle-right" aria-hidden="true"></i> 去结算</a>
+                </div>
+                {% else %}
+                <div class="text-center">购物车中没有数据!</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</main>
+
+    <script type="text/javascript" src="/shop/js/shopping_car.js" defer></script>
 {% endblock %}

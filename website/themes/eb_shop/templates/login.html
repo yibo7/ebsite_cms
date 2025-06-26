@@ -1,0 +1,53 @@
+{% extends 'base_site.html' %}
+{% block title %}
+用户登录
+{% endblock %}
+
+{% block content %}
+ <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-sm" style="width: 100%; max-width: 400px;">
+      <div class="card-body">
+        <h4 class="card-title mb-4 text-center">用户登录</h4>
+        <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
+                    <div class="mb-3">
+                        <label class="form-label" for="username">Email或手机</label>
+                        <input class="form-control" id="username" name="username" placeholder="Email或手机" required>
+                        <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="pass">密码</label>
+                        <input type="password" class="form-control" id="pass" name="pass" placeholder="密码" required>
+                        <div class="invalid-feedback">密码不能为空</div>
+                    </div>
+                     {%if is_safe_code %}
+                        <div class="mb-3">
+                            <label class="form-label" for="pass">验证码</label>
+                            <input type="text" style="max-width:100px" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" required/>
+                            <div class="invalid-feedback">验证码为4位，且不能为空</div>
+                        </div>
+                        <div class="mb-3">
+                             <img  onClick="this.src+=Math.random()" src="/imgcode?" style="cursor: pointer;" />
+                        </div>
+
+                     {%endif%}
+                    <br><br>
+                    <button onclick="on_post()" type="submit" style="width: 150px" class="btn btn-primary"> 登 录 </button>
+                    <br><br>
+                        <a href="javascript:" onclick="openlogin('OpenLoginWixin')" > 微信登录 </a> |  新用户请从<a class="text-success" href="reg">这里注册</a>
+                    <br><br>
+                    {%if err %}
+                     <div class="alert alert-danger" role="alert">
+                         {{err}}
+                        </div>
+                    {%endif%}
+                </form>
+      </div>
+    </div>
+  </div>
+
+<script>
+    function on_post(){
+        blockTips("提交中...",2)
+    }
+</script>
+{% endblock %}

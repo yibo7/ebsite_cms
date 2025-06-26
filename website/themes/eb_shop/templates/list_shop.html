@@ -1,0 +1,89 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.class_name}}
+{% endblock %}
+
+{% block content %}
+<div  class="d-lg-none" style="height:50px;"></div>
+        <main>
+        <!-- Hero area Start-->
+        <div class="hero-area section-bg2">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="slider-area">
+                            <div class="slider-height2 slider-bg4 d-flex align-items-center justify-content-center">
+                                <div class="hero-caption hero-caption2">
+                                    <h2>{{ model.class_name }}</h2>
+                                    <nav aria-label="breadcrumb">
+                                        <ol class="breadcrumb justify-content-center">
+                                            <li class="breadcrumb-item"><a href="/">Home</a></li>
+                                            <li class="breadcrumb-item"><a href="{{ model.get_url() }}">{{ model.class_name }}</a></li>
+                                        </ol>
+                                    </nav>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="listing-area pt-50 pb-50">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-3 col-lg-4 col-md-4">
+                        <div class="category-listing mb-50 taglist">
+                            {{ widget("6852ca7e9d0e112569a8cc00") }}
+                        </div>
+                    </div>
+                    <!-- Right content -->
+                    <div class="col-xl-9 col-lg-8 col-md-8">
+                        <div class="latest-items latest-items2">
+                            <div class="row">
+                                {%  if data_list %}
+                                <div  class="list-group">
+                                    {% for item in data_list%}
+
+                                        <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                            <div class="properties pb-30">
+                                                <div class="properties-card">
+                                                    <div class="properties-img">
+                                                        <a href="{{item.get_url()}}"><img src="{{ item.small_pic }}" alt=""></a>
+{#                                                        <div class="socal_icon">#}
+{#                                                            <a href="#"><i class="ti-shopping-cart"></i></a>#}
+{#                                                            <a href="#"><i class="ti-heart"></i></a>#}
+{#                                                            <a href="#"><i class="ti-zoom-in"></i></a>#}
+{#                                                        </div>#}
+                                                    </div>
+                                                    <div class="properties-caption properties-caption2">
+                                                        <h3><a href="{{item.get_url()}}">{{item.title}}</a></h3>
+{#                                                        <div class="properties-footer">#}
+{#                                                            <div class="price">#}
+{#                                                                <span>$98.00 <span>$120.00</span></span>#}
+{#                                                            </div>#}
+{#                                                        </div>#}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    {% endfor %}
+                                </div>
+
+                                {% else %}
+                                    <div class="p-5 text-center">暂无数据</div>
+                                {% endif %}
+
+                                {% include 'loading_more.html' %}
+                                {{pager}}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- listing-area Area End -->
+    </main>
+
+{% endblock %}

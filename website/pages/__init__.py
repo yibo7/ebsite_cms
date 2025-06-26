@@ -14,6 +14,7 @@ from entity.user_model import UserModel
 
 pages_blue = Blueprint('pages_blue', __name__)
 from . import cms_page
+from . import payment
 
 @pages_blue.context_processor
 def inject_site_name():

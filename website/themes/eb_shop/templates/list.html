@@ -1,0 +1,59 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.class_name}}
+{% endblock %}
+
+{% block content %}
+{#<div class="d-lg-none" style="height:50px;"></div>#}
+<div class="container mt-3 mb-3">
+    <div class="title">
+        <div class="title-txt">
+            <span><a href='/'>{{SiteName}}</a></span> > <span><a href='{{model.get_url()}}'>{{model.class_name}}</a></span>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row mb-3">
+        <div class="col-lg-9">
+            {% if data_list %}
+            <div class="list-group eb-list-box">
+                {% for item in data_list%}
+                <a href="{{item.get_url()}}"
+                    class="list-group-item list-group-item-action eb-list-item d-flex gap-3 py-3 score-lst-box" aria-current="true">
+                    {% if item.small_pic %}
+                    <img style="width: 120px;height: 80px" src="{{item.small_pic}}">
+                    {% endif %}
+                    <div class="d-flex gap-2 w-100 justify-content-between">
+                        <div>
+                            <h5 class="mb-0">{{item.title}}</h5>
+                            <p class="mb-0 opacity-75 box-sub-info">
+                                {{item.seo_description}}
+                            </p>
+                            <span style="color:darkgray;font-size:12px;"> {{item.add_time|to_time_name}}</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <div class="p-5 text-center">暂无数据</div>
+            {% endif %}
+            {% include 'loading_more.html' %}
+            {{pager}}
+
+        </div>
+        <div class="col-lg-3 d-none d-lg-block">
+
+            <div class="eb-box mt-2">
+                <div class="right-width-tt right-width-tt03">标签<a href="/tags1.html">更多>></a></div>
+                <div class="taglist mt-3">
+                    {{ widget("682f3dca7c0da18d4038d198") }}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

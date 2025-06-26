@@ -313,7 +313,7 @@ def check_admin_login(f):
 
         if not admin_token:
             return redirect("/login_ad")
-
+        # print(admin_token)
         kwargs['admin_token'] = admin_token
         return f(*args, **kwargs)
         # 如果token有效，将token_data作为关键字参数传递给被装饰的函数

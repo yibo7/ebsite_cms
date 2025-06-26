@@ -1,0 +1,80 @@
+{% extends 'base_site.html' %}
+{% block title %}
+购物车
+{% endblock %}
+
+{% block content %}
+
+
+<div class="container container-fluid customize-width mt-3 ">
+
+    <div class="tabfg p-3">
+          <ul id="subtab" class="nav nav-tabs">
+              <li class="nav-item">
+                  <a href="/user/index" class="nav-link" >主页</a>
+              </li>
+              <li class="nav-item">
+                  <a href="/user/favorite" class="nav-link " >我的收藏</a>
+              </li>
+             <li class="nav-item">
+                 <a href="/shop/my_orders" class="nav-link active" >我的订单</a>
+              </li>
+          </ul>
+
+          <div class="container mt-5 mb-5">
+               {% if data_list %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">订单编号</th>
+                            <th scope="col">收货人</th>
+                            <th scope="col">联系方式</th>
+                            <th scope="col">支付方式</th>
+
+                            <th scope="col">金额</th>
+                            <th scope="col">订单状态</th>
+                            <th scope="col">物流公司</th>
+                            <th scope="col">物流订单号</th>
+                            <th scope="col">下单时间</th>
+                            <th scope="col">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data_list %}
+                        <tr>
+                            <td>{{item.order_id}}</td>
+                            <td>{{item.address.user_name}}</td>
+                            <td>{{item.address.phone}}</td>
+                            <td>{{item.payment_name}}</td>
+
+                            <td>{{item.total_price}}</td>
+                            <td>{{item.order_statu_name}}</td>
+                            <td>{{item.delivery_name}}</td>
+                            <td>{{item.delivery_number}}</td>
+                            <td>{{item.add_time | to_time_name}}</td>
+                            <td>
+<!--                                <a target="_blank" style="color:#ffffff"  class="btn btn-primary btn-sm" >详情</a>-->
+                                {% if item.order_status == 0 %}
+                                    <a style="color:#ffffff" class="btn btn-success btn-sm" href="/shop/sel_payment?orderid={{ item.order_id }}">付款</a>
+                                    <button style="color:#ffffff" class="btn btn-info btn-sm" onclick="OpenCloseOrder({{ item.id }})">关闭</button>
+                                {% elif item.order_status == 2 %}
+                                    <button onclick="SureReceipt({{ item.id }})" class="btn btn-danger btn-sm">确认收货</button>
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% else %}
+                <div class="text-center">没有数据!</div>
+                {% endif %}
+                        {{pager}}
+          </div>
+       </div>
+</div>
+
+
+{% endblock %}

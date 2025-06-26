@@ -1,0 +1,125 @@
+{% extends 'base_site.html' %}
+{% block title %}
+购物车
+{% endblock %}
+
+{% block content %}
+
+<main>
+    <section class="cart_area">
+        <div class="container">
+            <div class="cart_inner">
+                {% if shopping_cart %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">商品</th>
+                            <th scope="col">价格</th>
+                            <th scope="col">数量</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in shopping_cart %}
+                        <tr>
+                            <td>
+                                <div class="media">
+                                    <div class="d-flex">
+                                        <a target="_blank" href="{{ item.get_url }}">
+                                            <img width="50" height="50" alt="" src="{{ item.small_pic }}" /></a>
+                                    </div>
+                                    <div class="media-body truncate-text">
+                                        <p><a target="_blank" href="{{ item.get_url }}"><b>{{ item.content_title }}</b></a></p>
+                                        <p> {{ item.product_name }}</p>
+                                    </div>
+                                </div>
+
+                            </td>
+                            <td>&yen;{{ item.total_price }}</td>
+                            <td>
+                               {{ item.quantity }}
+                            </td>
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <div class="returning_customer">
+                    <div class="check_title">
+                        <h2>
+                            <b>收货人信息</b> <a data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">[使用新地址]</a>
+                        </h2>
+                    </div>
+                    <div class="collapse" id="collapseExample">
+                      <div class="card card-body">
+                            <form id="form_address" class="row g-3">
+                              <div class="col-md-6">
+                                <label class="form-label">联系人(Contact Name)</label>
+                                <input name="user_name" class="form-control" required>
+                              </div>
+                              <div class="col-md-6">
+                                <label class="form-label">联系电话(Phone or mobile)</label>
+                                <input name="phone"  class="form-control" required>
+                              </div>
+                              <div class="col-12">
+                                <label class="form-label">收货地址(Address)</label>
+                                <input name="address_info" type="text" class="form-control" placeholder="1234 Main St" required>
+                              </div> 
+                                <div class="col-md-6">
+                                <label class="form-label">邮编(Zip)</label>
+                                <input name="post_code" class="form-control" required>
+                              </div>
+                              <div class="col-md-6">
+                                <label class="form-label">邮箱(Email)</label>
+                                <input name="email" type="email" class="form-control" required>
+                              </div>
+                                                             
+                              <div class="col-12">
+                                <button type="submit" class="btn btn-primary"> 保 存 </button>
+                              </div>
+                            </form>
+                      </div>
+                    </div>
+                    <form action="/shop/post_order" method="post" id="form_post" >
+                    {% for addr in addr_datas %}
+                        <div class="form-check mt-2 mb-2">
+                            <input class="form-check-input"
+                                   name="address"
+                                   id="radioAddress{{ addr._id }}"
+                                   value="{{ addr._id }}"
+                                   type="radio">
+                            <label for="radioAddress{{ addr._id }}">
+                                {{ addr.address_info }}
+                                收货人:{{ addr.user_name }}
+                                手机:{{ addr.phone }}
+                            </label>
+                            <i onclick="del_address('{{ addr._id }}')" class="fa fa-remove" style="cursor: pointer; color: #f74040;" aria-hidden="true" /></i>
+
+                        </div>
+                    {% endfor %}
+                    </form>
+                </div>
+
+
+                <div class="d-flex justify-content-end">
+                    <div class="shipping_box mt-3">
+                        <ul class="list">
+                            <li>商品数量：{{ total_count }}</li>
+                            <li class="active">商品金额：<span>&yen;{{ total_price }}</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-10 mt-10">
+                    <a class="white-btn mr-10" href="/shop/cart"><i class="fa fa-arrow-left" aria-hidden="true"></i> 返回购物车</a>
+                    <a class="white-btn mr-10" style="background: #f74040; color: white" href="javascript:post_order()"><i class="fa fa-angle-right" aria-hidden="true"></i>提交订单</a>
+                </div>
+                {% else %}
+                <div class="text-center">没有数据!</div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</main>
+<script type="text/javascript" src="/shop/js/post_order.js" defer></script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.title}}
+{% endblock %}
+
+{% block content %}
+ <div class="container">
+    <nav class="nav-page">
+        {{ SiteName }}-{{ model.class_name }}
+    </nav>
+</div>
+ <main id="vue_app">
+    <div class="services-area2 pt-50">
+        <div class="container">
+            <div class="row">
+                <div class="col-xl-12">
+                    <div class="row">
+                        <div class="col-xl-12">
+                            <div class="single-services d-flex  mb-0">
+                                <div class="features-img">
+                                    <div class="product-img-big">
+                                        <img :src="SelProduct ? SelProduct.image : '{{ model.small_pic }}'" alt="">
+                                    </div>
+
+                                </div>
+                                <div class="features-caption flex-grow-1">
+                                    <h2>{{ model.title }}</h2>
+                                     <div><b>商品品牌:</b>金瑞治(Green Rich)</div>
+                                    <div><b>商品货号:</b>[[SelProduct ? SelProduct.sku : '---']] </div>
+                                    <div><b>OEM: </b>{{ model.column_6 }}</div>
+                                    <div class="mb-10"><b>适用:</b>{{ model.column_3 }} {{ model.column_5 }}</div>
+                                    <div>
+                                        <div class="price product-price-title px-2">
+                                            <span>价格：&yen; [[SelProduct ? SelProduct.marketPrice : '{{ model.column_11 }}']]</span>
+                                        </div>
+                                         <div class="product-cu-xiao px-2">
+                                             提交后即可查看价格，也可【<a href="/c109p1.html">点击这里</a>】让我们建立合作关系。
+                                         </div>
+                                   </div>
+                                   <div class="product-prams">
+                                        <div class="mt-15" >
+                                            <div class="row">
+                                                <label class="col-sm-2 col-form-label">规格：</label>
+                                                <div class="col-10" >
+                                                    <input :class="['mb-2', { ggcurrent: SelProduct.productId  === product.productId }]" v-for="product in Products" :key="product.productId" type="button" v-on:click="on_gg_click(product)" :value="product.name"  />
+                                                </div>
+                                            </div> 
+                                            
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 row mt-10">
+                                        <label class="col-sm-2 col-form-label">数量</label>
+                                        <div class="col-sm-10">
+                                            <input type="number" class="tb-text form-control" style="width:100px;"  v-model="Quantity"   maxlength="8"/>
+                                        </div>
+                                    </div> 
+                                    <div class="mt-20">
+                                        <a style="background:#f74040;color:white" v-on:click="go_to_car" class="white-btn mr-10"><i class="fa fa-cart-plus" aria-hidden="true" /></i> 加入购物车</a>
+                                        <a onclick="fav_content('{{ model._id }}')" class="white-btn mr-10 favorit-btn"><i class="fa fa-star" aria-hidden="true" /></i> 收藏</a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <section class="our-client section-padding best-selling">
+        <div class="container">
+            <div class="row">
+                <div class="nav-button f-left">
+                    <nav>
+                        <div class="nav nav-tabs " id="nav-tab" role="tablist">
+                            <a class="nav-link active" id="nav-one-tab" data-bs-toggle="tab" href="#nav-one" role="tab" aria-controls="nav-one" aria-selected="true">详情</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+
+            <div class="tab-content" id="nav-tabContent">
+                <div class="tab-pane fade show active product-info" id="nav-one" role="tabpanel" aria-labelledby="nav-one-tab">
+
+                   {{ model.info }}
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</main>
+<script>
+    const ContentId = "{{ model._id }}";
+    const products = {{model.column_10|safe }};
+    
+</script>
+<script type="text/javascript" src="/shop/js/content.js" defer></script>
+{% endblock %}

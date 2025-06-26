@@ -67,7 +67,7 @@ def content_list_save():
             model.set_tag_string(tagstr)
 
         bll.save_content(model)
-        return redirect('content_list')
+        # return redirect('content_list')
 
     class_name = class_model.class_name
     model_html_temp = SiteModel().get_model_temp_by_id(class_model.content_model_id)

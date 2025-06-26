@@ -12,19 +12,12 @@ from plugins.sms_sender_tencent import TencentSMSSender
 from plugins.uploader_local import UploaderLocal
 from plugins.uploader_mongodb import UploaderMongoDb
 from plugins.uploader_tencentcos import UploaderTencentCos
-
+from plugins.payments.payment_alipay import AlipayPlugin
+from plugins.payments.payment_weixin import WechatPayPlugin
 
 def load_plugins(app):
     pm = PluginManager(app)
 
-    # pm.reg_plugin(TencentSMSSender(app))
-    # pm.reg_plugin(DefaultEmailSender(app))
-    #
-    # pm.reg_plugin(OpenLoginWixin(app))
-    #
-    # pm.reg_plugin(UploaderMongoDb(app))
-    # pm.reg_plugin(UploaderTencentCos(app))
-    # pm.reg_plugin(UploaderLocal(app))
 
     directory = os.path.dirname(__file__)
     loaded_extensions = {}  # 用于存储已加载的扩展实例，键为插件ID

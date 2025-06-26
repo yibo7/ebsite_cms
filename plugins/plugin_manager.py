@@ -49,6 +49,13 @@ class PluginManager:
         """
         return self.get_by_type(SMSSender) # [plugin for plugin in self.plugins if isinstance(plugin, SMSSender)]
 
+    def get_by_payment_plugins(self):
+        """
+        获取所有支付插件
+        :return:
+        """
+        return self.get_by_type(PaymentBase)
+
     def get_by_email_plugins(self):
         """
         获取所有EMAIL发送类的插件

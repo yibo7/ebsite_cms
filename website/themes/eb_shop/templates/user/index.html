@@ -1,0 +1,29 @@
+{% extends 'base_site.html' %}
+{% block title %}
+首页
+{% endblock %}
+
+{% block content %}
+
+<div class="container container-fluid customize-width mt-3 ">
+
+    <div class="tabfg p-3">
+          <ul id="subtab" class="nav nav-tabs">
+              <li class="nav-item">
+                  <a class="nav-link active" >主页</a>
+              </li>
+              <li class="nav-item">
+                  <a href="favorite" class="nav-link" >我的收藏</a>
+              </li>
+             <li class="nav-item">
+                  <a href="/shop/my_orders" class="nav-link" >我的订单</a>
+              </li>
+          </ul>
+
+          <div class="container mt-5 mb-5">
+              <h5>{{user.name}} 个人中心</h5>
+              <a href="log_out" >退出登录</a>
+          </div>
+       </div>
+</div>
+{% endblock %}

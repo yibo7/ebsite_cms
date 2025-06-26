@@ -6,6 +6,7 @@ from urllib.parse import quote
 from flask import Request, request
 
 from entity.file_model import FileModel
+from entity.pay_back_model import PayBackInfo
 from entity.user_call_back_model import UserCallBackModel
 
 def plugin_attribute(description, version, author, priority=999):
@@ -24,10 +25,6 @@ def plugin_attribute(description, version, author, priority=999):
 '''
 class PluginBase(ABC):
     def __init__(self,current_app):
-        # if not hasattr(self, 'name'):
-        #     raise AttributeError("Plugin name is required")
-        # if not hasattr(self, 'id'):
-        #     raise AttributeError("Plugin id is required")
         self.app = current_app
         self.table = current_app.db['PluginSettings']
         self.id = self.__class__.__name__
@@ -212,8 +209,13 @@ class SearchBase(PluginBase):
 '''
 
 class PaymentBase(PluginBase):
+    def __init__(self, current_app):
+        super().__init__(current_app)
+        self.notify_url = f"/pay/notify_url/{self.id}"
+        self.return_url = f"/pay/return_url/{self.id}"
+
     @abstractmethod
-    def gopay(self) -> Tuple[bool, str]:
+    def create_pay_link(self, order_id: str, amount: float, **kwargs) -> Tuple[bool, str]:
         """
         构建一个支付连接串
         :return: 是否成功，错误信息或如果成功是引导用户登录的重定向URL
@@ -221,17 +223,17 @@ class PaymentBase(PluginBase):
         pass
 
     @abstractmethod
-    def call_back(self, request: Request) -> Tuple[bool, str, dict]:
+    def call_back(self, request: Request) -> Tuple[bool, str, PayBackInfo]:
         """
         支付结束返回
-        :return: 是否成功|错误信息或如果成功是引导用户登录的重定向URL|如果成功，返回用户的信息
+        :return: 是否成功|错误信息|如果成功，返回支付信息
+        data = request.form.to_dict() or request.args.to_dict()
         """
         pass
 
-    def get_call_back_url(self):
+    @abstractmethod
+    def notify_success_response(self):
         """
-        支付结束回调的地址
-        :return:
+        根据当前支付平台要求，在通知页面返回成功的结果
         """
-        return quote(f'{request.host}/api/pay_back?plugin={self.id}')
-
+        pass

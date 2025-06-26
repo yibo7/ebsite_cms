@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" data-bs-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{% endblock %}-{{SiteName}}</title>
+  <link rel="icon" href="/favicon.svg" />
+  <meta name="keywords" content="鼓芯，复印机鼓芯" />
+  <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
+  <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
+  <script src="/js/comm.js" defer></script>
+  <script src="/extensions.js" defer></script>
+</head>
+
+<body>
+
+<header>
+    <div class="header-area">
+
+        <div class="header-mid header-sticky">
+            <div class="container">
+                <div class="menu-wrapper">
+                    <div class="logo">
+                        <a href="/"><img src="/images/logo/logo.png" alt=""></a>
+                    </div>
+                    <!-- Main-menu -->
+                    <div class="main-menu d-none d-lg-block">
+                        <nav>
+                            <ul id="navigation">
+                                <li class=""><a href="/">首页</a></li>
+                                {{ widget("68524ac80a8b42f2df141475") }}
+                            </ul>
+                        </nav>
+                    </div>
+                    <div class="header-right">
+                        <ul>
+                            <li>
+                                <div class="nav-search search-switch hearer_icon">
+                                    <a id="search_1" href="javascript:void(0)">
+                                        <i style="font-size:25px" class="fa fa-search" aria-hidden="true" ></i>
+                                    </a>
+                                </div>
+                            </li>
+                            <li>
+                                <a href="/user/index">
+                                    <i style="font-size:25px" class="fa fa-user-o" aria-hidden="true" ></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/shop/cart">
+                                    <i style="font-size:25px" class="fa fa-shopping-cart" aria-hidden="true" ></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+                <div id="search_input_box">
+                    <form onsubmit="return ChkSo(this);" method="get" action="/search.html"
+                        class="px-2 d-flex justify-content-between ">
+                        <input type="text" class="form-control" id="k" name="k" placeholder="oem码，商品名称或适用机型">
+                        <button type="submit" class="btn"></button>
+                        <span class="ti-close" id="close_search"><i class="fa fa-close"></i></span>
+                    </form>
+                </div>
+                <div class="col-12">
+                    <div class="mobile_menu d-block d-lg-none"></div>
+                </div>
+            </div>
+        </div>
+        <div class="header-bottom text-center">
+            <p>成为采购商，可享受厂家批发价! <a href="/c109p1.html" class="browse-btn">立即申请</a>
+            </p>
+        </div>
+    </div>
+</header>
+
+  {% block content %}{% endblock %}
+
+    <div class="footer-wrapper gray-bg">
+    <div class="footer-bottom-area">
+        <div class="container">
+            <div class="footer-border">
+                <div class="row">
+                    <div class="col-xl-12 ">
+                        <div class="footer-copy-right text-center">
+                            <p> SANKE　© Copyright 2008-2022 All Rights Reserved　备案号：粤ICP备20221862501号-1 </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+ <script src="/tempjs/slick.min.js" defer></script>
+ <script src="/tempjs/jquery.slicknav.min.js" defer></script>
+
+<div id="toast-message" class="position-fixed top-50 start-50 translate-middle p-3" style="z-index: 1080; display: none;">
+  <div class="toast align-items-center text-white bg-primary border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body text-center" id="toast-text">提示内容</div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+
+</html>
