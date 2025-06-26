@@ -36,7 +36,7 @@ def pay_notify_url(plugin_id:str):
     # 通知监听程序，在你的插件或模块中监听此事件并处理订单的状态(或参考shop中的init)
     pay_saved_successful.send(payment_data)
     # 返回插件要求的内容
-    return payment.notify_success_response()
+    return payment.notify_response(payment_data)
 
 
 @pages_blue.route('/pay/go_pay', methods=['POST'])

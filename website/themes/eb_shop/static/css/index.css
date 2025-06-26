@@ -11514,6 +11514,8 @@ button.gauto-theme-btn:hover {
 }
 .taglist span {
   margin: 7px;
+  padding: 10px !important;
+  color: #000000;
 }
 
 .taglist li {

@@ -5,6 +5,8 @@ import logging
 from typing import Tuple, Dict, Any
 from xml.etree import ElementTree
 import requests
+
+from entity.pay_back_model import PayBackInfo
 from plugins.plugin_base import PaymentBase, plugin_attribute
 
 
@@ -211,9 +213,9 @@ class WechatPayPlugin(PaymentBase):
             self.logger.error(error_msg)
             return False, error_msg, {}
 
-    def notify_success_response(self):
+    def notify_response(self, notify_data: PayBackInfo):
         """
-        根据当前支付平台要求，在通知页面返回成功的结果
+        根据当前支付平台要求，在通知页面返回处理的结果，notify_data中有通知处理后的结果数据，但不同的平台可能对通知结果格式有不一样的要求
         """
         return "success"
 

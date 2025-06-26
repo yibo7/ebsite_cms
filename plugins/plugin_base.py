@@ -217,7 +217,7 @@ class PaymentBase(PluginBase):
     @abstractmethod
     def create_pay_link(self, order_id: str, amount: float, **kwargs) -> Tuple[bool, str]:
         """
-        构建一个支付连接串
+        构建一个支付连接串,根据不同的支付平台构建一个支付连接地址，用户选择此插件开始支付会跳转到这个连接地址完成支付操作。
         :return: 是否成功，错误信息或如果成功是引导用户登录的重定向URL
         """
         pass
@@ -225,15 +225,16 @@ class PaymentBase(PluginBase):
     @abstractmethod
     def call_back(self, request: Request) -> Tuple[bool, str, PayBackInfo]:
         """
-        支付结束返回
+        支付完成后，在通知地址服务里会调用到这个方法，并获取这个方法处理结果，发出发送给监听程序更新订单状态。
+        开发时应该严格返回标准的PayBackInfo数据
         :return: 是否成功|错误信息|如果成功，返回支付信息
         data = request.form.to_dict() or request.args.to_dict()
         """
         pass
 
     @abstractmethod
-    def notify_success_response(self):
+    def notify_response(self,notify_data:PayBackInfo):
         """
-        根据当前支付平台要求，在通知页面返回成功的结果
+        根据当前支付平台要求，在通知页面返回处理的结果，notify_data中有通知处理后的结果数据，但不同的平台可能对通知结果格式有不一样的要求
         """
         pass

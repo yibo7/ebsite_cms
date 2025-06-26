@@ -7,6 +7,8 @@ from urllib.parse import quote_plus, unquote_plus
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
+
+from entity.pay_back_model import PayBackInfo
 from plugins.plugin_base import PaymentBase, plugin_attribute
 
 
@@ -25,9 +27,9 @@ class AlipayPlugin(PaymentBase):
         # 设置日志
         self.logger = logging.getLogger(__name__)
 
-    def notify_success_response(self):
+    def notify_response(self, notify_data: PayBackInfo):
         """
-        根据当前支付平台要求，在通知页面返回成功的结果
+        根据当前支付平台要求，在通知页面返回处理的结果，notify_data中有通知处理后的结果数据，但不同的平台可能对通知结果格式有不一样的要求
         """
         return "success"
 
