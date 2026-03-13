@@ -3,7 +3,7 @@ import time
 import uuid
 from functools import wraps
 
-from flask import request, g, jsonify, redirect
+from flask import request, g, jsonify, redirect, current_app
 
 import eb_cache
 from bll.site_log import SiteLog
@@ -11,6 +11,7 @@ from eb_cache import app_token, login_utils
 from eb_utils import http_helper
 from eb_utils.image_code import ImageCode
 from eb_utils.mobile_code import MobileCode
+from entity import api_msg
 from entity.api_msg import api_err_permission
 from entity.site_log_model import SiteLogModel
 
@@ -208,6 +209,38 @@ def check_sign(check_replay=False):
 
     return decorator
 
+
+def verify_site_key_md5(f):
+    """
+    验证API调用中传递的网站Key的MD5值是否正确
+    从路由参数中获取site_key_md5，与配置中的SiteKey进行MD5比对
+    """
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # 从kwargs中获取site_key_md5参数（路由参数）
+        site_key_md5 = kwargs.get('site_key_md5')
+
+        if not site_key_md5:
+            return jsonify(api_msg.api_err("site key md5 value is required"))
+
+        # 从应用配置中获取SiteKey
+        site_key = current_app.config.get('SiteKey')
+        if not site_key:
+            return jsonify(api_msg.api_err("SiteKey not configured on server"))
+
+        # 计算配置中SiteKey的MD5值
+        calculated_md5 = hashlib.md5(site_key.encode('utf-8')).hexdigest()
+
+        # 比对MD5值
+        if site_key_md5.lower() != calculated_md5.lower():
+            return jsonify(api_msg.api_err("Invalid site key md5"))
+
+        # 验证通过，继续执行原函数
+        # print('md5-验证通过')
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 def check_img_code(max_requests, time_limit=60):
     """

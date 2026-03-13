@@ -54,7 +54,7 @@ def pay_go_pay(user_token:UserToken):
     if not any([payment_plugin, order_name, order_id, total_price]):
         raise Exception("传入的参数有问题!")
 
-    v_pay_key = eb_utils.md5(f'{order_id}-{total_price}-{current_app.config['RandomKey']}')
+    v_pay_key = eb_utils.md5(f"{order_id}-{total_price}-{current_app.config['RandomKey']}")
 
     if v_pay_key != pay_key:
         raise Exception("支付数据验证出错!")

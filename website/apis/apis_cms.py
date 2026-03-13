@@ -9,7 +9,7 @@ from bll.new_content import NewsContent
 from bll.new_special import NewsSpecial
 from bll.user import User
 from bll.widget_bll import WidgetBll
-from decorators import rate_limit_ip
+from decorators import rate_limit_ip, verify_site_key_md5
 from eb_cache import cache
 from eb_utils import http_helper
 from eb_utils.image_code import ImageCode
@@ -177,6 +177,7 @@ def special_pages():
     return 'not found.', 404
 
 @api_blue.route('auto_post_content/<int:user_id>/<int:class_id>/<md5:site_key_md5>', methods=['POST'])
+@verify_site_key_md5
 def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
     """
     可以通过三方或具自动入库的接口，此接口虽然不需要用户登录权限，但需要网站的密钥配合使用
@@ -221,3 +222,48 @@ def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
     bll.save_content(model)
 
     return jsonify(api_msg.api_succesful("发布成功"))
+
+
+@api_blue.route('get_content/<int:content_id>/<md5:site_key_md5>', methods=['POST', 'GET'])
+@verify_site_key_md5
+def get_content(content_id: int, site_key_md5: str):
+    """
+    通过API获取一条内容记录实例
+    :param content_id: 内容Id
+    :param site_key_md5: 网密钥的md5值
+    :return:
+    """
+    if not site_key_md5:
+        return jsonify(api_msg.api_err("site key md5 value failed！"))
+
+    if content_id < 1:
+        return jsonify(api_msg.api_err("content id failed！"))
+
+    bll = NewsContent()
+
+    model = bll.get_by_int_id(content_id)
+
+    if not model:
+        return jsonify(api_msg.api_err("获取不到内容"))
+
+    fields = http_helper.get_prams("fields")
+    if fields:  # 只需要获取这些字段，用逗号分开
+        # 将字段字符串按逗号分割成列表，并去除可能的空格
+        field_list = [field.strip() for field in fields.split(',') if field.strip()]
+
+        # 获取model的字典表示
+        model_dict = model.to_dict()
+
+        # 创建只包含指定字段的新字典
+        filtered_dict = {}
+        for field in field_list:
+            if field in model_dict:
+                filtered_dict[field] = model_dict[field]
+            else:
+                # 可选：如果字段不存在，可以忽略或设置为None
+                filtered_dict[field] = 'null'  # 或者直接忽略这个字段
+
+        return jsonify(api_msg.api_succesful(filtered_dict))
+    else:
+        # 如果没有fields参数，返回完整的model字典
+        return jsonify(api_msg.api_succesful(model.to_dict()))

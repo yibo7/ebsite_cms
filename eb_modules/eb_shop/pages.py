@@ -104,8 +104,8 @@ def sel_payment(user_token:UserToken):
 
     payments:[PaymentBase] = current_app.pm.get_by_payment_plugins()
 
-    order_name = f'订单号:{order_id} 时间:{model_order.add_time} 下单人:{model_order.address.get('user_name')}'
-    pay_key = eb_utils.md5(f'{order_id}-{total_price}-{current_app.config['RandomKey']}')
+    order_name = f"订单号:{order_id} 时间:{model_order.add_time} 下单人:{model_order.address.get('user_name')}"
+    pay_key = eb_utils.md5(f"{order_id}-{total_price}-{current_app.config['RandomKey']}'")
     return render_template("sel_payment.html",pay_key=pay_key,order_name=order_name,total_price = total_price,order_id=order_id, payments=payments)
 
 # region 管理后台页面

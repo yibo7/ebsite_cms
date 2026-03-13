@@ -50,6 +50,7 @@ def create_app():  # run_mode
 
     app.config.update({'base_settings': base_setting})
 
+    app.config['SiteKey'] = base_setting['APP_KEY']  # 网站的密钥
     # endregion
 
     init_eb_db(app)

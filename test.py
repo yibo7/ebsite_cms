@@ -4,6 +4,7 @@ import os
 import re
 from unittest import TestCase
 
+import requests
 from bson import ObjectId, json_util
 from pymongo import MongoClient
 
@@ -13,6 +14,24 @@ from eb_utils.email_utils import EmailUtils
 
 
 class testCode(TestCase):
+
+    def test_get_content_with_fields(self):
+        """测试带fields参数获取指定字段"""
+        # 准备测试数据
+        content_id = 11
+        site_key = "a0580f89a93b4a8f81c1a0595609a8dd"
+        site_key_md5 = eb_utils.md5(site_key)
+        # 发送GET请求，带fields参数
+        response = requests.get(
+            f'http://127.0.0.1:8066/api/get_content/{content_id}/{site_key_md5}?fields=title,info'
+        )
+
+        # 验证响应
+        self.assertEqual(response.status_code, 200)
+
+        # 解析返回的JSON数据
+        data = response.json()
+        print(data)
 
 
     def testSendEmeil(self):
