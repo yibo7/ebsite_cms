@@ -1,0 +1,113 @@
+# 一.显示1轨乐谱（0表示第1轨）:
+
+```html
+<div id="alphaTabShowcase" data-file="tabst/sqyz.gp5" data-tracks="0"></div>
+```
+
+# 二.显示多轨乐谱:
+```html
+<div id="alphaTabShowcase" data-file="tabst/sqyz.gp5" data-tracks="[0,1]"></div>
+
+```
+# 三.不显示乐谱，只显示标题相关的信息
+    at.alphaTab({
+        staves: [] 
+    });
+
+# 四.只显示五线谱
+    at.alphaTab({
+        staves: ['score']
+    });
+
+# 五.设置宽
+    at.alphaTab({
+        width: 1280
+    });
+# 六.设置每行显示几个小节
+    at.alphaTab({
+        layout: {
+            mode: 'page',
+            additionalSettings: {
+                barsPerRow: 10
+            }
+        }
+    });
+
+# 七.设置从第几小节开始显示后面几个小节,page为纵向显示
+    at.alphaTab({
+        layout: {
+            mode: 'page',
+            additionalSettings: {
+                start: 5,
+                count: 4
+            }
+        }
+    });
+
+# 八.横向显示，只显示一行(可以配合多轨显示，总谱模式)
+	    at.alphaTab({
+        layout: {
+            mode: 'horizontal'
+        }
+    });
+
+# 九.设置从第几小节开始显示后面几个小节,horizontal为横向显示
+    at.alphaTab({
+        layout: {
+            mode: 'horizontal',
+            additionalSettings: {
+                start: 5,
+                count: 4
+            }
+        }
+    });
+
+# 十.只显示吉他谱，时间线在下
+    at.alphaTab({
+        staves: ['tab', 'rhythm-up']
+    });
+
+# 十一.只显示吉他谱，时间线在上
+    at.alphaTab({
+         staves: ['rhythm-down', 'tab']
+    });
+
+# 十二.只显示吉他谱并设置时间高度为10
+    staves: [
+                   { id: 'rhythm-down', additionalSettings: { 'rhythm-height': 10 } },
+                   'tab'
+        ]
+
+# 十三.只显示显示谱并采用符尾模式
+    at.alphaTab({
+        staves: [
+                    { id: 'rhythm-down', additionalSettings: { 'use-beams': true } },
+                    'tab'
+        ]
+    });
+
+# 十四.只显示吉他谱，无时间线
+    at.alphaTab({
+        staves: ['tab']
+    });
+
+# 三.读取乐谱显示及轨道信息
+    var score = AlphaTab.Importer.ScoreLoader.LoadScoreAsync($('#alphaTabScore').data('file'), 
+        function(score) {
+            var info = jQuery('#alphaTabScore');
+            info.html('');
+            info.append('<p><b>Title:</b> '+score.Title+'</p>');
+            info.append('<p><b>Subtitle:</b> '+score.Subtitle+'</p>');
+            info.append('<p><b>Album:</b> '+score.Album+'</p>');
+            info.append('<p><b>Tempo:</b> '+score.Tempo+'</p>');
+            info.append('<p><b>Bars:</b> '+score.MasterBars.length+'</p>');
+            info.append('<p><b>Tracks:</b> ('+score.Tracks.length+')</p>');
+            var tracks = $('<ul></ul>');
+            for(var i = 0; i < score.Tracks.length; i++) {
+                tracks.append('<li>'+score.Tracks[i].Name+'</li>');
+            }
+            info.append(tracks);
+        },
+        function(error) {
+            jQuery('#alphaTabScore').text('Error Loading the file: ' + error);
+        });

@@ -1,0 +1,16 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.class_name}}
+{% endblock %}
+
+{% block content %}
+{#<div class="d-lg-none" style="height:50px;"></div>#}
+<div class="container mt-3 mb-3">
+    <div class="title">
+        <div class="title-txt">
+            <span><a href='/'>{{SiteName}}</a></span> > <span><a href='{{model.get_url()}}'>{{model.class_name}}</a></span>
+        </div>
+    </div>
+</div> 
+
+{% endblock %}
