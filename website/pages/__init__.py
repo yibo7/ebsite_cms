@@ -4,6 +4,7 @@ import time
 from flask import Blueprint, g, render_template, request, redirect, make_response, current_app, send_from_directory
 
 import eb_cache
+from bll.index_data_provider import IndexDataProvider
 from bll.user import User
 from eb_cache import login_utils
 from eb_cache.cache_keys import CacheKeys
@@ -36,7 +37,7 @@ def render_and_cache_index():
         req = Request(env)
         with current_app.request_context(env):
             temp_path = current_app.config.get('index_temp_path',"index.html")
-            rendered = render_template(temp_path)
+            rendered = render_template(temp_path, index_data=IndexDataProvider())
             eb_cache.set_data(rendered, ex_second=0, key=CacheKeys.INDEX_HTML)
             eb_cache.set_data(time.time(), ex_second=0, key=CacheKeys.INDEX_TIME)
             print("index cache updated")
@@ -65,7 +66,7 @@ def index():
         rendered = render_and_cache_index()
         return make_response(rendered)
 
-    return render_template(temp_path)
+    return render_template(temp_path, index_data=IndexDataProvider())
 
 
 @pages_blue.errorhandler(404)
