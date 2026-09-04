@@ -4,13 +4,102 @@
 {% endblock %}
 
 {% block content %}
-{#<div class="d-lg-none" style="height:50px;"></div>#}
-<div class="container mt-3 mb-3">
-    <div class="title">
-        <div class="title-txt">
-            <span><a href='/'>{{SiteName}}</a></span> > <span><a href='{{model.get_url()}}'>{{model.class_name}}</a></span>
-        </div>
+
+<!-- ===== 面包屑 + 分类标题 ===== -->
+<section class="category-header py-3">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+      <div>
+        <h1 class="serif mb-1">{{model.class_name}}</h1>
+        <div class="category-desc">指弹、弹唱曲谱合集 · 兼容 GTP 格式 · 新歌更新</div>
+      </div>
+
     </div>
-</div> 
+  </div>
+</section>
+
+
+<div class="container my-3">
+  <div class="filter-bar d-flex flex-column gap-3 p-3">
+
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="group-label">📈 专集</span>
+        {% if model.id == 112 %}
+            {{ widget("6a97fa6f9c1e655b878de2cc") }}
+        {% else %}
+           {{ widget("6a97fddc020a8ac62314849e") }}
+        {% endif %}
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="group-label">🎯 标签</span>
+      {{ widget("682f3dca7c0da18d4038d198") }}
+      <a href="/tags1.html" class="btn btn-outline-brand rounded-pill ms-lg-auto">》 更多</a>
+    </div>
+  </div>
+</div>
+{% set style_map = {
+    '1': '总谱',
+    '2': '吉他独奏',
+    '3': '钢琴独奏',
+    '4': '架子鼓独奏',
+    '5': '贝斯独奏',
+    '6': '尤克里里独奏'
+} %}
+<!-- ===== SONG GRID ===== -->
+<section class="container mb-4">
+  {% if data_list %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+
+      <!-- list -->
+      {% for item in data_list%}
+        <div class="col">
+        <a href="{{item.get_url()}}" class="song-card-link">
+          <div class="song-card h-100 p-3 d-flex flex-column">
+            <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{ style_map.get(item.column_13, item.column_13) }}</span>
+            <div class="song-title serif">{{item.title}}</div>
+            <div class="song-artist mb-2">{{item.column_1}} <span class="muted">· {{item.column_3}}</span></div>
+            <div class="d-flex align-items-center gap-2 my-1 mb-3">
+              <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+                <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+              </button>
+              <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+<!--              <span class="duration mono">04:12</span>-->
+            </div>
+            <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+              <div>调式 <span class="key">{{item.column_2}}</span></div>
+              <div >难度
+                <span value="{{item.column_4}}" id="LevelValue" class="frets d-inline-flex gap-1"></span>
+              </div>
+<!--              <div class="dial">-->
+<!--                <svg viewBox="0 0 28 28">-->
+<!--                  <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>-->
+<!--                  <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="7.85" stroke-linecap="round"/>-->
+<!--                </svg>-->
+<!--                <span class="dial-label">88</span>-->
+<!--              </div>-->
+              <div class="views d-flex align-items-center gap-1">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+                </svg> {{item.hits or 0}}
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+
+    </div>
+ {% else %}
+  <div class="p-5 text-center">暂无数据</div>
+{% endif %}
+</section>
+
+<!-- ===== 分页 ===== -->
+{{pager}}
+
+<script>
+    let cid = {{model.id}};
+</script>
 
 {% endblock %}

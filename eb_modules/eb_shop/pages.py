@@ -115,4 +115,10 @@ def shop_orders(admin_token:UserToken):
 
     return render_template("shop_admin/shop_orders.html")
 
+
+@bp_shop_pages.route('/level_price', methods=['GET'])
+@check_admin_login
+def level_price(admin_token:UserToken):
+
+    return render_template("shop_admin/level_price.html")
 # endregion

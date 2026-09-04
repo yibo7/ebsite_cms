@@ -25,11 +25,11 @@ class TagByClassWidgetModel(WidgetBase):
 
     def temp_hanndler(self, model:WidgetsModel):
         bll = self.bll_hanndler()
-        class_id_str = model.other["class_ids"]
-        if class_id_str == "0":
-            class_id_str = str(request.view_args.get('id')) # 自动适应ID
+        class_id_str = model.other.get("class_ids", "0")
+        if not class_id_str or class_id_str in ("0", "None"):
+            class_id_str = str(request.view_args.get('id', '0')) # 自动适应ID
 
-        class_ids = [int(cid.strip()) for cid in class_id_str.split(",") if cid.strip()]
+        class_ids = [int(cid.strip()) for cid in class_id_str.split(",") if cid.strip() and cid.strip() not in ("None", "")]
 
         limit = model.limit
         order_by = model.order_by

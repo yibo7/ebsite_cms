@@ -1,108 +1,48 @@
-﻿
-$(function () { 
-
-    var lazyLoad = null;
-    In.ready('vanilla-lazyload', function () {
-        lazyLoad = new LazyLoad();
-    });
-
-    $(".rank-list span").each(function (i) {
-    $(this).text(i + 1)
-    });
-
-    if ($(".pagination").length > 0) {
-        In.ready('infinitescroll', function () {
-            
-            let $container = $('.eb-list-box').infiniteScroll(
-                {
-                    path: '.next-page', //下页连接的选择器
-                    append: '.eb-list-item',      //你要检索的所有项目的选择器,
-                    button: '.load-more',   //点击哪个元素加载
-                    status: '.page-load-status',
-                    checkLastPage: true     //检查无限滚动是否已到达最后一页
-                }
-            );
-            //最后一页是触发
-            $container.on('last.infiniteScroll', function (event, body, path) {
-                console.log(`Last page hit on ${path}`);
-            });
-            //以下是加载2页后需要手动加载
-            let $viewMoreButton = $('.load-more');
-            let infScroll = $container.data('infiniteScroll');
-            $container.on('load.infiniteScroll', onPageLoad);
-
-            function onPageLoad() {
-                if (infScroll.loadCount == 2) {
-                    $container.infiniteScroll('option', {
-                        loadOnScroll: false, //禁止自动加载
-                    });
-                    $viewMoreButton.show();
-                    // remove event listener
-                    $container.off('load.infiniteScroll', onPageLoad);
-                }
-                lazyLoad.update();
-            }
-
-        });
-    }else {
-        $(".load_more_box").hide()
+﻿// ===== 动态生成波形条 =====
+  // 每个卡片中的 .js-wave 容器自动生成 32 条波形
+  // 每条高度在 6px ~ 22px 之间随机，模拟真实音频波形
+  document.querySelectorAll('.js-wave').forEach(function(el) {
+    var count = 32;
+    for (var i = 0; i < count; i++) {
+      var bar = document.createElement('i');
+      // 随机高度 6~22px
+      var height = 6 + Math.floor(Math.random() * 17);
+      bar.style.height = height + 'px';
+      el.appendChild(bar);
     }
-    $(".taglist a").each(function (i) {
-        this.style.color = "#" + randomcolor();
-    });
-    $("#btn_open_left").click(() => {
-        In.ready('boostrapjs', function () { 
-            var offcanvasElement = document.getElementById('offcanvasATQ'); 
-            var offcanvas = new bootstrap.Offcanvas(offcanvasElement);
-            offcanvas.show();
-        });
-    });
-     
-     
-});
- 
-function randomcolor() {
-    var str = Math.ceil(Math.random() * 16777215).toString(16);
-    if (str.length < 6) {
-        str = "0" + str;
+  });
+
+  // 根据 value 值渲染难度星级
+function renderStars() {
+   const container = document.getElementById('LevelValue');
+    if (!container) return; // 如果元素不存在，直接退出
+    const value = parseInt(container.getAttribute('value')) || 0;
+    const total = 3;
+
+    // 清空容器
+    container.innerHTML = '';
+
+    // 生成 span
+    for (let i = 0; i < total; i++) {
+        const span = document.createElement('span');
+        if (i < value) {
+            span.className = 'on';
+        }
+        container.appendChild(span);
     }
-    return str;
 }
 
-// 设置 cookie
-function setCookie(name, value, days = 365) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${value}; expires=${expires}; path=/`;
-}
+// 页面加载后执行
+renderStars();
 
-// 读取 cookie
-function getCookie(name) {
-  return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=')[1];
-}
+// 自动选中主导航菜单（基于cid匹配）
+const currentCid = cid; // 或者直接用 cid 变量
 
-// 设置图标样式
-function updateIcon(theme) {
-  const icon = document.getElementById('themeIcon');
-  if (theme === 'dark') {
-    icon.className = 'fa fa-moon-o';
-  } else {
-    icon.className = 'fa fa-sun-o';
+document.querySelectorAll('.navbar-nav .nav-link').forEach(el => {
+  const itemCid = el.getAttribute('cid');
+  console.log(`链接cid: ${itemCid} | 当前cid: ${currentCid} | 匹配: ${itemCid == currentCid}`);
+  if (itemCid == currentCid) {
+    el.classList.add('active');
   }
-}
+});
 
-// 切换主题
-function toggleTheme() {
-  const html = document.documentElement;
-  const current = html.getAttribute('data-bs-theme') || 'light';
-  const newTheme = current === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-bs-theme', newTheme);
-  setCookie('theme', newTheme);
-  updateIcon(newTheme);
-}
-
-// 页面加载时初始化
-(function () {
-  const saved = getCookie('theme') || 'light';
-  document.documentElement.setAttribute('data-bs-theme', saved);
-  updateIcon(saved);
-})();

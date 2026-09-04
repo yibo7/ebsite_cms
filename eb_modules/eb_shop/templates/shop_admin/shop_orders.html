@@ -1,8 +1,33 @@
 {% extends 'base_admin.html' %}
 {% block content %}
+    <div style="padding:10px;" >
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+            <a class="nav-link active"  aria-current="page" href="shop_orders">订单管理</a>
+          </li>
+            <li class="nav-item">
+            <a class="nav-link" href="level_price">价格级别管理</a>
+          </li>
+        </ul>
+        <br>
+        <div class="eb-box">
+            <div class="btn-toolbar px-2">
+                <form method="get">
+                    <div class="btn-group">
+                        <input class="form-control" placeholder="关键字" name="k" type="text" required/>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" type="submit">   搜索   </button>
+                    </div>
 
+                </form>
+            </div>
+            {{table_html}}
+        </div>
+        <nav class="mt-2 px-2">
+            {{pager}}
+        </nav>
 
-    <div style="padding:10px">
-    暂无实现
     </div>
+
 {% endblock %}

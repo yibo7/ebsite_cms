@@ -1,50 +1,120 @@
 {% extends 'base_site.html' %}
 {% block title %}
-{{key_word}}
+{{key_word if key_word else '搜索'}}
 {% endblock %}
 
 {% block content %}
 
+{% set has_keyword = key_word and key_word|trim %}
 
-<div class="container container-fluid customize-width mt-3 mb-3">  
-    
-    <div class="tabfg">
-       <div class="tabmh">
-           <h4 class="text-gray text-lg">
-             <i class="fa fa-bookmark-o"></i> {{key_word}}
-           </h4> 
-            
-        </div> 
-        {% if data_list %}
-        <div class="list-group eb-list-box">
+{% set style_map = {
+    '1': '总谱',
+    '2': '吉他独奏',
+    '3': '钢琴独奏',
+    '4': '架子鼓独奏',
+    '5': '贝斯独奏',
+    '6': '尤克里里独奏'
+} %}
 
-            {% for item in data_list%}
-                <a href="{{item.get_url()}}" class="eb-list-item list-group-item list-group-item-action d-flex gap-3 py-3 score-lst-box" aria-current="true">
-                    {% if item.small_pic %}
-                    <img style="width: 120px;height: 80px" src="{{item.small_pic}}" > 
-                    {% endif %}
-                    <div class="d-flex gap-2 w-100 justify-content-between">
-                        <div>
-                            <h5 class="mb-0">{{item.title}}</h5>
-                            <p class="mb-0 opacity-75 box-sub-info">
-                                {{item.seo_description}}                                       
-                            </p>
-                            <span style="color:darkgray;font-size:12px;"> {{item.add_time|to_time_name}}</span> 
-                        </div> 
-                    </div>
-                </a>
-            {% endfor %} 
+<!-- ===== 品牌搜索栏（与首页一致） ===== -->
+<section class="search-section py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-9 col-lg-7">
+        <form onsubmit="return ChkSo(this);" method="get" action="/search.html" class="d-flex gap-2">
+          <div class="search-input-group d-flex align-items-center flex-grow-1">
+            <span class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+              </svg>
+            </span>
+            <input id="k" name="k" type="text" value="{{key_word or ''}}" placeholder="搜索曲谱、歌手、制谱师..." autofocus>
+            <span class="search-shortcut d-none d-md-inline">⌘K</span>
+          </div>
+          <button class="btn btn-brand search-btn" type="submit">搜索</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if has_keyword %}
+  <!-- ===== 搜索结果头部 ===== -->
+  <section class="category-header py-3">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+        <div>
+          <div class="breadcrumb-nav mb-1">
+            <a href="/">首页</a><span class="sep">/</span><span class="current">搜索</span>
+          </div>
+          <h1 class="serif mb-1">🔍 {{key_word}}</h1>
+          <div class="category-desc">
+            搜索「{{key_word}}」的结果
+            {% if data_list %} · 共 {{ data_list | length }} 条{% endif %}
+          </div>
         </div>
-        {% else %}
-           <div class="container container-fluid customize-width d-flex justify-content-center p-5">
-              找不到与【{{ key_word }}】相关的内容！
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 搜索结果列表 ===== -->
+  <section class="container mb-4">
+    {% if data_list %}
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 mt-3">
+
+        {% for item in data_list %}
+          <div class="col">
+          <a href="{{item.get_url()}}" class="song-card-link">
+            <div class="song-card h-100 p-3 d-flex flex-column">
+              <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{ style_map.get(item.column_13, item.column_13 or '曲谱') }}</span>
+              <div class="song-title serif">{{item.title}}</div>
+              <div class="song-artist mb-2">{{item.column_1 or ''}} <span class="muted">· {{item.column_3 or ''}}</span></div>
+              <div class="d-flex align-items-center gap-2 my-1 mb-3">
+                <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+                  <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+                </button>
+                <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+              </div>
+              <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+                <div class="views d-flex align-items-center gap-1">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+                  </svg> {{item.hits or 0}}
+                </div>
+                <span style="font-size:12px; color: var(--ink-faint);">{{item.add_time|to_time_name}}</span>
+              </div>
             </div>
-        {% endif %}
-    </div> 
-</div>
-{% include 'loading_more.html' %}
-<div class="container container-fluid customize-width d-flex justify-content-center">   
- {{pager}}
-</div>
-  
+          </a>
+        </div>
+        {% endfor %}
+
+      </div>
+   {% else %}
+    <div class="p-5 text-center" style="color: var(--ink-faint);">
+      <div style="font-size: 48px; margin-bottom: 12px;">🔍</div>
+      <div style="font-size: 16px; font-weight: 500; color: var(--ink-soft);">找不到与「{{key_word}}」相关的内容</div>
+      <div style="font-size: 13px; color: var(--ink-faint); margin-top: 6px;">试试其他关键词吧</div>
+    </div>
+  {% endif %}
+  </section>
+
+  <!-- ===== 分页 ===== -->
+  {{pager}}
+
+{% else %}
+  <!-- ===== 无关键词时的引导提示 ===== -->
+  <section class="container mb-4">
+    <div class="p-5 text-center">
+      <div style="font-size: 56px; margin-bottom: 16px; opacity: 0.3;">🎵</div>
+      <div style="font-size: 18px; font-weight: 600; color: var(--ink-soft); margin-bottom: 8px;">
+        搜索你想要的曲谱
+      </div>
+      <div style="font-size: 14px; color: var(--ink-faint); max-width: 400px; margin: 0 auto; line-height: 1.8;">
+        在上方输入曲谱名称、歌手名或制谱师<br>
+        找到属于你的音乐
+      </div>
+    </div>
+  </section>
+{% endif %}
+
 {% endblock %}

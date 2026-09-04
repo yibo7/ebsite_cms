@@ -4,57 +4,75 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-lg-none" style="height:50px;"></div>
-<div class="container">
-    <div class="title">
-        <div class="title-txt"><span><a href='/tags1.html'>所有标签</a></span> > <span><a>{{model.name}}</a></span></div>
+
+<!-- ===== 面包屑 + 分类标题 ===== -->
+<section class="category-header py-3">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+      <div>
+        <h1 class="serif mb-1">🏷️ {{model.name}}</h1>
+        <div class="category-desc">标签「{{model.name}}」下的所有曲谱</div>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== 筛选栏 ===== -->
+<div class="container my-3">
+  <div class="filter-bar d-flex flex-column gap-3 p-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="group-label">🎯 标签</span>
+      {{ widget("682f3dca7c0da18d4038d198") }}
+      <a href="/tags1.html" class="btn btn-outline-brand rounded-pill ms-lg-auto">》 更多</a>
+    </div>
+  </div>
 </div>
-<div class="container">
-    <div class="row">
-        <div class="col-lg-9">
-            {% if data_list %}
-            <div class="list-group eb-list-box">
-                {% for item in data_list%}
-                <a href="{{item.get_url()}}"
-                    class="eb-list-item list-group-item list-group-item-action d-flex gap-3 py-3 score-lst-box" aria-current="true">
-                    {% if item.small_pic %}
-                    <img style="width: 120px;height: 80px" src="{{item.small_pic}}">
-                    {% endif %}
-                    <div class="d-flex gap-2 w-100 justify-content-between">
-                        <div>
-                            <h5 class="mb-0">{{item.title}}</h5>
-                            <p class="mb-0 opacity-75 box-sub-info">
-                                {{item.seo_description}}
-                            </p>
-                            <span style="color:darkgray;font-size:12px;"> {{item.add_time|to_time_name}}</span>
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
+
+{% set style_map = {
+    '1': '总谱',
+    '2': '吉他独奏',
+    '3': '钢琴独奏',
+    '4': '架子鼓独奏',
+    '5': '贝斯独奏',
+    '6': '尤克里里独奏'
+} %}
+
+<!-- ===== SONG GRID ===== -->
+<section class="container mb-4">
+  {% if data_list %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+
+      {% for item in data_list %}
+        <div class="col">
+        <a href="{{item.get_url()}}" class="song-card-link">
+          <div class="song-card h-100 p-3 d-flex flex-column">
+            <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{ style_map.get(item.column_13, item.column_13 or '曲谱') }}</span>
+            <div class="song-title serif">{{item.title}}</div>
+            <div class="song-artist mb-2">{{item.column_1 or ''}} <span class="muted">· {{item.column_3 or ''}}</span></div>
+            <div class="d-flex align-items-center gap-2 my-1 mb-3">
+              <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+                <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+              </button>
+              <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
             </div>
+            <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+              <div>调式 <span class="key">{{item.column_2 or '-'}}</span></div>
+              <div>难度
+                <span value="{{item.column_4 or '0'}}" id="LevelValue" class="frets d-inline-flex gap-1"></span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
 
-            {% else %}
-            <div class="p-5 text-center">暂无数据</div>
-            {% endif %}
-
-            {% include 'loading_more.html' %}
-            {{pager}}
-
-
-        </div>
-        <div class="col-lg-3 d-none d-lg-block">
-
-            <div class="eb-box">
-                    <div class="right-width-tt">猜你喜欢</div>
-                    <ul class="rank-list">
-                         {{ widget("683ab7d64b6149cc6b93c78d") }}
-                    </ul>
-                </div>
-
-        </div>
     </div>
-</div>
+ {% else %}
+  <div class="p-5 text-center">暂无数据</div>
+{% endif %}
+</section>
 
-  
+<!-- ===== 分页 ===== -->
+{{pager}}
+
 {% endblock %}

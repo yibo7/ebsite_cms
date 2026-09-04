@@ -6,5 +6,6 @@ from . import img_upload
 from . import img_upload_list
 from . import multiline_input
 from . import number_input
+from . import score_type_select
 from . import simple_input
 from . import simple_input_optional

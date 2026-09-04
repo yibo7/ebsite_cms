@@ -1,114 +1,162 @@
 <!DOCTYPE html>
-<html lang="zh-Hans" data-bs-theme="light">
-
+<html lang="zh-CN">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}{% endblock %}-{{SiteName}}</title>
   <link rel="icon" href="/favicon.svg" />
   <meta name="keywords" content="EbSite,免费建站,开源CMS" />
   <meta name="description" content="{{ widget("66efd16d10df7056e43b9c4e") }}" />
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
   <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
   <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
-</head>
-
-<body class="home blog sidebar_no theme-intro">
-
-  <div class="head-fixed bg-header">
-    <div class="container">
-      <header class="d-flex  justify-content-between py-2">
-
-        <div class="d-flex me-md-auto mb-md-0 ">
-          <a class="d-flex align-items-center topsobtn" href="/">
-            <!-- <img alt="logo" src="/images/logo.png" /> -->
-            <i class="fa fa-pied-piper fa-2x" style="color: #cf511f;"></i>
-            <span class="fs-4 logotext">{{SiteName}}</span>
-          </a>
-          <div class="me-md-auto d-none d-md-block">
-            <form onsubmit="return ChkSo(this);" method="get" action="/search.html">
-              <div class="input-group">
-                <input id="k" name="k" type="text" class="form-control" placeholder="输入关键词" />
-                <button value="搜索" class="btn btn-outline-secondary" type="submit" id="btnSearch"><i
-                    class="fa fa-search"></i></button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        <div class="d-none d-lg-block">
-          <ul class="nav nav-pills">
-            {{ widget("64d369a73d94dd897b8f5971") }}
-            <li class="nav-item">
-              <a href="/user/index" class="nav-link ">
-                <i style="font-size:22px;" class="fa fa-user-circle-o" ></i>
-              </a>
-            </li>
-          </ul>
-        </div>
-        <i id="btn_open_left" class="fa fa-list-ul fa-2x d-lg-none" style="color: #797979;"></i>
-
-      </header>
-    </div>
-  </div>
-
-  {% block content %}{% endblock %}
-
-
-  <div class="footer">
-    <div class="container">
-
-      <div class="clearfix">
-        <div class="pull-left">
-          <div class="footer-color">EbSite　© 版权所有 2008-2025 All Rights Reserved　备案号：<a target="_blank" rel="nofollow"
-              href="https://beian.miit.gov.cn">粤ICP备2022142501号-1</a> </div>
-          <div class="footer-color footer-color-b">
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="offcanvas offcanvas-start" style="width: 250px; background-color: #2C2E2F" tabindex="-1" id="offcanvasATQ" aria-labelledby="offcanvasATQ">
-    <div class="top-box">
-      <div class="top-box-inner">
-        <div class="offcanvas-header">
-          <div class="offcanvas-title">
-            <a class="d-flex align-items-center topsobtn" href="/">
-              <!-- <img alt="logo" src="/logo.png" /> -->
-              <i class="fa fa-pied-piper fa-2x" style="color: #cf511f;"></i>
-              <span class="fs-4 logotext">{{SiteName}}</span>
-            </a>
-          </div>
-          <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-      </div>
-    </div>
-    <div class="index-so-box">
-      <form onsubmit="return ChkSo(this);" method="get" action="/search.html">
-        <div class="input-group mt-3 mb-3">
-          <input type="text" name="k" class="form-control" placeholder="输入关键词">
-          <button type="submit" style="background-color: #ee5f11" class="btn">
-            <i style="color: #fff;" class="fa fa-search"></i>
-          </button>
-        </div>
-      </form>
-
-        <ul class="navbar-nav">
-        {{ widget("64d369a73d94dd897b8f5971") }}
-      </ul>
-    </div>
-
-  </div>
-     <!-- 右下角浮动按钮 -->
-   <button class="btn btn-secondary theme-toggle-btn" onclick="toggleTheme()" id="themeIconBtn" title="切换主题">
-    <i class="fa" id="themeIcon"></i>
-  </button>
-  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
-  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
   <script src="/js/comm.js" defer></script>
   <script src="/extensions.js" defer></script>
+</head>
+<body>
+<!-- ===== HEADER / NAVBAR ===== -->
+<header class="header border-bottom sticky-top">
+  <nav class="navbar navbar-expand-lg">
+    <div class="container py-2">
+
+      <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="/">
+        <span class="brand-icon d-flex align-items-center justify-content-center">
+          <img alt="logo" src="/images/logo.png" />
+        </span>
+        <span class="d-flex flex-column">
+          <span class="brand-name serif fw-bold">爱弹琴</span>
+          <span class="brand-tag d-none d-md-inline">爱琴生活自有人懂</span>
+        </span>
+      </a>
+
+      <ul class="navbar-nav d-none d-lg-flex flex-row gap-4 mx-auto">
+        <li class="nav-item"><a class="nav-link" href="/">🏠 首页</a></li>
+       {{ widget("6a955899ccda0b6fd621002b") }}
+      </ul>
+
+      <div class="d-flex align-items-center gap-2">
+        <a href="/search.html" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center"
+           title="搜索曲谱">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+          </svg>
+        </a>
+        <a href="/login" class="btn btn-outline-brand rounded-pill btn-sm d-none d-lg-inline-flex px-3">登录</a>
+        <a href="/reg" class="btn btn-brand rounded-pill btn-sm px-3">制谱师入驻</a>
+        <a href="/search.html" class="btn btn-nav-icon d-lg-none d-inline-flex align-items-center justify-content-center"
+           title="搜索曲谱">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+          </svg>
+        </a>
+        <button class="btn menu-toggle-btn d-lg-none d-flex align-items-center justify-content-center"
+                type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
+                aria-controls="mobileMenu" aria-label="菜单">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M3 6h18M3 12h18M3 18h18"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+</header>
+
+<!-- ===== 移动端抽屉菜单 ===== -->
+<div class="offcanvas offcanvas-start mobile-offcanvas" tabindex="-1" id="mobileMenu" aria-labelledby="mobileMenuLabel">
+  <div class="offcanvas-header d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <span class="brand-icon d-flex align-items-center justify-content-center">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17c4-8 8-8 10 0s6 8 8 0" />
+          <path d="M3 9h18" />
+        </svg>
+      </span>
+      <span class="brand-name serif fw-bold" id="mobileMenuLabel">爱弹琴</span>
+    </div>
+    <button type="button" class="btn-close btn-close-white"  aria-label="关闭"></button>
+  </div>
+
+  <div class="offcanvas-body">
+    <a href="/" class="menu-list-item active" >
+      <span class="menu-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9"/>
+        </svg>
+      </span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">首页</span>
+        <span class="menu-sub">发现本周精选曲谱</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+
+    <a href="/c112p1.html" class="menu-list-item"  >
+      <span class="menu-icon">
+        🎸
+      </span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">吉他谱</span>
+        <span class="menu-sub">兼容GTP格式</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+        <a href="/c113p1.html" class="menu-list-item" >
+      <span class="menu-icon">
+       🎹
+      </span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">钢琴谱</span>
+        <span class="menu-sub">兼容MuseScore格式</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+
+    <a href="/search.html" class="menu-list-item" >
+      <span class="menu-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+        </svg>
+      </span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">搜索曲谱</span>
+        <span class="menu-sub">曲谱、歌手、制谱师</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+
+    <a href="/login" class="menu-list-item" >
+      <span class="menu-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/>
+        </svg>
+      </span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">登录 / 注册</span>
+        <span class="menu-sub">同步你的收藏和乐谱</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+  </div>
+</div>
+
+
+
+{% block content %}{% endblock %}
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer py-4">
+  <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 small">
+    <span>© 2026 爱弹琴 · 好弹好唱</span>
+    <div class="d-flex gap-4">
+      <a href="#" class="text-decoration-none">关于</a>
+      <a href="#" class="text-decoration-none">帮助</a>
+      <a href="#" class="text-decoration-none">版权</a>
+      <a href="#" class="text-decoration-none">反馈</a>
+    </div>
+  </div>
+</footer>
+<script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
 </body>
 
 </html>

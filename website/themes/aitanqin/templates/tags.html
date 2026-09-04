@@ -4,28 +4,49 @@
 {% endblock %}
 
 {% block content %}
-    
-<div  class="d-lg-none" style="height:50px;"></div>  
-<div class="container">
-    <div class="title">
-        <div class="title-txt">所有标签</div>
-    </div>
-</div>
-<div style="padding-bottom: 20px;" class="container mt-20 ">
-    <div class="row">
-        <div class="col-lg-12 eb-box">
-            <div class="taglist">
-                {% for item in data_list %}
-                    <li>
-                        <a href="{{item.get_url()}}" >{{item.name}}({{item.article_count}})</a>
-                    </li>
-                {% endfor %}
 
-            </div>
+<!-- ===== 面包屑导航 ===== -->
+<div class="d-lg-none" style="height:50px;"></div>
+<section class="category-header py-3">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
+      <div>
+        <div class="breadcrumb-nav mb-1">
+          <a href="/">首页</a><span class="sep">/</span><span class="current">所有标签</span>
         </div>
-         {{pager}}
+        <h1 class="serif mb-1">🏷️ 所有标签</h1>
+        <div class="category-desc">按标签浏览曲谱，快速找到你喜欢的风格</div>
+      </div>
+      <div class="category-count">{{ data_list | length }} 个标签</div>
     </div>
+  </div>
+</section>
 
+<!-- ===== 标签列表 ===== -->
+<div class="container my-4">
+  <div class="row">
+    <div class="col-12">
+      {% if data_list %}
+      <div class="tag-grid">
+        {% for item in data_list %}
+        <a href="{{item.get_url()}}" class="tag-chip">
+          <span class="tag-name">{{item.name}}</span>
+          <span class="tag-count">{{item.article_count}} 首</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="p-5 text-center" style="color: var(--ink-faint);">暂无标签</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ===== 分页 ===== -->
+  {% if pager %}
+  <div class="pagination-wrap mt-5 pt-4">
+    {{pager}}
+  </div>
+  {% endif %}
 </div>
 
 {% endblock %}

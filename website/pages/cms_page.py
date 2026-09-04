@@ -43,7 +43,6 @@ def list(id: int, p: int):
 #                 return render_template(temp_model.file_path, model=model, class_model=class_model)
 #     abort(404)
 
-
 @pages_blue.route('/a<int:id>.html')
 def content(id):
     bll = NewsContent()
@@ -66,20 +65,36 @@ def content(id):
 
     response = None
 
+    # 根据模板类型选择渲染方式
+    if temp_model.temp_model == 1:
+        # 代码模板
+        render_func = lambda: render_template_string(
+            temp_model.temp_code,
+            model=model,
+            class_model=class_model
+        )
+    else:
+        # 文件模板
+        render_func = lambda: render_template(
+            temp_model.file_path,
+            model=model,
+            class_model=class_model
+        )
+
     if can_cookie:
         # 客户端支持 Cookie，只有第一次没 viewed 才统计 hits
         if not viewed:
             threading.Thread(target=bll.update_hits, args=(model._id,), daemon=True).start()
             # 设置 viewed cookie，防止短时间重复统计
             max_age = 300  # 5分钟
-            response = make_response(render_template(temp_model.file_path, model=model, class_model=class_model))
+            response = make_response(render_func())
             response.set_cookie(cookie_key, '1', max_age=max_age, httponly=True)
         else:
             # 已有 viewed，不统计
-            response = make_response(render_template(temp_model.file_path, model=model, class_model=class_model))
+            response = make_response(render_func())
     else:
         # 第一次访问，没 can_cookie，设置 can_cookie 但不统计
-        response = make_response(render_template(temp_model.file_path, model=model, class_model=class_model))
+        response = make_response(render_func())
         response.set_cookie(cookie_test_key, '1', max_age=3600, httponly=True)  # 1小时有效
 
     return response
@@ -131,14 +146,10 @@ def search():
     bll = NewsContent()
     key_word = http_helper.get_prams("k")
 
-    if not key_word:
-        abort(404)
-
-    key_word = key_word
-
     page_size = current_app.config["list_page_size"]
-    page_number = http_helper.get_prams_int("p",1)
+    page_number = http_helper.get_prams_int("p", 1)
 
+    key_word = key_word or ''
     rewrite_rule = f'/search.html?k={quote(key_word)}&p={{0}}'
 
     data_list, pager = bll.search_full(key_word,page_number,page_size, rewrite_rule)

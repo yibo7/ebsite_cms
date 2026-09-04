@@ -671,3 +671,15 @@ function load_login_info(){
         }
     })
 }
+
+/**
+ * 搜索表单验证
+ * @param {HTMLFormElement} ob
+ * @returns {boolean}
+ */
+function ChkSo(ob) {
+    if (ob.k.value.trim() == "") {
+        alert("请输入要搜索的关键词");
+        return false;
+    }
+}

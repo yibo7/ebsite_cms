@@ -1,5 +1,10 @@
 ﻿function InitFileUpload(filedata, fileList, inputid, isBatch) {
-    ext = "zip,rar"
+    var ext = "zip,rar";  // 默认值
+
+    // 如果存在 ext_set 且不为空，则使用它并去除点前缀
+    if (typeof ext_set !== 'undefined' && ext_set !== null && ext_set.trim() !== '') {
+        ext = ext_set.replace(/\./g, '');  // 移除所有点号
+    }
     sizeSingle = 10*1024;
     numLimit = 1000;// isBatch ? 1000 : 1;
     var uploader = WebUploader.create({
@@ -18,8 +23,8 @@
         resize: false, 
         // 只允许选择图片文件。
         accept: {
-            title: 'Images',
-            extensions: 'png,jpeg,jpg,gif,rar,zip,txt,pdf,doc,docx,XLS,XLSX,PPT,PPTX,CSV,MP3,MP4,AVI,MOV,WMV',
+            title: 'File',
+            extensions: ext,
             mimeTypes: '*/*'
         }
     });

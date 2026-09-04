@@ -59,7 +59,7 @@ def up_file(admin_token:UserToken):
         model.size = size
         model_old = bll.find_one_by_where({"md5": model.md5})
         if not model_old:
-            is_succesful, url = current_app.pm.upfile(content_value, model)
+            is_succesful, url = current_app.pm.upfile(content_value, model) # 由当前设置的插件实现上传
             bll.add(model)
         # data = bll.upload(model)
         else:

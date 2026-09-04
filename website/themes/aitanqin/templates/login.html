@@ -4,50 +4,378 @@
 {% endblock %}
 
 {% block content %}
- <div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow-sm" style="width: 100%; max-width: 400px;">
-      <div class="card-body">
-        <h4 class="card-title mb-4 text-center">用户登录</h4>
-        <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label class="form-label" for="username">Email或手机</label>
-                        <input class="form-control" id="username" name="username" placeholder="Email或手机" required>
-                        <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="pass">密码</label>
-                        <input type="password" class="form-control" id="pass" name="pass" placeholder="密码" required>
-                        <div class="invalid-feedback">密码不能为空</div>
-                    </div>
-                     {%if is_safe_code %}
-                        <div class="mb-3">
-                            <label class="form-label" for="pass">验证码</label>
-                            <input type="text" style="max-width:100px" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" required/>
-                            <div class="invalid-feedback">验证码为4位，且不能为空</div>
-                        </div>
-                        <div class="mb-3">
-                             <img  onClick="this.src+=Math.random()" src="/imgcode?" style="cursor: pointer;" />
-                        </div>
 
-                     {%endif%}
-                    <br><br>
-                    <button onclick="on_post()" type="submit" style="width: 150px" class="btn btn-primary"> 登 录 </button>
-                    <br><br>
-                        <a href="javascript:" onclick="openlogin('OpenLoginWixin')" > 微信登录 </a> |  新用户请从<a class="text-success" href="reg">这里注册</a>
-                    <br><br>
-                    {%if err %}
-                     <div class="alert alert-danger" role="alert">
-                         {{err}}
-                        </div>
-                    {%endif%}
-                </form>
+<style>
+  /* ---- 登录/注册页共用品牌样式 ---- */
+  .auth-wrapper {
+    min-height: calc(100vh - 72px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    background: linear-gradient(180deg, var(--cream) 0%, #f5ede4 100%);
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    right: -120px;
+    width: 360px;
+    height: 360px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(232,93,38,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .auth-wrapper::after {
+    content: '♫';
+    position: absolute;
+    bottom: 40px;
+    left: 40px;
+    font-size: 120px;
+    color: rgba(200,154,60,0.06);
+    pointer-events: none;
+    font-family: serif;
+    line-height: 1;
+  }
+
+  /* 品牌卡片 */
+  .auth-card {
+    width: 100%;
+    max-width: 440px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 12px 40px rgba(30, 22, 18, 0.08);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .auth-card-top {
+    height: 6px;
+    background: linear-gradient(90deg, var(--orange), var(--gold), var(--orange));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .auth-card-body {
+    padding: 36px 36px 32px;
+  }
+  @media (max-width: 480px) {
+    .auth-card-body { padding: 28px 20px 24px; }
+  }
+
+  /* 品牌标题 */
+  .auth-title {
+    font-family: "Noto Serif SC", "Songti SC", serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .auth-subtitle {
+    font-size: 13px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-bottom: 28px;
+    letter-spacing: 0.5px;
+  }
+  .auth-title-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--orange-bg);
+    color: var(--orange);
+    margin-bottom: 12px;
+  }
+  .auth-title-icon svg { width: 24px; height: 24px; }
+
+  /* 表单控件品牌化 */
+  .auth-card .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .auth-card .form-control {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--ink);
+    background: #fff;
+    transition: border-color .25s, box-shadow .25s;
+    height: auto;
+  }
+  .auth-card .form-control:focus {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px rgba(232, 93, 38, 0.08);
+    outline: none;
+  }
+  .auth-card .form-control::placeholder {
+    color: var(--ink-faint);
+    font-size: 13px;
+  }
+  .auth-card .form-control.is-invalid,
+  .auth-card .was-validated .form-control:invalid {
+    border-color: #dc3545;
+    box-shadow: none;
+  }
+  .auth-card .invalid-feedback {
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  /* 验证码行 */
+  .captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .captcha-row .form-control {
+    flex: 1;
+    min-width: 0;
+    max-width: 140px;
+  }
+  .captcha-img-wrap {
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    transition: border-color .25s;
+    cursor: pointer;
+    line-height: 0;
+  }
+  .captcha-img-wrap:hover {
+    border-color: var(--orange);
+  }
+  .captcha-img-wrap img {
+    display: block;
+    height: 46px;
+    width: auto;
+  }
+  .captcha-hint {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 提交按钮 */
+  .auth-card .btn-brand {
+    width: 100%;
+    height: 50px;
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    transition: all .25s;
+  }
+  .auth-card .btn-brand:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(232, 93, 38, 0.35);
+  }
+  .auth-card .btn-brand:active {
+    transform: translateY(0);
+  }
+
+  /* 社交登录按钮 */
+  .social-login-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: #fff;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .25s;
+    cursor: pointer;
+  }
+  .social-login-btn:hover {
+    border-color: #07C160;
+    color: #07C160;
+    background: #f0faf4;
+    text-decoration: none;
+  }
+  .social-login-btn svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+  .social-login-btn .wx-icon {
+    color: #07C160;
+  }
+
+  /* 分隔线 */
+  .divider-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 18px 0;
+  }
+  .divider-row::before,
+  .divider-row::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .divider-row span {
+    font-size: 12px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  /* 底部链接 */
+  .auth-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+  .auth-footer-text {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .auth-footer-text a {
+    color: var(--orange);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color .2s;
+  }
+  .auth-footer-text a:hover {
+    color: var(--orange-dark);
+    text-decoration: underline;
+  }
+
+  /* 错误提示 */
+  .auth-alert {
+    border-radius: var(--radius-sm);
+    border: 1px solid #f5c6cb;
+    background: #fff5f5;
+    color: #c0392b;
+    font-size: 13px;
+    padding: 10px 14px;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .auth-alert svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #c0392b;
+  }
+</style>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-card-top"></div>
+    <div class="auth-card-body">
+
+      <!-- 标题区域 -->
+      <div class="text-center">
+        <div class="auth-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 17c4-8 8-8 10 0s6 8 8 0"/>
+            <path d="M3 9h18"/>
+          </svg>
+        </div>
+        <h1 class="auth-title">欢迎回来</h1>
+        <p class="auth-subtitle">登录爱弹琴，继续你的音乐之旅</p>
       </div>
+
+      <!-- 表单 -->
+      <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
+
+        <div class="mb-3">
+          <label class="form-label" for="username">Email 或手机号</label>
+          <input type="text" class="form-control" id="username" name="username"
+                 placeholder="请输入邮箱或手机号" required>
+          <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="pass">密码</label>
+          <input type="password" class="form-control" id="pass" name="pass"
+                 placeholder="请输入密码" required>
+          <div class="invalid-feedback">密码不能为空。</div>
+        </div>
+
+        {%if is_safe_code %}
+        <div class="mb-3">
+          <label class="form-label">验证码</label>
+          <div class="captcha-row">
+            <input type="text" class="form-control" title="验证码为4个字符"
+                   pattern=".{4}" name="code" placeholder="输入验证码" required>
+            <div class="captcha-img-wrap" title="点击刷新验证码">
+              <img onClick="this.src+='&r='+Math.random()" src="/imgcode?" style="cursor:pointer;" alt="验证码">
+            </div>
+          </div>
+          <div class="captcha-hint">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            点击图片刷新验证码
+          </div>
+        </div>
+        {%endif%}
+
+        <button onclick="on_post()" type="submit" class="btn btn-brand">
+          登 录
+        </button>
+
+        <!-- 社交登录 -->
+        <div class="divider-row">
+          <span>其他方式</span>
+        </div>
+        <a href="javascript:;" onclick="openlogin('OpenLoginWixin')" class="social-login-btn">
+          <svg class="wx-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.5 2C4.36 2 1 4.78 1 8.23c0 1.96 1.14 3.72 2.92 4.87l-.74 2.27 2.49-1.34c.72.2 1.48.31 2.28.31 1.42 0 2.73-.36 3.85-.98-.7-1.35-1.1-2.87-1.1-4.49C11 4.78 9.62 2 8.5 2z"/>
+            <path d="M15.5 6C11.36 6 8 8.78 8 12.23c0 3.45 3.36 6.23 7.5 6.23.8 0 1.56-.11 2.28-.31l2.49 1.34-.74-2.27C21.86 15.95 23 14.19 23 12.23 23 8.78 19.64 6 15.5 6z"/>
+          </svg>
+          微信登录
+        </a>
+
+        {%if err %}
+        <div class="auth-alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4M12 16h.01"/>
+          </svg>
+          {{err}}
+        </div>
+        {%endif%}
+
+      </form>
+
+      <!-- 底部链接 -->
+      <div class="auth-footer">
+        <span class="auth-footer-text">
+          还没有账号？<a href="/reg">立即注册</a>
+        </span>
+      </div>
+
     </div>
   </div>
+</div>
 
 <script>
-    function on_post(){
-        blockTips("提交中...",2)
-    }
+  function on_post(){
+    blockTips("提交中...",2)
+  }
 </script>
 {% endblock %}

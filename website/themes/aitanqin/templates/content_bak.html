@@ -4,10 +4,10 @@
 {% endblock %}
 
 {% block content %}
-<div  class="d-lg-none" style="height:50px;"></div>  
+<div  class="d-lg-none" style="height:50px;"></div>
     <div class="container">
         <div class="title">
-            <div class="title-txt"><span ><a href='/' >{{SiteName}}</a></span> > 
+            <div class="title-txt"><span ><a href='/' >{{SiteName}}</a></span> >
                 <span><a href='{{ get_class_link(model.class_n_id) }}' >{{model.class_name}}</a></span> </div>
         </div>
     </div>
@@ -20,23 +20,23 @@
                     <div class="content-title">
                         <h3>{{model.title}}</h3>
                     </div>
-                   
+
                     <div class="content-qinji text-wrap">
-                         {% if model.tags %}                             
-                            <div class="mb-3"> 
-                                {% for tag_name in model.tags %}                                  
-                                    <a class="badge bg-danger" href="{{ model.get_tag_url(tag_name) }}" >{{tag_name}}</a>                                   
-                                {% endfor %} 
+                         {% if model.tags %}
+                            <div class="mb-3">
+                                {% for tag_name in model.tags %}
+                                    <a class="badge bg-danger" href="{{ model.get_tag_url(tag_name) }}" >{{tag_name}}</a>
+                                {% endfor %}
                             </div>
                         {% endif %}
                         <div class="content-text">
                             {{model.info|safe}}
                         </div>
-                        
-                    </div> 
-                </div> 
+
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-3 d-none d-lg-block "> 
+            <div class="col-lg-3 d-none d-lg-block ">
                 <div class="eb-box">
                     <div class="right-width-tt">猜你喜欢</div>
                     <ul class="rank-list">
@@ -45,6 +45,6 @@
                 </div>
             </div>
         </div>
-    </div> 
+    </div>
 
 {% endblock %}

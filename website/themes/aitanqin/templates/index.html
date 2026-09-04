@@ -5,69 +5,406 @@
 
 {% block content %}
 
-<div class="container mt-2">
-    <div class="row">
-        <div class="col-lg-9">
-            <div class="title d-flex justify-content-between">
-                <div class="title-txt pull-left">推荐专题</div>
-                
-            </div>
-            <div class="row p-2">
-                    {{ widget("6836c2ac8e1084cb3c787310") }} 
-            </div>
-
-            <div class="title">
-                <div class="title-txt d-flex justify-content-between px-2">
-                    <a>最新发表<span style="font-size: 10px;color: #c4930b">(本站文章由EbSite Ai内容管理模块自动更新，仅供参考。)</span></a>
-                    
-                    <div class="pull-right">
-                        <a rel="nofollow" href="/tags1.html"><i class="fa fa-chevron-right" aria-hidden="true"></i></a>
-                    </div>
-                </div>
-            </div>            
-            {{ widget("683910648e60813c95ee4cb9") }}
-
-            
-            <!---left ennd-->
-
-        </div>
-        <div class="col-lg-3 d-none d-lg-block">
-            <a href="/user/index" data-toggle="tooltip" class="share-btn">
-                <span class="share-l">个人中心</span><span style="line-height: 38px; padding-left: 10px;">发表我的文章</span>
-            </a>
-
-            <div class="eb-box mt-2">
-                <div class="right-width-tt right-width-tt03">网友最喜欢</div>
-                <ul class="news-list">
-                  {{ widget("683ac55a62a55dc3512d4425") }}
-                </ul>
-            </div>
-
-            <div class="eb-box mt-2">
-            <div class="right-width-tt right-width-tt03">标签<a href="/tags1.html">更多>></a></div>
-                <div class="taglist">
-                    {{ widget("68351f496096ec9cdadee147") }} 
-                </div>
-        </div>
-
-        </div> 
+<!-- ===== SEARCH ===== -->
+<section class="search-section py-4">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-9 col-lg-7">
+        <form onsubmit="return ChkSo(this);" method="get" action="/search.html" class="d-flex gap-2">
+          <div class="search-input-group d-flex align-items-center flex-grow-1">
+            <span class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
+              </svg>
+            </span>
+            <input id="k" name="k" type="text" placeholder="搜索曲谱、歌手、制谱师...">
+            <span class="search-shortcut d-none d-md-inline">⌘K</span>
+          </div>
+          <button class="btn btn-brand search-btn" type="submit">搜索</button>
+        </form>
+      </div>
     </div>
+  </div>
+</section>
+
+<!-- ===== QUICK CATS ===== -->
+<div class="container">
+  <div class="quick-cats d-flex flex-wrap gap-2 py-3">
+    {{ widget("6a955f6cccda0b6fd621010f") }}
+  </div>
 </div>
 
-<div class="footer d-none d-lg-block mt-5">
-    <div class="container">
-        <div class="clearfix">
-            <div class="pull-left footer-link-l">友情链接【<a href="/c103p1.html" rel="nofollow">交换申请</a>】</div>
-            <ul class="pull-left footer-link-a clearfix">
-               {{ widget("65533cfe260493275af1c1d2") }}
-            </ul>
-        </div> 
-        <div class="footer-p">
-           <font style="color: aliceblue;font-weight: bold;">关于我们：</font>{{ widget("66efd16d10df7056e43b9c4e") }}
+<!-- ===== FEATURED ===== -->
+<section class="container my-4">
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <a href="#" class="featured-link">
+        <div class="featured-main d-flex align-items-end p-4 h-100">
+          <span class="badge-top badge rounded-pill text-white">🔥 本周精选</span>
+          <div class="content">
+            <div class="eyebrow">告五人 · Accusefive</div>
+            <h2 class="serif mb-1">唯一 Easy Go</h2>
+            <div class="meta d-flex gap-3">
+              <span>指弹 · 简单</span>
+              <span>▶ 12.4万次播放</span>
+            </div>
+          </div>
         </div>
+      </a>
+    </div>
+    <div class="col-lg-4">
+      <div class="d-flex flex-column flex-lg-column flex-row gap-3 h-100">
+        <a href="#" class="side-card-link">
+          <div class="side-card flex-fill p-3 d-flex flex-column justify-content-center">
+            <div class="label">🎹 钢琴改编</div>
+            <h3 class="mb-0">Greatest Works of Art</h3>
+            <div class="sub">指弹 · 较难 · 2.8万播放</div>
+          </div>
+        </a>
+        <a href="#" class="side-card-link">
+          <div class="side-card flex-fill p-3 d-flex flex-column justify-content-center">
+            <div class="label">🎵 民谣经典</div>
+            <h3 class="mb-0">署前街少年</h3>
+            <div class="sub">赵雷 · 弹唱 · 简单</div>
+          </div>
+        </a>
+        <a href="#" class="side-card-link">
+          <div class="side-card flex-fill p-3 d-flex flex-column justify-content-center">
+            <div class="label">🎵 民谣经典</div>
+            <h3 class="mb-0">署前街少年</h3>
+            <div class="sub">赵雷 · 弹唱 · 简单</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FILTER ===== -->
+<div class="container mb-3">
+  <div class="filter-bar d-flex flex-wrap align-items-center gap-3 p-3">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="group-label">🎯 标签</span>
+      {{ widget("68351f496096ec9cdadee147") }}
+
     </div>
 
+    <a href="/tags1.html" class="btn btn-outline-brand rounded-pill ms-lg-auto">》 更多</a>
+  </div>
 </div>
 
+<!-- ===== SONG GRID ===== -->
+<section class="container mb-5">
+  <div class="d-flex align-items-baseline justify-content-between mb-3">
+    <h2 class="section-title serif mb-0">🎶 热门曲谱</h2>
+    <span class="section-count">共 9 首</span>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+
+    <!-- 曲谱卡片 1：天空之城 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">指弹</span>
+          <div class="song-title serif">天空之城</div>
+          <div class="song-artist mb-2">久石让 <span class="muted">· 大小象的琴</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">03:27</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">C调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span></span><span></span></span></div>
+            <div class="dial">
+              <svg viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="4.40" stroke-linecap="round"/>
+              </svg>
+              <span class="dial-label">93</span>
+            </div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 10.4万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 2：至少还有你 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-sing badge rounded-pill align-self-start mb-2">弹唱</span>
+          <div class="song-title serif">至少还有你</div>
+          <div class="song-artist mb-2">林忆莲 <span class="muted">· 德惠巴音琴行</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">04:30</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">E调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span class="on"></span><span></span></span></div>
+            <div><span style="color:#B3A18C;font-size:12px;">—</span></div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 5.6万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 3：不要说话 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-sing badge rounded-pill align-self-start mb-2">弹唱</span>
+          <div class="song-title serif">不要说话</div>
+          <div class="song-artist mb-2">陈奕迅 <span class="muted">· 洛阳山海</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">01:43</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">G调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span></span><span></span></span></div>
+            <div class="dial">
+              <svg viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="9.42" stroke-linecap="round"/>
+              </svg>
+              <span class="dial-label">85</span>
+            </div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 2.6万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 4：曾经的你 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-sing badge rounded-pill align-self-start mb-2">弹唱</span>
+          <div class="song-title serif">曾经的你</div>
+          <div class="song-artist mb-2">许巍 <span class="muted">· 万能青年</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">01:03</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">D调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span></span><span></span></span></div>
+            <div class="dial">
+              <svg viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="8.80" stroke-linecap="round"/>
+              </svg>
+              <span class="dial-label">86</span>
+            </div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 5万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 5：一生所爱 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">指弹</span>
+          <div class="song-title serif">一生所爱</div>
+          <div class="song-artist mb-2">卢冠廷 <span class="muted">· 大小象的琴</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">02:51</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">C调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span class="on"></span><span class="on"></span></span></div>
+            <div><span style="color:#B3A18C;font-size:12px;">—</span></div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 2.9万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 6：水星记 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-sing badge rounded-pill align-self-start mb-2">弹唱</span>
+          <div class="song-title serif">水星记</div>
+          <div class="song-artist mb-2">郭顶 <span class="muted">· 吉他爸爸</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">02:03</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">F调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span class="on"></span><span></span></span></div>
+            <div class="dial">
+              <svg viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="5.03" stroke-linecap="round"/>
+              </svg>
+              <span class="dial-label">92</span>
+            </div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 1.6万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 7：真的爱你 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">指弹</span>
+          <div class="song-title serif">真的爱你</div>
+          <div class="song-artist mb-2">BEYOND <span class="muted">· 大小象的琴</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">00:54</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">C调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span></span><span></span></span></div>
+            <div class="dial">
+              <svg viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="9.42" stroke-linecap="round"/>
+              </svg>
+              <span class="dial-label">85</span>
+            </div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 1.1万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 8：晴天 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">指弹</span>
+          <div class="song-title serif">晴天</div>
+          <div class="song-artist mb-2">周杰伦 <span class="muted">· 大小象的琴</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">03:40</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">G调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span></span><span></span></span></div>
+            <div class="dial">
+              <svg viewBox="0 0 28 28">
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#EDE3D6" stroke-width="2.4"/>
+                <circle cx="14" cy="14" r="10" fill="none" stroke="#C89A3C" stroke-width="2.4" stroke-dasharray="62.83" stroke-dashoffset="6.28" stroke-linecap="round"/>
+              </svg>
+              <span class="dial-label">90</span>
+            </div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 7.2万
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 曲谱卡片 9：爱的故事上集 -->
+    <div class="col">
+      <a href="#" class="song-card-link">
+        <div class="song-card h-100 p-3 d-flex flex-column">
+          <span class="card-badge badge-sing badge rounded-pill align-self-start mb-2">弹唱</span>
+          <div class="song-title serif">爱的故事上集</div>
+          <div class="song-artist mb-2">孙燕姿 <span class="muted">· 圆猫</span></div>
+          <div class="d-flex align-items-center gap-2 my-1 mb-3">
+            <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+            </button>
+            <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            <span class="duration mono">01:40</span>
+          </div>
+          <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+            <div>调式 <span class="key">F调</span></div>
+            <div>难度 <span class="frets d-inline-flex gap-1"><span class="on"></span><span class="on"></span><span></span></span></div>
+            <div><span style="color:#B3A18C;font-size:12px;">—</span></div>
+            <div class="views d-flex align-items-center gap-1">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+              </svg> 8850
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+
+
+<!-- ===== 友情链接（纯文字，移动端隐藏） ===== -->
+<div class="friend-links-section">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-start gap-1 gap-md-2">
+      <span class="link-group-label">🤝 友情链接【<a href="/c103p1.html" rel="nofollow">交换申请</a>】</span>
+
+      {{ widget("65533cfe260493275af1c1d2") }}
+
+    </div>
+  </div>
+</div>
 
 {% endblock %}

@@ -3,9 +3,9 @@ from flask import Flask, Blueprint
 from .. import module_attribute, ModuleInfo
 
 # 模块扩展API蓝图
-bp_app_apis = Blueprint('bp_app_apis', __name__, url_prefix=f"/api/app/")
+bp_aitanqin = Blueprint('bp_aitanqin', __name__, url_prefix=f"/api/atq/")
 
-@bp_app_apis.before_request
+@bp_aitanqin.before_request
 def before_req():
     """
     在页面请求前进行一些权限处理
@@ -18,32 +18,16 @@ def before_req():
 
 settings_temp = '''
         <div class="mb-3">
-            <label>微信支付 APPID</label>
-            <input name="wxzf_appid" value="{{model.wxzf_appid}}"  style="max-width:500px" class="form-control" required>
+            <label>TabApi密钥</label>
+            <input name="tab_api_key" value="{{model.tab_api_key}}"  style="max-width:500px" class="form-control" required>
             
-        </div>
-        <div class="mb-3">
-            <label>微信 secret</label>
-            <input name="secret" value="{{model.wx_secret}}"   style="max-width:500px" class="form-control" required>
-            
-        </div>
-        <div class="mb-3">
-            <label>微信支付 mch_id</label>
-            <input name="wxzf_mch_id" value="{{model.wxzf_mch_id}}"  style="max-width:500px" class="form-control" required>
-            
-        </div>
-        
-        <div class="mb-3">
-            <label>微信支付 mch_id</label>
-            <input name="wxzf_mch_id" value="{{model.wxzf_mch_id}}"  style="max-width:500px" class="form-control" required>
-            
-        </div>
+        </div> 
         
         <div class="alert alert-primary">注：当前配置修改后需要重启项目才能生效!</div>        
 
         '''
 
-@module_attribute('APP-APIS','提供客户端程序调用的API集，可为APP、小程序、网页客户端，桌面程序等使用。API 文档在apifox上。',"",settings_temp,'ebsite')
+@module_attribute('AI_TAN_QIN','爱弹琴相关的服务。',"",settings_temp,'atq')
 def module_init(app:Flask, model:ModuleInfo):
     """
     在模块加载成功后触发，此函数名称不能更改
@@ -51,10 +35,7 @@ def module_init(app:Flask, model:ModuleInfo):
     @param app: 当前 flask app实例
     @return:
     """
-    app.register_blueprint(bp_app_apis)
+    app.register_blueprint(bp_aitanqin)
 
 
-from . import post_order_apis
-from . import user_data_apis
-from . import wx_apis
-from . import user_login_apis
+from . import atq_apis
