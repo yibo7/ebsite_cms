@@ -60,10 +60,11 @@ class DataBakup:
         NewsContent = self.db["NewsContent"]
         NewsContent.drop_indexes()  # 清除所有索引
 
-        # NewsContent.create_index([
-        #     ('title', pymongo.TEXT),
-        #     ('info', pymongo.TEXT)
-        # ], name='news_chinese_text_search_index')
+        # 全文搜索索引（用于搜索页面的 $text 查询，比 $regex 快 10~100 倍）
+        NewsContent.create_index([
+            ('title', pymongo.TEXT),
+            ('info', pymongo.TEXT)
+        ], name='news_chinese_text_search_index', default_language='none')
 
         # 1. 为title和info字段创建普通索引（对前缀匹配有效）
         NewsContent.create_index("title")
@@ -72,6 +73,8 @@ class DataBakup:
         NewsContent.create_index([("title", 1), ("info", 1)])
 
         NewsContent.create_index([("tags", pymongo.ASCENDING)])
+        # 分类列表页查询复合索引：按 class_id 筛选 + _id 降序排序
+        NewsContent.create_index([("class_id", pymongo.ASCENDING), ("_id", pymongo.DESCENDING)])
         # NewsContent.create_index([("ClassId", 1), ("rand_num", 1)])
         NewsContent.create_index("rand_num")
 

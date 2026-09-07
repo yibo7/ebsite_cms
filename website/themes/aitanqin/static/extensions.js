@@ -1,4 +1,4 @@
-﻿// ===== 动态生成波形条 =====
+// ===== 动态生成波形条 =====
   // 每个卡片中的 .js-wave 容器自动生成 32 条波形
   // 每条高度在 6px ~ 22px 之间随机，模拟真实音频波形
   document.querySelectorAll('.js-wave').forEach(function(el) {
@@ -14,22 +14,26 @@
 
   // 根据 value 值渲染难度星级
 function renderStars() {
-   const container = document.getElementById('LevelValue');
-    if (!container) return; // 如果元素不存在，直接退出
-    const value = parseInt(container.getAttribute('value')) || 0;
-    const total = 3;
+   // 用 class 选择所有难度容器（避免 HTML 中重复 id 的问题）
+   const containers = document.querySelectorAll('.level-value');
+   if (!containers.length) return;
 
-    // 清空容器
-    container.innerHTML = '';
+   containers.forEach(function (container) {
+       const value = parseInt(container.getAttribute('value')) || 0;
+       const total = 3;
 
-    // 生成 span
-    for (let i = 0; i < total; i++) {
-        const span = document.createElement('span');
-        if (i < value) {
-            span.className = 'on';
-        }
-        container.appendChild(span);
-    }
+       // 清空容器
+       container.innerHTML = '';
+
+       // 生成 span
+       for (let i = 0; i < total; i++) {
+           const span = document.createElement('span');
+           if (i < value) {
+               span.className = 'on';
+           }
+           container.appendChild(span);
+       }
+   });
 }
 
 // 页面加载后执行

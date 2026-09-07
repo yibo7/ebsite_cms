@@ -66,11 +66,11 @@
           <div class="col">
           <a href="{{item.get_url()}}" class="song-card-link">
             <div class="song-card h-100 p-3 d-flex flex-column">
-              <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{ style_map.get(item.column_13, item.column_13 or '曲谱') }}</span>
+              <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{item.class_name}}</span>
               <div class="song-title serif">{{item.title}}</div>
               <div class="song-artist mb-2">{{item.column_1 or ''}} <span class="muted">· {{item.column_3 or ''}}</span></div>
               <div class="d-flex align-items-center gap-2 my-1 mb-3">
-                <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+                <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" data-tid="{{item._id}}" onclick="event.preventDefault();">
                   <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
                 </button>
                 <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
@@ -99,7 +99,12 @@
   </section>
 
   <!-- ===== 分页 ===== -->
-  {{pager}}
+  <div class="pagination-wrap">
+    {{pager}}
+  </div>
+
+  <!-- ===== 隐藏 AlphaTab 播放器（列表页音频预览） ===== -->
+  {% include 'list_player.html' %}
 
 {% else %}
   <!-- ===== 无关键词时的引导提示 ===== -->

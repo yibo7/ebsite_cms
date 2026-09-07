@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <title>{% block title %}{% endblock %}-{{SiteName}}</title>
   <link rel="icon" href="/favicon.svg" />
-  <meta name="keywords" content="EbSite,免费建站,开源CMS" />
-  <meta name="description" content="{{ widget("66efd16d10df7056e43b9c4e") }}" />
+  <meta name="keywords" content="{% block head_keywords %}{% endblock %}" />
+  <meta name="description" content="{% block head_description %}{% endblock %}" />
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
   <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
   <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
@@ -151,6 +151,8 @@
     '5': '贝斯独奏',
     '6': '尤克里里独奏'
 } %}
+
+{% set level_map = {1: 'Easy', 2: 'Medium', 3: 'Hard'} %}
 
 {% block content %}{% endblock %}
 

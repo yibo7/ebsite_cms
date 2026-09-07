@@ -5,6 +5,7 @@ from flask import render_template, render_template_string, abort, request, make_
 
 from bll.new_class import NewsClass
 from bll.new_content import NewsContent
+from bll.temp_data_provider import TempDataProvider
 from bll.new_special import NewsSpecial
 from bll.content_tags import ContentTags
 from bll.templates import Templates
@@ -58,6 +59,10 @@ def content(id):
     if not temp_model:
         abort(404)
 
+    # 预计算相关推荐数据
+    temp_data = TempDataProvider()
+    related_datas = temp_data.get_related_by_tags(str(model._id), top=10)
+
     cookie_key = f'viewed_{id}'
     cookie_test_key = 'can_cookie'
     viewed = request.cookies.get(cookie_key)
@@ -71,14 +76,18 @@ def content(id):
         render_func = lambda: render_template_string(
             temp_model.temp_code,
             model=model,
-            class_model=class_model
+            class_model=class_model,
+            temp_data=temp_data,
+            related_datas=related_datas
         )
     else:
         # 文件模板
         render_func = lambda: render_template(
             temp_model.file_path,
             model=model,
-            class_model=class_model
+            class_model=class_model,
+            temp_data=temp_data,
+            related_datas=related_datas
         )
 
     if can_cookie:

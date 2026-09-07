@@ -2,6 +2,8 @@
 {% block title %}
 {{model.class_name}}
 {% endblock %}
+{% block head_keywords %}{{ model.seo_keyword }}{% endblock %}
+{% block head_description %}{{ model.seo_description }}{% endblock %}
 
 {% block content %}
 
@@ -53,7 +55,7 @@
             <div class="song-title serif">{{item.title}}</div>
             <div class="song-artist mb-2">{{item.column_1}} <span class="muted">· {{item.column_3}}</span></div>
             <div class="d-flex align-items-center gap-2 my-1 mb-3">
-              <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" onclick="event.preventDefault();">
+              <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" data-tid="{{item._id}}" onclick="event.preventDefault();">
                 <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
               </button>
               <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
@@ -62,7 +64,7 @@
             <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
               <div>调式 <span class="key">{{item.column_2}}</span></div>
               <div >难度
-                <span value="{{item.column_4}}" id="LevelValue" class="frets d-inline-flex gap-1"></span>
+                <span value="{{item.column_4}}" class="level-value frets d-inline-flex gap-1"></span>
               </div>
 <!--              <div class="dial">-->
 <!--                <svg viewBox="0 0 28 28">-->
@@ -96,5 +98,8 @@
 <script>
     let cid = {{model.id}};
 </script>
+
+<!-- ===== 隐藏 AlphaTab 播放器（列表页音频预览） ===== -->
+{% include 'list_player.html' %}
 
 {% endblock %}

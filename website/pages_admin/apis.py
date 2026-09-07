@@ -23,7 +23,7 @@ def databack():
     elif backup_type==2: # 备份所有表
         bll.OutputAllData()
         tip_info = f"数据成功备份在：/{bll.back_path}"
-    elif backup_type == 3:  # 备份所有表
+    elif backup_type == 3:  # 重建索引
         bll.re_build_index()
         tip_info = "成功创建索引!"
     else:

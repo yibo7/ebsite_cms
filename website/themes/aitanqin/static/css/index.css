@@ -939,7 +939,7 @@ body {
 .chord-chip:hover { border-color: var(--orange); color: var(--orange-dark); background: var(--orange-bg); }
 .chords-empty { font-size: 12.5px; color: var(--ink-faint); line-height: 1.7; }
 .related-list { list-style: none; margin: 0; padding: 0; }
-.related-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; }
+.related-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; overflow: hidden; }
 .related-list li:last-child .related-item { border-bottom: none; padding-bottom: 0; }
 .related-thumb { width: 36px; height: 36px; border-radius: 8px; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .related-thumb svg { width: 14px; height: 14px; }

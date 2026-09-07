@@ -2,6 +2,8 @@
 {% block title %}
 {{model.title}}
 {% endblock %}
+{% block head_keywords %}{{ model.seo_keyword }}{% endblock %}
+{% block head_description %}{{ model.seo_description }}{% endblock %}
 
 {% block content %}
 <div id="app" v-cloak>
@@ -20,31 +22,33 @@
       <div class="container detail-hero-inner">
         <div>
           <div class="badges-row">
-            <span class="key-chip">指弹</span>
-            <span class="key-chip">C 调</span>
-            <span class="capo-chip">变调夹 2 品</span>
+            {% if model.tags %}
+              {% for tag_name in model.tags %}
+                <a class="key-chip" href="{{ model.get_tag_url(tag_name) }}">{{ tag_name }}</a>
+              {% endfor %}
+            {% endif %}
           </div>
           <h1 class="detail-title">[[ displayTitle ]]</h1>
           <p class="detail-sub">
             <span class="artist">[[ displayArtist ]]</span><span class="dot">·</span>[[ displayAlbum ]]
           </p>
-          <div class="arranger-row">
-            <div class="arranger-avatar">象</div>
+          <div class="arranger-row" v-if="arranger">
+            <div class="arranger-avatar">[[ arranger.avatar ]]</div>
             <div class="arranger-meta">
-              <div class="arranger-name">大小象的琴
-                <svg class="verified" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1.2 14.4L6.6 12l1.5-1.5 2.7 2.8 5.1-5.2 1.5 1.5z"/></svg>
+              <div class="arranger-name">[[ arranger.name ]]
+                <svg class="verified" v-if="arranger.verified" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1.2 14.4L6.6 12l1.5-1.5 2.7 2.8 5.1-5.2 1.5 1.5z"/></svg>
               </div>
-              <div class="arranger-sub">制谱师 · 已上传 128 首曲谱</div>
+              <div class="arranger-sub">[[ arranger.sub ]]</div>
             </div>
-            <a href="#" class="arranger-follow">+ 关注</a>
+<!--            <a href="#" class="arranger-follow">+ 关注</a>-->
           </div>
           <div class="detail-meta-grid">
-            <div class="meta-cell"><span class="meta-label">难度</span><span class="meta-value">简单</span></div>
+            <div class="meta-cell"><span class="meta-label">难度</span><span class="meta-value">{{ level_map.get(model.column_4, 'Medium') }}</span></div>
             <div class="meta-cell"><span class="meta-label">时长</span><span class="meta-value mono">[[ heroDuration ]]</span></div>
-            <div class="meta-cell"><span class="meta-label">定弦</span><span class="meta-value">标准 EADGBE</span></div>
-            <div class="meta-cell"><span class="meta-label">还原度</span><span class="meta-value">93%</span></div>
-            <div class="meta-cell"><span class="meta-label">上传时间</span><span class="meta-value mono">2026-05-12</span></div>
-            <div class="meta-cell"><span class="meta-label">播放次数</span><span class="meta-value">10.4 万</span></div>
+            <div class="meta-cell"><span class="meta-label">定弦</span><span class="meta-value">EADGBE</span></div>
+<!--            <div class="meta-cell"><span class="meta-label">还原度</span><span class="meta-value">93%</span></div>-->
+            <div class="meta-cell"><span class="meta-label">上传时间</span><span class="meta-value mono">{{ model.add_time|to_time_name }}</span></div>
+            <div class="meta-cell"><span class="meta-label">播放次数</span><span class="meta-value">{{ model.hits }}</span></div>
           </div>
         </div>
 
@@ -61,16 +65,10 @@
               收藏
             </button>
             <div class="download-wrap" ref="downloadWrap" :class="{'is-open': downloadOpen}">
-              <button class="action-btn" @click.stop="downloadOpen = !downloadOpen">
+              <button  class="action-btn" @click="downloadOriginal">>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
                 下载
               </button>
-              <div class="download-menu">
-                <button :disabled="!fileBytes" @click="downloadOriginal">GTP 格式（原谱）</button>
-                <button disabled>PDF 五线谱（即将上线）</button>
-                <button disabled>图片 · 高清（即将上线）</button>
-                <div class="file-note">[[ fileBytes ? '下载当前已加载的乐谱文件' : '下载需登录账号' ]]</div>
-              </div>
             </div>
             <button class="action-btn" :disabled="!scoreLoaded" @click="printScore">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 8V3h10v5"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13h10v8H7z"/></svg>
@@ -175,26 +173,19 @@
           </div>
 
           <div class="related-card">
-            <h3>同一制谱师 · 大小象的琴</h3>
+            <h3>你可能也喜欢</h3>
             <ul class="related-list">
+              {% set related_datas = temp_data.get_related_by_tags(model._id, 10) %}
+              {% if related_datas %}
+                {% for item in related_datas %}
               <li>
-                <a class="related-item" href="#">
+                <a class="related-item" href="{{ item.get_url() }}">
                   <span class="related-thumb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13a3 3 0 1 1-2-2.83V7.6L11 9v9a3 3 0 1 1-2-2.83z"/></svg></span>
-                  <span class="related-info"><span class="related-title">晴天</span><br><span class="related-sub">周杰伦 · 指弹 · 03:40</span></span>
+                  <span class="related-info"><span class="related-title">{{ item.title }}</span><br><span class="related-sub">{{ item.column_1 }} · {{ item.column_3 }}</span></span>
                 </a>
               </li>
-              <li>
-                <a class="related-item" href="#">
-                  <span class="related-thumb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13a3 3 0 1 1-2-2.83V7.6L11 9v9a3 3 0 1 1-2-2.83z"/></svg></span>
-                  <span class="related-info"><span class="related-title">真的爱你</span><br><span class="related-sub">BEYOND · 指弹 · 00:54</span></span>
-                </a>
-              </li>
-              <li>
-                <a class="related-item" href="#">
-                  <span class="related-thumb"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 18V5l12-2v13a3 3 0 1 1-2-2.83V7.6L11 9v9a3 3 0 1 1-2-2.83z"/></svg></span>
-                  <span class="related-info"><span class="related-title">Merry-Go-Round of Life</span><br><span class="related-sub">久石让 · 指弹 · 04:02</span></span>
-                </a>
-              </li>
+                {% endfor %}
+              {% endif %}
             </ul>
           </div>
         </aside>
@@ -353,6 +344,9 @@ const API_BASE = "http://127.0.0.1:8066";
         zoomIdx: 2,
         zoomLevels: ZOOM_LEVELS,
         speedOptions: SPEED_OPTIONS,
+        /* 制谱师 */
+        arranger: null,
+        arrangers: [],
       };
     },
     computed: {
@@ -390,6 +384,7 @@ const API_BASE = "http://127.0.0.1:8066";
         var self = this;
         var container = document.getElementById('at');
         var settings = {
+          importer: { encoding: 'utf-8' },
           player: { enablePlayer: true, soundFont: SOUNDFONT_URL },
           display: { scale: 1 }
         };
@@ -830,6 +825,21 @@ const API_BASE = "http://127.0.0.1:8066";
       },
 
       /* ---------------- 其他 ---------------- */
+      loadArrangers: function () {
+        var self = this;
+        var url = API_BASE + '/api/atq/arrangers?id=' + encodeURIComponent(tid);
+        fetch(url).then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        }).then(function (json) {
+          if (json.code === 0 && json.data && json.data.length) {
+            self.arrangers = json.data;
+            self.arranger = json.data[0]; // 默认展示第一个制谱师
+          }
+        }).catch(function () {
+          // 静默失败，保持默认显示
+        });
+      },
       downloadOriginal: function () {
         this.downloadOpen = false;
         if (!this.fileBytes) return;
@@ -893,6 +903,8 @@ const API_BASE = "http://127.0.0.1:8066";
       this.$nextTick(function () {
         requestAnimationFrame(function () { tryInit(0); });
       });
+      /* 加载制谱师信息 */
+      this.loadArrangers();
     }
   });
   app.mount('#app');

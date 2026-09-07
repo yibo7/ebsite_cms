@@ -1,5 +1,6 @@
 import re
 import time
+import json
 from abc import ABC, abstractmethod
 from typing import Any, Generic, TypeVar, Tuple, Optional, List
 
@@ -13,6 +14,9 @@ from eb_utils.mvc_pager import pager_html_admin, MvcPager
 
 T = TypeVar('T')  # 定义一个类型变量 T
 from flask import current_app, Flask
+
+# 模块级简单 TTL 缓存，用于缓存 count_documents 结果，避免每页重复计数
+_count_cache: dict[str, tuple[int, float]] = {}
 
 
 class BllBase(Generic[T], ABC):
@@ -296,8 +300,26 @@ class BllBase(Generic[T], ABC):
         """
         return self.find_list_by_where({})
 
+    def _where_to_cache_key(self, where: dict) -> str:
+        """将查询条件转为稳定的缓存键字符串"""
+        try:
+            return json.dumps(where, sort_keys=True, default=str)
+        except Exception:
+            return str(sorted((k, str(v)) for k, v in where.items()))
+
     def count(self, s_where: {}):
+        ttl = current_app.config.get("count_cache_ttl", SiteConstant.COUNT_CACHE_TTL)
+        if ttl <= 0:
+            return self.db[self.table_name].count_documents(s_where)
+
+        key = f"{self.table_name}:{self._where_to_cache_key(s_where)}"
+        now = time.time()
+        cached = _count_cache.get(key)
+        if cached and now < cached[1]:
+            return cached[0]
+
         c = self.db[self.table_name].count_documents(s_where)
+        _count_cache[key] = (c, now + ttl)
         return c
 
     def find_pages(self, page_number: int, page_size: int, where=None, sort_key="_id",
@@ -317,14 +339,33 @@ class BllBase(Generic[T], ABC):
         if not where:
             where = {}
         skip_count = (page_number - 1) * page_size
-        # projection = {'content': 0}
-        # 执行分页查询并排序
-        datas = self.db[self.table_name].find(where, projection).skip(skip_count).limit(page_size).sort(sort_key, sort_direction)
+        original_where = where.copy()
+
+        if skip_count > 0:
+            # 覆盖查询：只从索引中取 boundary _id，避免 skip 扫描整文档
+            boundary_cursor = self.db[self.table_name].find(
+                original_where, {"_id": 1}
+            ).sort(sort_key, sort_direction).skip(skip_count - 1).limit(1)
+
+            boundary_list = list(boundary_cursor)
+            if not boundary_list:
+                return [], 0
+
+            where["_id"] = {"$lt": boundary_list[0]["_id"]}
+            # 执行分页查询并排序
+            datas = self.db[self.table_name].find(
+                where, projection
+            ).sort(sort_key, sort_direction).limit(page_size)
+        else:
+            # 第一页无需 skip
+            datas = self.db[self.table_name].find(
+                where, projection
+            ).sort(sort_key, sort_direction).limit(page_size)
+
         lst = []
         i_count = 0
         if datas:
-            i_count = self.count(where)
-            # lst = []
+            i_count = self.count(original_where)
             for document in datas:
                 lst.append(self.build_model(document))
 
@@ -343,10 +384,21 @@ class BllBase(Generic[T], ABC):
         :return: 结果列表，可以通过 for data in datas 遍历
         """
 
+        # P3: 最大页码限制，防止深分页
+        max_page_num = current_app.config.get("max_page_num", SiteConstant.MAX_PAGE_NUM)
+        if max_page_num > 0 and page_number > max_page_num:
+            page_number = max_page_num
+
         datas, i_count = self.find_pages(page_number, page_size, where, sort_key, sort_direction)
         # pager = pager_html_admin(i_count, page_number, page_size, where)
         pager = ''
         if i_count > page_size:
+            # P3: 分页器显示的总页数也受最大页码限制
+            if max_page_num > 0:
+                max_items = max_page_num * page_size
+                if i_count > max_items:
+                    i_count = max_items
+
             pg = MvcPager()
             pg.current_page = page_number
             pg.total_count = i_count

@@ -2,6 +2,8 @@
 {% block title %}
 {{model.class_name}}
 {% endblock %}
+{% block head_keywords %}{{ model.seo_keyword }}{% endblock %}
+{% block head_description %}{{ model.seo_description }}{% endblock %}
 
 {% block content %}
 <div class="d-lg-none" style="height:50px;"></div>
@@ -39,7 +41,9 @@
             <div class="p-5 text-center">暂无数据</div>
             {% endif %} 
             {% include 'loading_more.html' %}
-            {{pager}}
+            <div class="pagination-wrap">
+                {{pager}}
+            </div>
 
         </div>
         <div class="col-lg-3 d-none d-lg-block">

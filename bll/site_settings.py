@@ -21,7 +21,11 @@ class SiteSettings:
             "upload_max_size": "1",
             "upload_types": ".gif, .png, .jpg, .jpeg, .bmp, .rar, .zip, .txt, .pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .csv, .mp3, .mp4, .avi, .mov, .wmv",
             "app_token_expired": "24",
-            "list_page_size": 20
+            "list_page_size": 20,
+            "max_page_num": 1000,
+            "count_cache_ttl": 60,
+            "max_search_total": 5000,
+            "search_cache_ttl": 60
         }
         return model
 

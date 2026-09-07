@@ -4,7 +4,7 @@ from typing import Tuple, Optional
 
 import pymongo
 from bson import ObjectId
-from flask import Flask
+from flask import Flask, current_app
 
 from bll.bll_base import BllBase
 from bll.content_tags import  ContentTags
@@ -281,35 +281,67 @@ class NewsContent(BllBase[NewsContentModel]):
             raise Exception("标题为能为空！")
 
 
-    def search_full(self, key_word: str, page_number: int, page_size: int,rewrite_rule:str) -> Tuple[list[NewsContentModel], str]:
+    def _has_text_index(self) -> bool:
+        """检查 NewsContent 集合是否存在文本索引"""
+        try:
+            indexes = self.table.index_information()
+            for info in indexes.values():
+                keys = info.get('key', [])
+                if any(k[1] == 'text' for k in keys):
+                    return True
+            return False
+        except Exception:
+            return False
 
-        # 清理输入
-        keyword = self.clean_mongo_search_keywords(key_word)
-
-        # 构建正则查询
-        query = {
+    def _build_search_query(self, keyword: str) -> dict:
+        """
+        构建搜索查询
+        优先使用 $text 全文索引（性能好），回退到 $regex 模糊匹配
+        """
+        if self._has_text_index():
+            return {"$text": {"$search": keyword}}
+        return {
             "$or": [
-                {"title": {"$regex": keyword, "$options": "i"}},  # 忽略大小写
+                {"title": {"$regex": keyword, "$options": "i"}},
                 {"info": {"$regex": keyword, "$options": "i"}}
             ]
         }
 
-        # 获取总数量
-        total = self.table.count_documents(query)
+    def search_full(self, key_word: str, page_number: int, page_size: int,
+                    rewrite_rule: str) -> Tuple[list[NewsContentModel], str]:
+        """
+        搜索（$text 全文搜索 + 覆盖查询分页 + TTL 缓存 + 最大条数限制）
+        :param key_word: 搜索关键词
+        :param page_number: 页码，从1开始
+        :param page_size: 每页条数
+        :param rewrite_rule: 分页 URL 重写规则
+        :return: (数据列表, 分页 HTML)
+        """
+
+        # 清理输入
+        keyword = self.clean_mongo_search_keywords(key_word)
+        if not keyword:
+            return [], ""
+
+        # P3: 构建搜索查询（优先 $text，回退 $regex）
+        query = self._build_search_query(keyword)
+
+        # P1: 使用缓存 count（继承 BllBase.count 的 TTL 缓存）
+        total = self.count(query)
         if total == 0:
             return [], ""
 
-        # 获取分页数据
-        results = list(self.table.find(query)
-                       .skip((page_number - 1) * page_size)
-                       .limit(page_size))
+        # P2: 搜索结果最大条数限制
+        max_total = current_app.config.get("max_search_total",
+                                            SiteConstant.MAX_SEARCH_TOTAL)
+        if max_total > 0 and total > max_total:
+            total = max_total
 
+        # P3: 使用覆盖查询分页（find_pages 已实现 _id 边界优化）
+        datas, _ = self.find_pages(page_number, page_size, query,
+                                   "_id", pymongo.DESCENDING)
 
-        lst = []
-        if results:
-            for document in results:
-                lst.append(self.build_model(document))
-
+        # 生成分页器
         pager = ''
         if total > page_size:
             pg = MvcPager()
@@ -321,4 +353,4 @@ class NewsContent(BllBase[NewsContentModel]):
             pg.rewrite_rule = rewrite_rule
             pager = pg.show_pages()
 
-        return lst, pager
+        return datas, pager

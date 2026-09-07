@@ -1,4 +1,5 @@
 import os
+import random
 from flask import jsonify, current_app, send_from_directory
 
 from decorators import rate_limit_ip
@@ -6,6 +7,55 @@ from eb_modules.aitanqin import bp_aitanqin
 from eb_utils import http_helper
 from entity import api_msg
 from bll.new_content import NewsContent
+
+# ── 模拟制谱师数据池 ──────────────────────────────────────
+_ARRANGER_NAMES = [
+    "ElephantPiano", "FingerFlow", "SixStringWalker", "HalfToneTraveller", "HarmonyWeaver",
+    "PickPrince", "StringBreeze", "FingerstyleZhe", "ScoreHunter", "RhythmPoet",
+    "BluesZhang", "FolkChen", "ClassicJushi", "JazzCat", "RockAfie",
+    "GuitarBunny", "NeverForget", "WoodGuitarist", "MidnightPlayer", "SunnyTown",
+]
+
+# 用于确定性随机：同一个乐谱 _id 每次都返回相同的 20 个制谱师列表
+def _get_arrangers(seed_str: str):
+    """根据乐谱 _id 生成确定性随机制谱师列表"""
+    rng = random.Random(seed_str)
+    # 打乱顺序
+    indices = list(range(20))
+    rng.shuffle(indices)
+
+    arrangers = []
+    for i in indices:
+        name = _ARRANGER_NAMES[i]
+        scores_count = rng.randint(5, 500)
+        arrangers.append({
+            "avatar": name[0],          # 取名称首字符作为头像
+            "name": name,
+            "verified": rng.random() < 0.4,   # 约 40% 认证
+            "scores_count": scores_count,
+            "sub": f"制谱师 · 已上传 {scores_count} 首曲谱",
+        })
+    return arrangers
+
+
+@bp_aitanqin.route('arrangers', methods=['GET'])
+def get_arrangers():
+    """
+    获取模拟制谱师列表（20 人）。
+    传入乐谱 _id 确保同个乐谱每次返回一致的数据，
+    方便后续替换为真实数据。
+    ---
+    参数:
+      id  - 乐谱 _id（字符串），用于确定性种子
+    返回:
+      { code:0, msg:"successful", data:[ ... ] }
+    """
+    tid = http_helper.get_prams('id') or "default_seed"
+    try:
+        data = _get_arrangers(str(tid))
+        return jsonify(api_msg.api_succesful(data))
+    except Exception as e:
+        return jsonify(api_msg.api_err(f"获取制谱师列表失败: {str(e)}"))
 
 
 @bp_aitanqin.route('totab', methods=['POST', 'GET'])
@@ -54,7 +104,7 @@ def get_tab():
             filename,
             mimetype='application/octet-stream',
             as_attachment=False,
-            download_name='tab.gp'
+            download_name=filename
         )
 
     except Exception as e:
