@@ -501,7 +501,7 @@ body {
     .sort-select:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(232, 93, 38, 0.08); }
 
     /* ---- 分页 ---- */
-    .pagination-wrap { border-top: 1px solid var(--border); }
+    .pagination-wrap { padding: 20px 0; }
 
     .pagination-custom {
       display: flex;
