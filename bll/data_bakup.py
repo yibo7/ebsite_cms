@@ -77,6 +77,16 @@ class DataBakup:
         NewsContent.create_index([("class_id", pymongo.ASCENDING), ("_id", pymongo.DESCENDING)])
         # 分类列表页排序索引：按 class_id 筛选 + order_id + _id 降序排序（支持自定义排序）
         NewsContent.create_index([("class_id", pymongo.ASCENDING), ("order_id", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)])
+        # 标签聚合索引：按 class_n_id 筛选 + tags 字段（加速 $unwind + $group 聚合）
+        NewsContent.create_index([("class_n_id", pymongo.ASCENDING), ("tags", pymongo.ASCENDING)])
+        # 用户内容列表索引：按 user_id 筛选 + add_time 降序排序（加速个人中心查询）
+        NewsContent.create_index([("user_id", pymongo.ASCENDING), ("add_time", pymongo.DESCENDING)])
+        # 热门排序索引：hits 降序（加速首页热门曲谱查询）
+        NewsContent.create_index([("hits", pymongo.DESCENDING)])
+        # 推荐排序索引：is_good + hits 降序（加速首页推荐查询）
+        NewsContent.create_index([("is_good", pymongo.ASCENDING), ("hits", pymongo.DESCENDING)])
+        # 内容自增ID索引：id（加速专题页面按 id 查询内容）
+        NewsContent.create_index([("id", pymongo.ASCENDING)])
         # NewsContent.create_index([("ClassId", 1), ("rand_num", 1)])
         NewsContent.create_index("rand_num")
 

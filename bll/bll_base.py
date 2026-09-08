@@ -309,8 +309,6 @@ class BllBase(Generic[T], ABC):
 
     def count(self, s_where: {}):
         ttl = int(current_app.config.get("count_cache_ttl", SiteConstant.COUNT_CACHE_TTL))
-        if ttl <= 0:
-            return self.db[self.table_name].count_documents(s_where)
 
         key = f"{self.table_name}:{self._where_to_cache_key(s_where)}"
         now = time.time()

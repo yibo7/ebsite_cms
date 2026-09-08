@@ -24,17 +24,21 @@ def list(id: int, p: int):
         bll = NewsContent()
         rewrite_rule = f'/c{id}p{{0}}.html'
         model.page_size = current_app.config["list_page_size"]
+
         sort_key = [("order_id", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)]
+
         # 列表页只返回模板需要的字段，大幅减少 MongoDB 网络传输
         list_projection = {
             'title': 1, 'column_1': 1, 'column_2': 1, 'column_3': 1,
             'column_4': 1, 'column_13': 1, 'hits': 1, 'id': 1
         }
+
         # 缓存键：版本号 + 分类 + 页码，内容更新时自动失效
         ver_key = f"list_ver:{id}"
         ver = eb_cache.get(ver_key) or 0
         cache_key = f"list_data:{id}:{p}:v{ver}"
         cached = eb_cache.get(cache_key)
+
         if cached:
             data_list, pager = cached
         else:
@@ -45,6 +49,7 @@ def list(id: int, p: int):
             # 仅当有数据时才缓存（避免空缓存穿透）
             if data_list:
                 eb_cache.set_data((data_list, pager), ex_second=300, key=cache_key)
+
         temp_model = Templates(1).find_one_by_id(model.class_temp_id)
         if temp_model.temp_model == 1:
             return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager)

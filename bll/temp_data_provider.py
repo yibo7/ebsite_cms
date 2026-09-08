@@ -134,6 +134,11 @@ class TempDataProvider:
         if isinstance(user_id, ObjectId):
             user_id = str(user_id)
         rewrite_rule = f'/user/index?p={{0}}'
+        # 列表页只返回模板需要的字段
+        list_projection = {
+            'title': 1, 'column_1': 1, 'column_2': 1, 'column_3': 1,
+            'column_4': 1, 'column_13': 1, 'hits': 1, 'id': 1
+        }
         return self._bll.find_pager(
             page,
             page_size,
@@ -141,12 +146,13 @@ class TempDataProvider:
             {"user_id": ObjectId(user_id)},  # NewsContent 存储的 user_id 为 ObjectId
             sort_key="add_time",
             sort_direction=pymongo.DESCENDING,
+            projection=list_projection,
         )
 
     # ── 获取用户内容统计 ────────────────────────────────────
     def get_user_content_stats(self, user_id) -> dict:
         """
-        获取用户内容统计信息
+        获取用户内容统计信息（使用 MongoDB 聚合，避免拉取全量文档）
         :param user_id: 用户的 _id（ObjectId 或字符串）
         :return: 统计字典
         """
@@ -157,13 +163,20 @@ class TempDataProvider:
             "total_hits": 0,
             "favorites": 0,
         }
-        # 获取用户发布的内容列表
-        content_list = self._bll.find_list_by_where(
-            {"user_id": ObjectId(user_id)},  # NewsContent 存储的 user_id 为 ObjectId
-            limit=10000,
-        )
-        stats["total"] = len(content_list)
-        stats["total_hits"] = sum(getattr(c, "hits", 0) or 0 for c in content_list)
+
+        # 用聚合管道一次返回 total 和 total_hits，替代拉取全部文档
+        pipeline = [
+            {"$match": {"user_id": ObjectId(user_id)}},
+            {"$group": {
+                "_id": None,
+                "total": {"$sum": 1},
+                "total_hits": {"$sum": "$hits"}
+            }}
+        ]
+        result = list(self._bll.table.aggregate(pipeline))
+        if result:
+            stats["total"] = result[0].get("total", 0)
+            stats["total_hits"] = result[0].get("total_hits", 0)
 
         # 统计当前用户收藏的内容数量（我的收藏）
         bll_fav = Favorite()

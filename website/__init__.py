@@ -84,6 +84,31 @@ def create_app():  # run_mode
                 [("class_id", 1), ("order_id", -1), ("_id", -1)],
                 background=True
             )
+            # 标签聚合索引：class_n_id + tags（加速 $unwind + $group 聚合）
+            news_collection.create_index(
+                [("class_n_id", 1), ("tags", 1)],
+                background=True
+            )
+            # 用户内容列表索引：user_id + add_time（加速个人中心查询）
+            news_collection.create_index(
+                [("user_id", 1), ("add_time", -1)],
+                background=True
+            )
+            # 热门排序索引：hits（加速 getHotDatas 按 hits 降序取 top N）
+            news_collection.create_index(
+                [("hits", -1)],
+                background=True
+            )
+            # 推荐排序索引：is_good + hits（加速 getRecDatas 筛选推荐并按 hits 排序）
+            news_collection.create_index(
+                [("is_good", 1), ("hits", -1)],
+                background=True
+            )
+            # 内容自增ID索引：id（加速专题页面按 id 查询内容）
+            news_collection.create_index(
+                [("id", 1)],
+                background=True
+            )
         except Exception:
             pass  # 索引创建失败不影响启动
 

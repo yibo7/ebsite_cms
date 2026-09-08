@@ -13,7 +13,7 @@
     <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
       <div>
         <h1 class="serif mb-1">{{model.name}}</h1>
-        <div class="category-desc">{{model.description or model.name}}</div>
+        <div class="category-desc">{{model.description}}</div>
       </div>
     </div>
   </div>
@@ -22,7 +22,7 @@
 <!-- ===== 子专题 Tab ===== -->
 <div class="container my-3">
   <div class="filter-bar d-flex flex-wrap align-items-center gap-2 p-3">
-    <span class="group-label">📂 子专题</span>
+    <span class="group-label">📂</span>
     <ul id="subtab" class="nav d-flex flex-wrap gap-1" style="list-style:none; padding:0; margin:0;">
       <li class="nav-item">
         <a class="btn btn-outline-brand rounded-pill active" href="#">{{model.name}}</a>
@@ -31,15 +31,6 @@
     </ul>
   </div>
 </div>
-
-{% set style_map = {
-    '1': '总谱',
-    '2': '吉他独奏',
-    '3': '钢琴独奏',
-    '4': '架子鼓独奏',
-    '5': '贝斯独奏',
-    '6': '尤克里里独奏'
-} %}
 
 <!-- ===== SONG GRID ===== -->
 <section class="container mb-4">
