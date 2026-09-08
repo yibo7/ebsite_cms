@@ -1,17 +1,101 @@
 {% extends 'base_site.html' %}
 {% block title %}
-首页
+个人中心
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-<div class="card">
-  <div class="card-body">
-    <h5 class="card-title">{{user.name}} 个人中心</h5>
-    <h6 class="card-subtitle mb-2 text-muted">个人中心首页</h6>
-    <p class="card-text">可以根据你的需要开发你的个人中心，如有需要请<a href="/a17.html">联系社区</a></p>
-    <a href="log_out" >退出登录</a>
+
+<!-- ===== 个人中心 ===== -->
+<section class="container py-4">
+  <div class="row g-4">
+
+    {% set active_nav = 'index' %}
+    {% include 'includes/user_sidebar.html' %}
+
+    <!-- ===== 主内容区 ===== -->
+    <div class="col-lg-9">
+
+      <!-- 概览统计卡片 -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+          <div class="ucard-stat-card">
+            <div class="ucard-stat-card-icon ucard-stat-icon-orange">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                <polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ucard-stat-card-num">{{ stats.total }}</div>
+              <div class="ucard-stat-card-label">我的曲谱</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="ucard-stat-card">
+            <div class="ucard-stat-card-icon ucard-stat-icon-green">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ucard-stat-card-num">{{ stats.total_hits }}</div>
+              <div class="ucard-stat-card-label">总人气</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="ucard-stat-card">
+            <div class="ucard-stat-card-icon ucard-stat-icon-gold">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <div>
+              <div class="ucard-stat-card-num">{{ stats.favorites }}</div>
+              <div class="ucard-stat-card-label">总收藏</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 最近曲谱 -->
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0 fw-bold">我的曲谱</h5>
+        <span class="text-muted small">共 {{ stats.total }} 首</span>
+      </div>
+
+      {% if data_list %}
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        {% for item in data_list %}
+        <div class="col">
+          {% include 'includes/song_card_item.html' %}
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div class="empty-state-icon mb-3">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-faint);">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+        </div>
+        <p class="text-muted">还没有发布曲谱</p>
+        <a href="/" class="btn btn-outline-brand rounded-pill btn-sm">去发布</a>
+      </div>
+      {% endif %}
+
+      <!-- 分页 -->
+      {% if pager %}
+      <div class="pagination-wrap">
+        {{ pager }}
+      </div>
+      {% endif %}
+
+    </div>
   </div>
-</div>
-</div>
+</section>
+
 {% endblock %}

@@ -1,64 +1,16 @@
 import os
-import random
-from flask import jsonify, current_app, send_from_directory
+import uuid
+import hashlib
+from flask import jsonify, current_app, send_from_directory, request
 
 from decorators import rate_limit_ip
-from eb_modules.aitanqin import bp_aitanqin
+from eb_modules.aitanqin import bp_atq_apis
 from eb_utils import http_helper
 from entity import api_msg
 from bll.new_content import NewsContent
 
-# ── 模拟制谱师数据池 ──────────────────────────────────────
-_ARRANGER_NAMES = [
-    "ElephantPiano", "FingerFlow", "SixStringWalker", "HalfToneTraveller", "HarmonyWeaver",
-    "PickPrince", "StringBreeze", "FingerstyleZhe", "ScoreHunter", "RhythmPoet",
-    "BluesZhang", "FolkChen", "ClassicJushi", "JazzCat", "RockAfie",
-    "GuitarBunny", "NeverForget", "WoodGuitarist", "MidnightPlayer", "SunnyTown",
-]
 
-# 用于确定性随机：同一个乐谱 _id 每次都返回相同的 20 个制谱师列表
-def _get_arrangers(seed_str: str):
-    """根据乐谱 _id 生成确定性随机制谱师列表"""
-    rng = random.Random(seed_str)
-    # 打乱顺序
-    indices = list(range(20))
-    rng.shuffle(indices)
-
-    arrangers = []
-    for i in indices:
-        name = _ARRANGER_NAMES[i]
-        scores_count = rng.randint(5, 500)
-        arrangers.append({
-            "avatar": name[0],          # 取名称首字符作为头像
-            "name": name,
-            "verified": rng.random() < 0.4,   # 约 40% 认证
-            "scores_count": scores_count,
-            "sub": f"制谱师 · 已上传 {scores_count} 首曲谱",
-        })
-    return arrangers
-
-
-@bp_aitanqin.route('arrangers', methods=['GET'])
-def get_arrangers():
-    """
-    获取模拟制谱师列表（20 人）。
-    传入乐谱 _id 确保同个乐谱每次返回一致的数据，
-    方便后续替换为真实数据。
-    ---
-    参数:
-      id  - 乐谱 _id（字符串），用于确定性种子
-    返回:
-      { code:0, msg:"successful", data:[ ... ] }
-    """
-    tid = http_helper.get_prams('id') or "default_seed"
-    try:
-        data = _get_arrangers(str(tid))
-        return jsonify(api_msg.api_succesful(data))
-    except Exception as e:
-        return jsonify(api_msg.api_err(f"获取制谱师列表失败: {str(e)}"))
-
-
-@bp_aitanqin.route('totab', methods=['POST', 'GET'])
+@bp_atq_apis.route('totab', methods=['POST', 'GET'])
 @rate_limit_ip(10,1) # 一分钟只允许调用3次
 def get_tab():
     """
@@ -109,3 +61,64 @@ def get_tab():
 
     except Exception as e:
         return jsonify(api_msg.api_err(f"获取文件失败: {str(e)}"))
+
+
+@bp_atq_apis.route('upload_score', methods=['POST'])
+@rate_limit_ip(5, 1)  # 每分钟最多5次上传
+def upload_score():
+    """
+    上传乐谱文件
+    允许格式：.gp, .musicxml
+    上传目录：website/uploads/scores/new/
+    返回相对路径供数据库存储
+    """
+    # 检查是否有文件
+    if 'file' not in request.files:
+        return jsonify(api_msg.api_err("没有上传文件"))
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify(api_msg.api_err("没有选择文件"))
+
+    # 验证文件扩展名
+    allowed_extensions = {'.gp', '.musicxml'}
+    filename = file.filename
+    ext = os.path.splitext(filename)[1].lower()
+
+    if ext not in allowed_extensions:
+        return jsonify(api_msg.api_err(f"不支持的文件格式「{ext}」，仅支持 .gp 和 .musicxml"))
+
+    # 生成唯一文件名（保留原始扩展名）
+    unique_name = f"{uuid.uuid4().hex}{ext}"
+
+    # 上传目录
+    upload_dir = os.path.join(current_app.root_path, 'uploads', 'scores', 'new')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    # 保存文件
+    file_path = os.path.join(upload_dir, unique_name)
+    file.save(file_path)
+
+    # 返回相对路径供数据库存储
+    relative_path = f"/scores/new/{unique_name}"
+
+    return jsonify(api_msg.api_succesful(relative_path, "上传成功"))
+
+
+@bp_atq_apis.route('check_score_hash', methods=['GET'])
+def check_score_hash():
+    """
+    检查乐谱文件哈希是否已存在（防重复上传）
+    前端计算文件 SHA-256，服务端查询 column_14 是否已有相同值
+    """
+    file_hash = http_helper.get_prams('hash')
+    if not file_hash:
+        return jsonify(api_msg.api_err("hash 参数不能为空"))
+
+    bll = NewsContent()
+    existing = bll.find_one_by_where({"column_14": file_hash})
+
+    if existing:
+        return jsonify(api_msg.api_succesful({"exists": True}, "该乐谱已存在，请勿重复上传"))
+
+    return jsonify(api_msg.api_succesful({"exists": False}, "可以上传"))

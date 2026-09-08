@@ -1,10 +1,13 @@
 
+from bson import ObjectId
 from flask import jsonify, g
 
 from bll.address import Address
 from bll.apply_credites import ApplyCredites
 from bll.favorite import Favorite
 from bll.new_content import NewsContent
+from bll.subscription import Subscription
+from bll.user import User
 from decorators import rate_limit_ip
 from eb_utils import http_helper, flask_utils
 from entity import api_msg
@@ -85,6 +88,88 @@ def fav_content():
 
         return jsonify(api_msg.api_succesful("成功加入收藏夹!"))
     return jsonify(api_msg.api_err("传入的参数不正确"))
+
+
+@api_blue_user.route('subscribe_user', methods=['POST','GET'])
+@rate_limit_ip(5, 1)  # 一分钟最多5次
+def subscribe_user():
+    """
+    订阅/取消订阅制谱师（用户）
+    需要传入参数 user_id（被订阅用户的 _id）
+    """
+    user_token: UserToken = g.u
+    target_user_id = http_helper.get_prams("user_id")
+    if not user_token or not target_user_id:
+        return jsonify(api_msg.api_err("传入的参数不正确"))
+
+    # 不能订阅自己
+    if str(user_token.id) == str(target_user_id):
+        return jsonify(api_msg.api_err("不能订阅自己"))
+
+    # 验证目标用户存在
+    user_bll = User()
+    target_user = user_bll.find_one_by_id(target_user_id)
+    if not target_user:
+        return jsonify(api_msg.api_err("用户不存在"))
+
+    bll = Subscription()
+    # 检查是否已订阅
+    sub = bll.find_one_by_where({
+        "user_id": ObjectId(user_token.id),
+        "subscribe_user_id": ObjectId(target_user_id),
+    })
+    if sub:
+        bll.delete_by_id(sub._id)
+        return jsonify(api_msg.api_succesful({"subscribed": False}, "已取消订阅"))
+    else:
+        model = bll.new_instance()
+        model.user_id = ObjectId(user_token.id)
+        model.subscribe_user_id = ObjectId(target_user_id)
+        bll.add(model)
+        return jsonify(api_msg.api_succesful({"subscribed": True}, "订阅成功"))
+
+
+@api_blue_user.route('check_fav', methods=['GET'])
+def check_fav():
+    """
+    检查当前用户是否已收藏某内容
+    :return: {code:0, data: {favorited: bool}}
+    """
+    user_token: UserToken = g.u
+    data_id = http_helper.get_prams("data_id")
+    if not user_token or not data_id:
+        return jsonify(api_msg.api_err("参数不足"))
+
+    bll_content = NewsContent()
+    content_model = bll_content.find_one_by_id(data_id)
+    if not content_model:
+        return jsonify(api_msg.api_err("内容不存在"))
+
+    bll = Favorite()
+    model = bll.find_one_by_where({
+        "content_id": content_model.id,
+        "user_id": user_token.id,
+    })
+    return jsonify(api_msg.api_succesful({"favorited": model is not None}))
+
+
+@api_blue_user.route('check_sub', methods=['GET'])
+def check_sub():
+    """
+    检查当前用户是否已订阅某制谱师
+    :return: {code:0, data: {subscribed: bool}}
+    """
+    user_token: UserToken = g.u
+    target_user_id = http_helper.get_prams("user_id")
+    if not user_token or not target_user_id:
+        return jsonify(api_msg.api_err("参数不足"))
+
+    bll = Subscription()
+    sub = bll.find_one_by_where({
+        "user_id": ObjectId(user_token.id),
+        "subscribe_user_id": ObjectId(target_user_id),
+    })
+    return jsonify(api_msg.api_succesful({"subscribed": sub is not None}))
 
 
 @api_blue_user.route('add_address', methods=['POST'])

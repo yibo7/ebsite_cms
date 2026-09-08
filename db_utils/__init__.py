@@ -30,6 +30,17 @@ def init_eb_db(app):
 
     model = bll.get_settings()
 
+    # 确保数值型配置字段为 int｜DSML｜类型，防止数据库存储字符串导致比较异常
+    for int_key in ('list_page_size', 'max_page_num', 'count_cache_ttl',
+                    'max_search_total', 'search_cache_ttl',
+                    'err_login_lock', 'reg_credits', 'upload_max_size',
+                    'app_token_expired', 'index_cache_time'):
+        if int_key in model:
+            try:
+                model[int_key] = int(model[int_key])
+            except (ValueError, TypeError):
+                pass
+
     app.config.update(model)
 
 

@@ -52,6 +52,7 @@ class NewsContentModel(ModelBase):
         self.column_19: Any = None
         self.column_20: Any = None
         self.column_21: Any = None
+        self.order_id: int = 0
 
     def to_short_dic(self):
         """将实体对象转换为字典，只包含特定字段，并处理 ObjectId"""

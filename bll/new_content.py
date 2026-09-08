@@ -108,7 +108,10 @@ class NewsContent(BllBase[NewsContentModel]):
 
         datas, i_count = self.search_data(keyword, class_id, page_number)
         page_size = SiteConstant.PAGE_SIZE_AD
-        pager = pager_html_admin(i_count, page_number, page_size, {'k': keyword})
+        params = {'k': keyword}
+        if class_id:
+            params['cid'] = class_id
+        pager = pager_html_admin(i_count, page_number, page_size, params)
         return datas, pager
 
     def search_data(self, keyword: str, class_id: str, page_number: int) -> Tuple[list[NewsContentModel], int]:
@@ -332,8 +335,8 @@ class NewsContent(BllBase[NewsContentModel]):
             return [], ""
 
         # P2: 搜索结果最大条数限制
-        max_total = current_app.config.get("max_search_total",
-                                            SiteConstant.MAX_SEARCH_TOTAL)
+        max_total = int(current_app.config.get("max_search_total",
+                                            SiteConstant.MAX_SEARCH_TOTAL))
         if max_total > 0 and total > max_total:
             total = max_total
 

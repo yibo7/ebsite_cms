@@ -1,6 +1,7 @@
 import threading
 from urllib.parse import quote
 
+import pymongo
 from flask import render_template, render_template_string, abort, request, make_response, current_app
 
 from bll.new_class import NewsClass
@@ -21,7 +22,8 @@ def list(id: int, p: int):
         bll = NewsContent()
         rewrite_rule = f'/c{id}p{{0}}.html'
         model.page_size = current_app.config["list_page_size"]
-        data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule, {'class_id': model._id})
+        sort_key = [("order_id", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)]
+        data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule, {'class_id': model._id}, sort_key=sort_key)
         temp_model = Templates(1).find_one_by_id(model.class_temp_id)
         if temp_model.temp_model == 1:
             return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager)
@@ -107,6 +109,27 @@ def content(id):
         response.set_cookie(cookie_test_key, '1', max_age=3600, httponly=True)  # 1小时有效
 
     return response
+
+
+@pages_blue.route('/u<user_id>.html', defaults={'p': 1}, methods=['GET'])
+@pages_blue.route('/u<user_id>p<int:p>.html', methods=['GET'])
+def user_content(user_id, p):
+    """用户主页：展示该用户发布的内容列表"""
+    temp_data = TempDataProvider()
+    user_info = temp_data.get_user_info(user_id)
+    if not user_info:
+        abort(404)
+
+    page_size = current_app.config["list_page_size"]
+    data_list, pager = temp_data.get_user_content_list(user_id, p, page_size)
+
+    return render_template(
+        'user/home.html',
+        user_info=user_info,
+        data_list=data_list,
+        pager=pager,
+        user_id=user_id,
+    )
 
 
 @pages_blue.route('/s<int:id>p<int:p>.html', methods=['GET'])

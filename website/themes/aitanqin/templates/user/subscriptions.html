@@ -1,0 +1,75 @@
+{% extends 'base_site.html' %}
+{% block title %}
+我的订阅
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== 个人中心 - 我的订阅 ===== -->
+<section class="container py-4">
+  <div class="row g-4">
+
+    {% set active_nav = 'subscriptions' %}
+    {% include 'includes/user_sidebar.html' %}
+
+    <!-- ===== 主内容区 ===== -->
+    <div class="col-lg-9">
+
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0 fw-bold">我的订阅</h5>
+        <span class="text-muted small">共 {{ sub_count }} 位</span>
+      </div>
+
+      {% if sub_users %}
+      <div class="row g-3">
+        {% for suser in sub_users %}
+        <div class="col-sm-6">
+          <div class="ucard-sub-card">
+            <div class="d-flex align-items-center gap-3">
+              <!-- 头像：只展示首字 -->
+              <div class="ucard-sub-avatar">
+                {{ suser.ni_name[0] if suser.ni_name else '?' }}
+              </div>
+              <div class="flex-grow-1 min-width-0">
+                <h6 class="mb-0 fw-semibold">{{ suser.ni_name }}</h6>
+                <div class="ucard-sub-meta">
+                  <span class="text-muted small">@{{ suser.username }}</span>
+                  <span class="mx-1">·</span>
+                  <span class="text-muted small">{{ suser.content_count }} 首曲谱</span>
+                </div>
+              </div>
+              <a href="/u{{ suser._id }}p1.html" class="ucard-sub-link btn btn-sm btn-outline-brand rounded-pill">
+                查看
+              </a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div class="empty-state-icon mb-3">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-faint);">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <p class="text-muted">还没有订阅任何制谱师</p>
+        <a href="/" class="btn btn-outline-brand rounded-pill btn-sm">去发现</a>
+      </div>
+      {% endif %}
+
+      <!-- 分页 -->
+      {% if pager %}
+      <div class="pagination-wrap">
+        {{ pager }}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

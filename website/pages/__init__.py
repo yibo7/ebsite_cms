@@ -78,11 +78,12 @@ def page_not_found(error):
 def login():
     err_msg = ""
     err_count = login_utils.get_count('user_login_err_count')
+    login_force_verify = current_app.config.get('login_force_verify', True)
     if request.method == 'POST':
         username = request.form.get("username", None)
         password = request.form.get("pass", None)
         image_code = request.form.get("code", None)
-        if is_email(username) or is_mobile(username):
+        if not login_force_verify or is_email(username) or is_mobile(username):
             is_safe = True
             if err_count > 0:
                 is_safe, err_msg = ImageCode().check_code(image_code)

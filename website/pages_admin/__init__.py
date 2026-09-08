@@ -196,6 +196,10 @@ def admin_settings():
     if request.method == 'POST':
         prams_dict = http_helper.get_prams_dict()
         prams_dict["list_page_size"] = http_helper.get_prams_int("list_page_size")
+        prams_dict["max_page_num"] = http_helper.get_prams_int("max_page_num", 1000)
+        prams_dict["count_cache_ttl"] = http_helper.get_prams_int("count_cache_ttl", 60)
+        prams_dict["max_search_total"] = http_helper.get_prams_int("max_search_total", 5000)
+        prams_dict["search_cache_ttl"] = http_helper.get_prams_int("search_cache_ttl", 60)
         bll = SiteSettings(current_app.db)
         bll.save_setting(prams_dict)
         current_app.config.update(prams_dict)

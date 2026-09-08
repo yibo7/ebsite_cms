@@ -1,0 +1,152 @@
+{% extends 'base_site.html' %}
+{% block title %}发布乐谱{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 720px;">
+  <div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+      <h4 class="card-title mb-1 fw-bold">🎵 发布乐谱</h4>
+      <p class="text-muted small mb-4">上传你的乐谱，与更多音乐爱好者分享</p>
+
+      {# ===== 成功提示 ===== #}
+      {% if is_succesfull %}
+      <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
+        <span>✅</span>
+        <span>乐谱发布成功！</span>
+      </div>
+      {% endif %}
+
+      {# ===== 错误提示 ===== #}
+      {% if err %}
+      <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+        <span>❌</span>
+        <span>{{ err }}</span>
+      </div>
+      {% endif %}
+
+      <form id="scoreForm" method="post" action="/atq/post_data" novalidate>
+        {# 隐藏字段：存放上传后的文件路径 #}
+        <input type="hidden" name="column_5" id="scoreFilePath" value="">
+        {# 隐藏字段：存放文件哈希值（SHA-256），用于防重复 #}
+        <input type="hidden" name="column_14" id="scoreFileHash" value="">
+
+        {# 乐谱名称 #}
+        <div class="mb-3">
+          <label for="title" class="form-label fw-semibold">乐谱名称 <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="title" name="title"
+                 placeholder="输入乐谱名称" required maxlength="100">
+          <div class="invalid-feedback">请输入乐谱名称</div>
+        </div>
+
+        {# 乐谱介绍 #}
+        <div class="mb-3">
+          <label for="info" class="form-label fw-semibold">乐谱介绍</label>
+          <textarea class="form-control" id="info" name="info" rows="3"
+                    placeholder="简单介绍一下这份乐谱（风格、来源等）" maxlength="500"></textarea>
+        </div>
+
+        <div class="row g-3 mb-3">
+          {# 歌手 #}
+          <div class="col-md-6">
+            <label for="column_1" class="form-label fw-semibold">歌手</label>
+            <input type="text" class="form-control" id="column_1" name="column_1"
+                   placeholder="演唱者 / 乐队" maxlength="100">
+          </div>
+
+          {# 调式 #}
+          <div class="col-md-6">
+            <label for="column_2" class="form-label fw-semibold">调式</label>
+            <input type="text" class="form-control" id="column_2" name="column_2"
+                   placeholder="如 C、G、Am" maxlength="20">
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+          {# 专辑名称 #}
+          <div class="col-md-6">
+            <label for="column_3" class="form-label fw-semibold">专辑名称</label>
+            <input type="text" class="form-control" id="column_3" name="column_3"
+                   placeholder="所属专辑" maxlength="100">
+          </div>
+
+          {# 难度级别 #}
+          <div class="col-md-6">
+            <label for="column_4" class="form-label fw-semibold">难度级别</label>
+            <select class="form-select" id="column_4" name="column_4">
+              <option value="">请选择难度</option>
+              <option value="1">Easy（简单）</option>
+              <option value="2">Medium（中等）</option>
+              <option value="3">Hard（困难）</option>
+            </select>
+          </div>
+        </div>
+
+        {# 乐谱分类 #}
+        <div class="mb-3">
+          <label for="classSelect" class="form-label fw-semibold">乐谱分类 <span class="text-danger">*</span></label>
+          <select class="form-select" id="classSelect" required>
+            <option value="">请选择乐谱分类</option>
+            {% for c in class_list %}
+            <option value="{{ c._id }}" data-cname="{{ c.class_name }}" data-cnid="{{ c.id }}">{{ c.class_name }}</option>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="class_id" id="classId" value="">
+          <input type="hidden" name="class_n_id" id="classNId" value="">
+          <input type="hidden" name="class_name" id="className" value="">
+          <div class="invalid-feedback">请选择乐谱分类</div>
+        </div>
+
+        {# 乐谱类型 #}
+        <div class="mb-3">
+          <label for="column_13" class="form-label fw-semibold">乐谱类型 <span class="text-danger">*</span></label>
+          <select class="form-select" id="column_13" name="column_13" required>
+            <option value="">请选择乐谱类型</option>
+            <option value="1">总谱</option>
+            <option value="2">吉他独奏</option>
+            <option value="3">钢琴独奏</option>
+            <option value="4">架子鼓独奏</option>
+            <option value="5">贝斯独奏</option>
+            <option value="6">尤克里里独奏</option>
+          </select>
+          <div class="invalid-feedback">请选择乐谱类型</div>
+        </div>
+
+        {# 乐谱文件上传 #}
+        <div class="mb-4">
+          <label for="scoreFile" class="form-label fw-semibold">
+            乐谱文件 <span class="text-danger">*</span>
+            <span class="text-muted fw-normal small">（.gp / .musicxml）</span>
+          </label>
+          <div class="input-group">
+            <input type="file" class="form-control" id="scoreFile"
+                   accept=".gp,.musicxml" required>
+            <button class="btn btn-outline-brand" type="button" id="uploadBtn">
+              📤 上传
+            </button>
+          </div>
+          <div class="form-text">支持 Guitar Pro 文件（.gp）和 MusicXML 文件（.musicxml）</div>
+          {# 上传状态 #}
+          <div id="uploadStatus" class="mt-2" style="display:none;"></div>
+          {# 已上传文件信息 #}
+          <div id="fileInfo" class="mt-2" style="display:none;">
+            <div class="d-flex align-items-center gap-2 text-success">
+              <span>✅</span>
+              <span id="fileNameDisplay"></span>
+            </div>
+          </div>
+        </div>
+
+        {# 提交按钮 #}
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-brand btn-lg" id="submitBtn">
+            ✨ 发布乐谱
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{# 加载页面专用脚本 #}
+<script src="/atq/js/atq_post.js"></script>
+{% endblock %}

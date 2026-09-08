@@ -1,4 +1,4 @@
-﻿// inc--start ,
+// inc--start ,
 //In.ready('vue', function () {    });
 ~function () { var __head = document.head || document.getElementsByTagName("head")[0]; var __waterfall = {}; var __loaded = {}; var __loading = {}; var __configure = { autoload: false, core: "", serial: false }; var __in; var __load = function (url, type, charset, callback) { if (__loading[url]) { if (callback) { setTimeout(function () { __load(url, type, charset, callback) }, 1); return } return } if (__loaded[url]) { if (callback) { callback(); return } return } __loading[url] = true; var pureurl = url.split("?")[0]; var n, t = type || pureurl.toLowerCase().substring(pureurl.lastIndexOf(".") + 1); if (t === "js") { n = document.createElement("script"); n.type = "text/javascript"; n.src = url; n.async = "true"; if (charset) { n.charset = charset } } else { if (t === "css") { n = document.createElement("link"); n.type = "text/css"; n.rel = "stylesheet"; n.href = url; __loaded[url] = true; __loading[url] = false; __head.appendChild(n); if (callback) { callback() } return } } n.onload = n.onreadystatechange = function () { if (!this.readyState || this.readyState === "loaded" || this.readyState === "complete") { __loading[url] = false; __loaded[url] = true; if (callback) { callback() } n.onload = n.onreadystatechange = null } }; n.onerror = function () { __loading[url] = false; if (callback) { callback() } n.onerror = null }; __head.appendChild(n) }; var __analyze = function (array) { var riverflow = []; for (var i = array.length - 1; i >= 0; i--) { var current = array[i]; if (typeof (current) === "string") { if (!__waterfall[current]) {  continue } riverflow.push(current); var relylist = __waterfall[current].rely; if (relylist) { riverflow = riverflow.concat(__analyze(relylist)) } } else { if (typeof (current) === "function") { riverflow.push(current) } } } return riverflow }; var __stackline = function (blahlist) { var o = this; this.stackline = blahlist; this.current = this.stackline[0]; this.bag = { returns: [], complete: false }; this.start = function () { if (typeof (o.current) != "function" && __waterfall[o.current]) { __load(__waterfall[o.current].path, __waterfall[o.current].type, __waterfall[o.current].charset, o.next) } else { o.bag.returns.push(o.current()); o.next() } }; this.next = function () { if (o.stackline.length == 1 || o.stackline.length < 1) { o.bag.complete = true; if (o.bag.oncomplete) { o.bag.oncomplete(o.bag.returns) } return } o.stackline.shift(); o.current = o.stackline[0]; o.start() } }; var __parallel = function (blahlist, callback) { var length = blahlist.length; var hook = function () { if (! --length && callback) { callback() } }; if (length == 0) { callback && callback(); return } for (var i = 0; i < blahlist.length; i++) { var current = __waterfall[blahlist[i]]; if (typeof (blahlist[i]) == "function") { blahlist[i](); hook(); continue } if (current.rely && current.rely.length != 0) { __parallel(current.rely, (function (current) { return function () { __load(current.path, current.type, current.charset, hook) } })(current)) } else { __load(current.path, current.type, current.charset, hook) } } }; var __add = function (name, config) { if (!name || !config || !config.path) { return } __waterfall[name] = config }; var __adds = function (config) { if (!config.modules) { return } for (var module in config.modules) { var module_config = config.modules[module]; if (!config.modules.hasOwnProperty(module)) { continue } if (config.type && !module_config.type) { module_config.type = config.type } if (config.charset && !module_config.charset) { module_config.charset = config.charset } __add.call(this, module, module_config) } }; var __config = function (name, conf) { __configure[name] = conf }; var __css = function (csstext) { var css = document.getElementById("in-inline-css"); if (!css) { css = document.createElement("style"); css.type = "text/css"; css.id = "in-inline-css"; __head.appendChild(css) } if (css.styleSheet) { css.styleSheet.cssText = css.styleSheet.cssText + csstext } else { css.appendChild(document.createTextNode(csstext)) } }; var __later = function () { var args = [].slice.call(arguments); var timeout = args.shift(); window.setTimeout(function () { __in.apply(this, args) }, timeout) }; var __ready = function () { var args = arguments; __contentLoaded(window, function () { __in.apply(this, args) }) }; var __in = function () { var args = [].slice.call(arguments); if (__configure.serial) { if (__configure.core && !__loaded[__configure.core]) { args = ["__core"].concat(args) } var blahlist = __analyze(args).reverse(); var stack = new __stackline(blahlist); stack.start(); return stack.bag } if (typeof (args[args.length - 1]) === "function") { var callback = args.pop() } if (__configure.core && !__loaded[__configure.core]) { __parallel(["__core"], function () { __parallel(args, callback) }) } else { __parallel(args, callback) } }; var __contentLoaded = function (win, fn) { var done = false, top = true, doc = win.document, root = doc.documentElement, add = doc.addEventListener ? "addEventListener" : "attachEvent", rem = doc.addEventListener ? "removeEventListener" : "detachEvent", pre = doc.addEventListener ? "" : "on", init = function (e) { if (e.type == "readystatechange" && doc.readyState != "complete") { return } (e.type == "load" ? win : doc)[rem](pre + e.type, init, false); if (!done && (done = true)) { fn.call(win, e.type || e) } }, poll = function () { try { root.doScroll("left") } catch (e) { setTimeout(poll, 50); return } init("poll") }; if (doc.readyState == "complete") { fn.call(win, "lazy") } else { if (doc.createEventObject && root.doScroll) { try { top = !win.frameElement } catch (e) { } if (top) { poll() } } doc[add](pre + "DOMContentLoaded", init, false); doc[add](pre + "readystatechange", init, false); win[add](pre + "load", init, false) } }; void function () { var myself = (function () { var scripts = document.getElementsByTagName("script"); return scripts[scripts.length - 1] })(); var autoload = myself.getAttribute("autoload"); var core = myself.getAttribute("core"); if (core) { __configure.autoload = eval(autoload); __configure.core = core; __add("__core", { path: __configure.core }) } if (__configure.autoload && __configure.core) { __in() } } (); __in.add = __add; __in.adds = __adds; __in.config = __config; __in.css = __css; __in.later = __later; __in.load = __load; __in.ready = __ready; __in.use = __in; this.In = __in } ();
 
@@ -667,7 +667,7 @@ function openlogin(plugin_id){
 function load_login_info(){
     get_json('/api/login_info',(rz)=>{
         if(rz.code==0){
-            $("#login_info").html("<a href=\"/user/index\" >个人中心</a>");
+            $("#login_info").html("<a href=\"/user/index\" class=\"btn btn-outline-brand rounded-pill btn-sm d-none d-lg-inline-flex px-3\">个人中心</a>");
         }
     })
 }
@@ -682,4 +682,103 @@ function ChkSo(ob) {
         alert("请输入要搜索的关键词");
         return false;
     }
+}
+
+/**
+ * 切换收藏状态
+ * @param {string} dataId - 内容 _id
+ * @param {function} callback - 回调函数，接收 (err, data) 其中 data.favorited 为 true/false
+ */
+function toggleFavorite(dataId, callback) {
+    $.ajax({
+        url: '/api/fav_content',
+        type: 'POST',
+        data: { data_id: dataId },
+        dataType: 'json',
+        success: function (res) {
+            if (callback) {
+                if (res.code === 0) {
+                    callback(null, { favorited: true, msg: res.msg || '收藏成功' });
+                } else {
+                    // code=-1 表示已取消收藏
+                    callback(null, { favorited: false, msg: res.msg || '已取消收藏' });
+                }
+            }
+        },
+        error: function (xhr, status, error) {
+            if (callback) callback(error || '请求失败');
+        }
+    });
+}
+
+/**
+ * 检查是否已收藏
+ * @param {string} dataId - 内容 _id
+ * @param {function} callback - 回调 (err, res)  res.data.favorited
+ */
+function checkFavorite(dataId, callback) {
+    $.ajax({
+        url: '/api/check_fav',
+        type: 'GET',
+        data: { data_id: dataId },
+        dataType: 'json',
+        success: function (res) {
+            if (callback) {
+                if (res.code === 0) callback(null, res.data);
+                else callback(res.msg);
+            }
+        },
+        error: function (xhr, status, error) {
+            if (callback) callback(error || '请求失败');
+        }
+    });
+}
+
+/**
+ * 切换订阅状态
+ * @param {string} userId - 被订阅用户的 _id
+ * @param {function} callback - 回调函数，接收 (err, data) 其中 data.subscribed 为 true/false
+ */
+function toggleSubscribe(userId, callback) {
+    $.ajax({
+        url: '/api/subscribe_user',
+        type: 'POST',
+        data: { user_id: userId },
+        dataType: 'json',
+        success: function (res) {
+            if (callback) {
+                if (res.code === 0) {
+                    callback(null, { subscribed: res.data.subscribed, msg: res.msg || '操作成功' });
+                } else {
+                    callback(res.msg || '操作失败');
+                }
+            }
+        },
+        error: function (xhr, status, error) {
+            if (callback) callback(error || '请求失败');
+        }
+    });
+}
+
+/**
+ * 检查是否已订阅
+ * @param {string} userId - 被订阅用户的 _id
+ * @param {function} callback - 回调 (err, res)  res.data.subscribed
+ */
+function checkSubscribe(userId, callback) {
+    $.ajax({
+        url: '/api/check_sub',
+        type: 'GET',
+        data: { user_id: userId },
+        dataType: 'json',
+        success: function (res) {
+            if (callback) {
+                if (res.code === 0) callback(null, res.data);
+                else callback(res.msg);
+            }
+        },
+        error: function (xhr, status, error) {
+            if (callback) callback(error || '请求失败');
+        }
+    });
 }

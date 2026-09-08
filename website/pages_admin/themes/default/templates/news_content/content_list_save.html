@@ -35,6 +35,12 @@
                     </div>
 
                     <div class="mb-3">
+                        <label>排序权重</label>
+                        <input name="order_id" value="{{ model.order_id }}" type="number" class="form-control" style="max-width:100px">
+                        <small class="text-muted">数值越大，在列表页中排得越靠前</small>
+                    </div>
+
+                    <div class="mb-3">
                         <label>
                             <input name="is_good" type="checkbox" {% if model.is_good %}checked{% endif %}>是否推荐
                             <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_good" value="checkbox_unchecked">

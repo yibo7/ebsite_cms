@@ -1,0 +1,72 @@
+{% extends 'base_site.html' %}
+{% block title %}
+我的收藏
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== 个人中心 - 我的收藏 ===== -->
+<section class="container py-4">
+  <div class="row g-4">
+
+    {% set active_nav = 'favorite' %}
+    {% include 'includes/user_sidebar.html' %}
+
+    <!-- ===== 主内容区 ===== -->
+    <div class="col-lg-9">
+
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0 fw-bold">我的收藏</h5>
+        <span class="text-muted small">共 {{ data_list|length if data_list else 0 }} 条</span>
+      </div>
+
+      {% if data_list %}
+      <div class="list-group">
+        {% for item in data_list %}
+        <a href="{{ item.get_url() }}" class="ucard-fav-item list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
+          {% if item.small_pic %}
+          <div class="ucard-fav-img">
+            <img src="{{ item.small_pic }}" alt="{{ item.content_title }}">
+          </div>
+          {% endif %}
+          <div class="d-flex gap-2 w-100 justify-content-between">
+            <div>
+              <h6 class="mb-1 fw-semibold">{{ item.content_title }}</h6>
+              {% if item.seo_description %}
+              <p class="mb-1 text-muted small">{{ item.seo_description }}</p>
+              {% endif %}
+              <span class="text-muted" style="font-size:12px;">{{ item.add_time|to_time_name }}</span>
+            </div>
+            <div class="ucard-fav-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <div class="empty-state-icon mb-3">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--ink-faint);">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+        </div>
+        <p class="text-muted">还没有收藏的曲谱</p>
+        <a href="/" class="btn btn-outline-brand rounded-pill btn-sm">去发现曲谱</a>
+      </div>
+      {% endif %}
+
+      <!-- 分页 -->
+      {% if pager %}
+      <div class="pagination-wrap">
+        {{ pager }}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

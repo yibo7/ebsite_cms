@@ -819,6 +819,7 @@ body {
 .arranger-sub { font-size: 12px; color: var(--ink-faint); }
 .arranger-follow { margin-left: auto; flex-shrink: 0; font-size: 12.5px; font-weight: 600; color: var(--orange); border: 1.5px solid var(--orange); border-radius: 999px; padding: 5px 14px; text-decoration: none; transition: all .2s; }
 .arranger-follow:hover { background: var(--orange); color: #fff; }
+.arranger-follow.is-subed { background: var(--orange); color: #fff; }
 .detail-meta-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 24px; max-width: 520px; }
 .meta-cell { display: flex; flex-direction: column; gap: 4px; }
 .meta-label { font-size: 12px; color: var(--ink-faint); }
@@ -1033,3 +1034,330 @@ body {
 }
 
 /*  END 乐谱详情页 */
+
+/* =========================================================
+   个人中心 - 侧边栏用户卡片
+   ========================================================= */
+.ucard-profile {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+
+.ucard-avatar-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.ucard-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #3C221D, #1E1612);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ucard-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.ucard-name {
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  font-family: "Noto Serif SC", serif;
+}
+
+.ucard-meta {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-bottom: 14px;
+}
+
+.ucard-stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.ucard-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ucard-stat-num {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.ucard-stat-label {
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.5px;
+}
+
+/* =========================================================
+   个人中心 - 侧边栏导航
+   ========================================================= */
+.ucard-nav {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.ucard-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--border);
+  transition: all .2s;
+}
+
+.ucard-nav-item:last-child {
+  border-bottom: none;
+}
+
+.ucard-nav-item:hover {
+  background: var(--orange-bg);
+  color: var(--orange-dark);
+  text-decoration: none;
+}
+
+.ucard-nav-item.active {
+  background: var(--orange-bg);
+  color: var(--orange-dark);
+  font-weight: 600;
+  position: relative;
+}
+
+.ucard-nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: var(--orange);
+  border-radius: 0 4px 4px 0;
+}
+
+.ucard-nav-item svg {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.ucard-nav-exit {
+  color: var(--ink-faint);
+}
+
+.ucard-nav-exit:hover {
+  color: #c0392b;
+  background: #fdf0ef;
+}
+
+/* =========================================================
+   个人中心 - 统计卡片
+   ========================================================= */
+.ucard-stat-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all .3s;
+}
+
+.ucard-stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.ucard-stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ucard-stat-icon-orange {
+  background: var(--orange-bg);
+  color: var(--orange-dark);
+}
+
+.ucard-stat-icon-green {
+  background: #E7F1EA;
+  color: #2C5740;
+}
+
+.ucard-stat-icon-gold {
+  background: #FCF3E0;
+  color: #C89A3C;
+}
+
+.ucard-stat-card-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.ucard-stat-card-label {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+/* =========================================================
+   个人中心 - 收藏列表
+   ========================================================= */
+.ucard-fav-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  transition: all .2s;
+  color: var(--ink);
+}
+
+.ucard-fav-item:hover {
+  border-color: var(--orange);
+  box-shadow: 0 4px 12px rgba(232, 93, 38, 0.06);
+  color: var(--ink);
+}
+
+.ucard-fav-img {
+  width: 100px;
+  height: 68px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--cream);
+}
+
+.ucard-fav-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ucard-fav-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   个人中心 - 订阅用户卡片
+   ========================================================= */
+.ucard-sub-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  transition: all .3s;
+  height: 100%;
+}
+
+.ucard-sub-card:hover {
+  border-color: #D5C8B8;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.ucard-sub-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #3C221D, #1E1612);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ucard-sub-meta {
+  font-size: 12px;
+  color: var(--ink-faint);
+  margin-top: 2px;
+}
+
+.ucard-sub-link {
+  flex-shrink: 0;
+}
+
+/* =========================================================
+   个人中心 - 空状态
+   ========================================================= */
+.empty-state-icon {
+  display: flex;
+  justify-content: center;
+  opacity: 0.5;
+}
+
+/* =========================================================
+   个人中心 - 响应式
+   ========================================================= */
+@media (max-width: 991.98px) {
+  .ucard-stat-card-num {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .ucard-profile {
+    padding: 18px 14px;
+  }
+  .ucard-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+  }
+  .ucard-nav-item {
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .ucard-fav-img {
+    width: 80px;
+    height: 56px;
+  }
+}
+
+/* .min-width-0 辅助类，防止 flex 子项溢出 */
+.min-width-0 {
+  min-width: 0;
+}

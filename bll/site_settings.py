@@ -25,7 +25,8 @@ class SiteSettings:
             "max_page_num": 1000,
             "count_cache_ttl": 60,
             "max_search_total": 5000,
-            "search_cache_ttl": 60
+            "search_cache_ttl": 60,
+            "login_force_verify": True
         }
         return model
 

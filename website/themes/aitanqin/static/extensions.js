@@ -40,13 +40,15 @@ function renderStars() {
 renderStars();
 
 // 自动选中主导航菜单（基于cid匹配）
-const currentCid = cid; // 或者直接用 cid 变量
+if(cid){
+    const currentCid = cid; // 或者直接用 cid 变量
+    document.querySelectorAll('.navbar-nav .nav-link').forEach(el => {
+      const itemCid = el.getAttribute('cid');
+      if (itemCid == currentCid) {
+        el.classList.add('active');
+      }
+    });
 
-document.querySelectorAll('.navbar-nav .nav-link').forEach(el => {
-  const itemCid = el.getAttribute('cid');
-  console.log(`链接cid: ${itemCid} | 当前cid: ${currentCid} | 匹配: ${itemCid == currentCid}`);
-  if (itemCid == currentCid) {
-    el.classList.add('active');
-  }
-});
+}
+
 

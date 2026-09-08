@@ -1,0 +1,19 @@
+<a href="{{ item.get_url() }}" class="song-card-link">
+  <div class="song-card h-100 p-3 d-flex flex-column">
+    <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{ style_map.get(item.column_13, item.column_13 or '曲谱') }}</span>
+    <div class="song-title serif">{{ item.title }}</div>
+    <div class="song-artist mb-2">{{ item.column_1 }} <span class="muted">· {{ item.column_3 }}</span></div>
+
+    <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+      <div>调式 <span class="key">{{ item.column_2 }}</span></div>
+      <div>难度
+        <span value="{{ item.column_4 }}" class="level-value frets d-inline-flex gap-1"></span>
+      </div>
+      <div class="views d-flex align-items-center gap-1">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+        </svg> {{ item.hits or 0 }}
+      </div>
+    </div>
+  </div>
+</a>

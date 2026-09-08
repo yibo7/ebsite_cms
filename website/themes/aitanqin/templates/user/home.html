@@ -1,0 +1,69 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{ user_info.ni_name }} 的曲谱
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== 用户头部 ===== -->
+<section class="category-header py-4">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center gap-3">
+      <div class="arranger-avatar" style="width:56px;height:56px;border-radius:16px;background:linear-gradient(145deg,#3C221D,#1E1612);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;flex-shrink:0;">
+        {{ user_info.ni_name[0] if user_info.ni_name else '?' }}
+      </div>
+      <div>
+        <h1 class="serif mb-1">{{ user_info.ni_name }}</h1>
+        <div class="category-desc">制谱师 · 共 {{ data_list|length if data_list else 0 }} 首曲谱</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SONG GRID ===== -->
+<section class="container mb-4 mt-3">
+  {% if data_list %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+
+      {% for item in data_list %}
+        <div class="col">
+        <a href="{{ item.get_url() }}" class="song-card-link">
+          <div class="song-card h-100 p-3 d-flex flex-column">
+            <span class="card-badge badge-finger badge rounded-pill align-self-start mb-2">{{ style_map.get(item.column_13, item.column_13 or '曲谱') }}</span>
+            <div class="song-title serif">{{ item.title }}</div>
+            <div class="song-artist mb-2">{{ item.column_1 }} <span class="muted">· {{ item.column_3 }}</span></div>
+            <div class="d-flex align-items-center gap-2 my-1 mb-3">
+              <button class="play-btn btn rounded-circle d-flex align-items-center justify-content-center p-0" data-tid="{{ item._id }}" onclick="event.preventDefault();">
+                <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8V4z"/></svg>
+              </button>
+              <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
+            </div>
+            <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
+              <div>调式 <span class="key">{{ item.column_2 }}</span></div>
+              <div>难度
+                <span value="{{ item.column_4 }}" class="level-value frets d-inline-flex gap-1"></span>
+              </div>
+              <div class="views d-flex align-items-center gap-1">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>
+                </svg> {{ item.hits or 0 }}
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+
+    </div>
+  {% else %}
+    <div class="p-5 text-center">暂无数据</div>
+  {% endif %}
+</section>
+
+<!-- ===== 分页 ===== -->
+<div class="pagination-wrap">
+  {{ pager }}
+</div>
+<!-- ===== 隐藏 AlphaTab 播放器（列表页音频预览） ===== -->
+{% include 'includes/list_player.html' %}
+{% endblock %}

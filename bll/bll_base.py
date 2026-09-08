@@ -308,7 +308,7 @@ class BllBase(Generic[T], ABC):
             return str(sorted((k, str(v)) for k, v in where.items()))
 
     def count(self, s_where: {}):
-        ttl = current_app.config.get("count_cache_ttl", SiteConstant.COUNT_CACHE_TTL)
+        ttl = int(current_app.config.get("count_cache_ttl", SiteConstant.COUNT_CACHE_TTL))
         if ttl <= 0:
             return self.db[self.table_name].count_documents(s_where)
 
@@ -330,8 +330,8 @@ class BllBase(Generic[T], ABC):
         :param page_size: 每页的记录数
         :param page_number: 页码，从1开始
         :param where: 查询条件 如：{"name":"ctt"} 默认不填写将查询全部
-        :param sort_key: 要用哪个字段排序，默认使用_id
-        :param sort_direction: 排序方式，默认使用 pymongo.DESCENDING 降序排序
+        :param sort_key: 要用哪个字段排序，默认使用_id；传入 list 如 [("order_id",-1),("_id",-1)] 时启用多字段排序
+        :param sort_direction: 排序方式，默认使用 pymongo.DESCENDING 降序排序（sort_key 为 list 时忽略）
         :return: 结果列表，可以通过 for data in datas 遍历
         """
 
@@ -340,27 +340,35 @@ class BllBase(Generic[T], ABC):
             where = {}
         skip_count = (page_number - 1) * page_size
         original_where = where.copy()
+        is_multi_sort = isinstance(sort_key, list)
 
         if skip_count > 0:
-            # 覆盖查询：只从索引中取 boundary _id，避免 skip 扫描整文档
-            boundary_cursor = self.db[self.table_name].find(
-                original_where, {"_id": 1}
-            ).sort(sort_key, sort_direction).skip(skip_count - 1).limit(1)
+            if is_multi_sort:
+                # 多字段排序时，无法使用 _id 边界优化，退化为普通 skip
+                datas = self.db[self.table_name].find(
+                    original_where, projection
+                ).sort(sort_key).skip(skip_count).limit(page_size)
+            else:
+                # 覆盖查询：只从索引中取 boundary _id，避免 skip 扫描整文档
+                boundary_cursor = self.db[self.table_name].find(
+                    original_where, {"_id": 1}
+                ).sort(sort_key, sort_direction).skip(skip_count - 1).limit(1)
 
-            boundary_list = list(boundary_cursor)
-            if not boundary_list:
-                return [], 0
+                boundary_list = list(boundary_cursor)
+                if not boundary_list:
+                    return [], 0
 
-            where["_id"] = {"$lt": boundary_list[0]["_id"]}
-            # 执行分页查询并排序
-            datas = self.db[self.table_name].find(
-                where, projection
-            ).sort(sort_key, sort_direction).limit(page_size)
+                where["_id"] = {"$lt": boundary_list[0]["_id"]}
+                # 执行分页查询并排序
+                datas = self.db[self.table_name].find(
+                    where, projection
+                ).sort(sort_key, sort_direction).limit(page_size)
         else:
             # 第一页无需 skip
+            sort_args = sort_key if is_multi_sort else [(sort_key, sort_direction)]
             datas = self.db[self.table_name].find(
                 where, projection
-            ).sort(sort_key, sort_direction).limit(page_size)
+            ).sort(sort_args).limit(page_size)
 
         lst = []
         i_count = 0
@@ -379,13 +387,13 @@ class BllBase(Generic[T], ABC):
         :param page_number: 页码，从1开始
         :param rewrite_rule: 分页的地址重写规则，规则中的{0}是页码
         :param where: 查询条件 如：{"name":"ctt"} 默认不填写将查询全部
-        :param sort_key: 要用哪个字段排序，默认使用_id
-        :param sort_direction: 排序方式，默认使用 pymongo.DESCENDING 降序排序
+        :param sort_key: 要用哪个字段排序，默认使用_id；传入 list 时启用多字段排序
+        :param sort_direction: 排序方式，默认使用 pymongo.DESCENDING 降序排序（sort_key 为 list 时忽略）
         :return: 结果列表，可以通过 for data in datas 遍历
         """
 
         # P3: 最大页码限制，防止深分页
-        max_page_num = current_app.config.get("max_page_num", SiteConstant.MAX_PAGE_NUM)
+        max_page_num = int(current_app.config.get("max_page_num", SiteConstant.MAX_PAGE_NUM))
         if max_page_num > 0 and page_number > max_page_num:
             page_number = max_page_num
 

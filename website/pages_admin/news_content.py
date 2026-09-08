@@ -29,7 +29,7 @@ def content_list():
     table_html = get_table_html(datas, [del_btn, modify_btn])
     class_list = NewsClass().get_tree_text()
     return render_template(WebPaths.get_admin_path("news_content/content_list.html"), table_html=table_html,
-                           pager=pager, class_id=class_id, class_list=class_list)
+                           pager=pager, class_id=class_id, class_list=class_list, keyword=keyword or '')
 
 
 @admin_blue.route('content_list_save', methods=['GET', 'POST'])

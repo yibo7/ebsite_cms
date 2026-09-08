@@ -51,9 +51,40 @@
                     </div>
 
                     <div class="mb-3">
+                        <label>最大分页页码数</label>
+                        <input type="number" name="max_page_num" value="{{model.max_page_num}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>计数缓存时间(秒)</label>
+                        <input type="number" name="count_cache_ttl" value="{{model.count_cache_ttl}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>最大搜索总数</label>
+                        <input type="number" name="max_search_total" value="{{model.max_search_total}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>搜索缓存时间(秒)</label>
+                        <input type="number" name="search_cache_ttl" value="{{model.search_cache_ttl}}" style="max-width:100px" class="form-control" required>
+                        <div class="invalid-feedback">请输入整数值。</div>
+                    </div>
+
+                    <div class="mb-3">
                         <label>
                             <input name="is_open_safe_code" type="checkbox" {{ "checked" if model.is_open_safe_code }} >是否开启验证码
                             <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_open_safe_code" value="checkbox_unchecked">
+                        </label>
+                        <span class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label>
+                            <input name="login_force_verify" type="checkbox" {{ "checked" if model.login_force_verify }} >登录强制Email或手机号验证
+                            <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="login_force_verify" value="checkbox_unchecked">
                         </label>
                         <span class="text-danger"></span>
                     </div>

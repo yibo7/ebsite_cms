@@ -1,6 +1,10 @@
+from bson import ObjectId
 from flask import Blueprint, g, render_template, request, redirect, make_response, current_app
 
 from bll.favorite import Favorite
+from bll.subscription import Subscription
+from bll.user import User
+from bll.temp_data_provider import TempDataProvider
 from eb_cache import login_utils
 from eb_utils import http_helper
 from eb_utils.configs import WebPaths
@@ -39,7 +43,32 @@ def before_req():
 
 @user_blue.route('index', methods=['GET'])
 def user_index():
-    return render_template(WebPaths.get_user_path("index.html"), user=g.u)
+    """
+    个人中心首页 - 控制面板
+    """
+    user_token: UserToken = g.u
+    provider = TempDataProvider()
+    p = http_helper.get_prams_int("p", 1)
+    # 获取用户自己的内容列表
+    data_list, pager = provider.get_my_content_list(user_token.id, p, 12)
+    # 获取用户统计信息
+    stats = provider.get_user_content_stats(user_token.id)
+    # 获取用户详细信息
+    user_bll = User()
+    user_detail = user_bll.find_one_by_id(user_token.id)
+    # 获取订阅数量
+    sub_bll = Subscription()
+    sub_count = sub_bll.count({"user_id": ObjectId(user_token.id)})
+
+    return render_template(
+        WebPaths.get_user_path("index.html"),
+        user=g.u,
+        user_detail=user_detail,
+        data_list=data_list,
+        pager=pager,
+        stats=stats,
+        sub_count=sub_count,
+    )
 
 
 @user_blue.route('favorite', methods=['GET'])
@@ -47,10 +76,49 @@ def favorite():
     user_token: UserToken = g.u
     bll = Favorite()
     rewrite_rule = f'/user/favorite?p={{0}}'
-    p = http_helper.get_prams_int("p",1)
+    p = http_helper.get_prams_int("p", 1)
     data_list, pager = bll.find_pager(p, 20, rewrite_rule, {'user_id': user_token.id})
 
-    return render_template(WebPaths.get_user_path("favorite.html"), user=g.u,data_list=data_list, pager=pager)
+    # 获取统计信息用于侧栏
+    provider = TempDataProvider()
+    stats = provider.get_user_content_stats(user_token.id)
+    sub_bll = Subscription()
+    sub_count = sub_bll.count({"user_id": ObjectId(user_token.id)})
+
+    return render_template(
+        WebPaths.get_user_path("favorite.html"),
+        user=g.u,
+        data_list=data_list,
+        pager=pager,
+        stats=stats,
+        sub_count=sub_count,
+    )
+
+
+@user_blue.route('subscriptions', methods=['GET'])
+def subscriptions():
+    """
+    我的订阅页面
+    """
+    user_token: UserToken = g.u
+    provider = TempDataProvider()
+    p = http_helper.get_prams_int("p", 1)
+    sub_users, pager = provider.get_subscribed_users(user_token.id, p, 20)
+
+    # 统计信息
+    stats = provider.get_user_content_stats(user_token.id)
+    sub_bll = Subscription()
+    sub_count = sub_bll.count({"user_id": ObjectId(user_token.id)})
+
+    return render_template(
+        WebPaths.get_user_path("subscriptions.html"),
+        user=g.u,
+        sub_users=sub_users,
+        pager=pager,
+        stats=stats,
+        sub_count=sub_count,
+    )
+
 
 @user_blue.route('log_out', methods=['GET'])
 def user_log_out():
