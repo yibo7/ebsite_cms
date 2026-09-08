@@ -55,7 +55,7 @@ def post_tab(user_token:UserToken):
                 model.class_id = class_id or ''
                 model.class_n_id = int(class_n_id) if class_n_id else 0
                 model.class_name = class_name or ''
-                model.user_id = str(user_token.id)
+                model.user_id = user_token.id
                 model.user_name = user_token.name
                 model.user_ni_name = user_token.ni_name
 

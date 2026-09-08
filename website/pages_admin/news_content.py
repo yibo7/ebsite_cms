@@ -54,9 +54,11 @@ def content_list_save():
             dic_prams.pop('file')
 
         model.dict_to_model(dic_prams)
-        model.user_id = admin_token.id
-        model.user_name = admin_token.name
-        model.user_ni_name = admin_token.ni_name
+
+        if not g_id:
+            model.user_id = admin_token.id
+            model.user_name = admin_token.name
+            model.user_ni_name = admin_token.ni_name
 
         model.class_name = class_model.class_name
         model.class_id = class_model._id

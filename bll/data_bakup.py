@@ -75,6 +75,8 @@ class DataBakup:
         NewsContent.create_index([("tags", pymongo.ASCENDING)])
         # 分类列表页查询复合索引：按 class_id 筛选 + _id 降序排序
         NewsContent.create_index([("class_id", pymongo.ASCENDING), ("_id", pymongo.DESCENDING)])
+        # 分类列表页排序索引：按 class_id 筛选 + order_id + _id 降序排序（支持自定义排序）
+        NewsContent.create_index([("class_id", pymongo.ASCENDING), ("order_id", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)])
         # NewsContent.create_index([("ClassId", 1), ("rand_num", 1)])
         NewsContent.create_index("rand_num")
 

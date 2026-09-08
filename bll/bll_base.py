@@ -322,6 +322,46 @@ class BllBase(Generic[T], ABC):
         _count_cache[key] = (c, now + ttl)
         return c
 
+    def _build_multi_sort_boundary(self, original_where, sort_key, sort_direction, skip_count, page_size, projection):
+        """多字段排序边界分页：用 $or 条件替代 skip，避免扫描跳过的文档"""
+        # Step 1: 只查排序字段，用 skip 定位边界文档（仅索引，不取整文档）
+        boundary_projection = {}
+        for k in sort_key:
+            field = k[0] if isinstance(k, tuple) else k
+            boundary_projection[field] = 1
+
+        boundary_cursor = self.db[self.table_name].find(
+            original_where, boundary_projection
+        ).sort(sort_key).skip(skip_count - 1).limit(1)
+
+        boundary_list = list(boundary_cursor)
+        if not boundary_list:
+            return [], 0
+
+        # Step 2: 构建 $or 边界条件
+        boundary = boundary_list[0]
+        or_conditions = []
+        for i in range(len(sort_key)):
+            cond = {}
+            # 所有前序排序字段取等值
+            for j in range(i):
+                prev_field = sort_key[j][0] if isinstance(sort_key[j], tuple) else sort_key[j]
+                cond[prev_field] = boundary[prev_field]
+            # 当前排序字段取 < 或 >（取决于排序方向）
+            curr_field = sort_key[i][0] if isinstance(sort_key[i], tuple) else sort_key[i]
+            curr_dir = sort_key[i][1] if isinstance(sort_key[i], tuple) else sort_direction
+            cmp_op = "$lt" if curr_dir == pymongo.DESCENDING else "$gt"
+            cond[curr_field] = {cmp_op: boundary[curr_field]}
+            or_conditions.append(cond)
+
+        where = original_where.copy()
+        where["$or"] = or_conditions
+
+        datas = self.db[self.table_name].find(
+            where, projection
+        ).sort(sort_key).limit(page_size)
+        return datas, None
+
     def find_pages(self, page_number: int, page_size: int, where=None, sort_key="_id",
                    sort_direction=pymongo.DESCENDING,projection=None) -> Tuple[list[T], int]:
         """
@@ -344,10 +384,12 @@ class BllBase(Generic[T], ABC):
 
         if skip_count > 0:
             if is_multi_sort:
-                # 多字段排序时，无法使用 _id 边界优化，退化为普通 skip
-                datas = self.db[self.table_name].find(
-                    original_where, projection
-                ).sort(sort_key).skip(skip_count).limit(page_size)
+                # 多字段排序边界分页：用 $or 条件替代 skip
+                datas, _ = self._build_multi_sort_boundary(
+                    original_where, sort_key, sort_direction, skip_count, page_size, projection
+                )
+                if not datas:
+                    return [], 0
             else:
                 # 覆盖查询：只从索引中取 boundary _id，避免 skip 扫描整文档
                 boundary_cursor = self.db[self.table_name].find(
@@ -380,7 +422,8 @@ class BllBase(Generic[T], ABC):
         return lst, i_count
 
     def find_pager(self, page_number: int, page_size: int, rewrite_rule: str, where=None, sort_key="_id",
-                   sort_direction=pymongo.DESCENDING) -> Tuple[list[T], str]:
+                   sort_direction=pymongo.DESCENDING,
+                   projection=None) -> Tuple[list[T], str]:
         """
         分页查询列表
         :param page_size: 每页的记录数
@@ -389,6 +432,7 @@ class BllBase(Generic[T], ABC):
         :param where: 查询条件 如：{"name":"ctt"} 默认不填写将查询全部
         :param sort_key: 要用哪个字段排序，默认使用_id；传入 list 时启用多字段排序
         :param sort_direction: 排序方式，默认使用 pymongo.DESCENDING 降序排序（sort_key 为 list 时忽略）
+        :param projection: 投影字段，如 {'title':1, 'hits':1}，减少网络传输
         :return: 结果列表，可以通过 for data in datas 遍历
         """
 
@@ -397,7 +441,7 @@ class BllBase(Generic[T], ABC):
         if max_page_num > 0 and page_number > max_page_num:
             page_number = max_page_num
 
-        datas, i_count = self.find_pages(page_number, page_size, where, sort_key, sort_direction)
+        datas, i_count = self.find_pages(page_number, page_size, where, sort_key, sort_direction, projection)
         # pager = pager_html_admin(i_count, page_number, page_size, where)
         pager = ''
         if i_count > page_size:

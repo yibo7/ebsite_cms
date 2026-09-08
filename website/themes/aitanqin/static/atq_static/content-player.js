@@ -18,7 +18,6 @@
   /* =====================================================
      配置常量
   ===================================================== */
-  var API_BASE = '';   // 走相对路径 /api/atq/totab?id=tid
   var SOUNDFONT_URL = 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.8.4/dist/soundfont/sonivox.sf2';
   var ZOOM_LEVELS = [75, 90, 100, 110, 125, 150];
   var SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5];
@@ -42,6 +41,41 @@
     var m = Math.floor(s / 60);
     s = s % 60;
     return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  /* =====================================================
+     Base64 → Uint8Array（配合 CDN 缓存 JS 方案）
+  ===================================================== */
+  function b64ToBytes(b64) {
+    var binaryStr = atob(b64);
+    var bytes = new Uint8Array(binaryStr.length);
+    for (var i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  /* 加载乐谱 JS 缓存（动态 <script> 标签，支持 CDN 缓存） */
+  function loadScoreScript(tid, onSuccess, onError) {
+    if (window.__cachedScores && window.__cachedScores[tid]) {
+      onSuccess(window.__cachedScores[tid]);
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = '/atq/api/totab/' + encodeURIComponent(tid) + '.js';
+    script.onload = function () {
+      script.remove();
+      if (window.__cachedScores && window.__cachedScores[tid]) {
+        onSuccess(window.__cachedScores[tid]);
+      } else {
+        onError(new Error('加载乐谱后缓存数据未找到'));
+      }
+    };
+    script.onerror = function () {
+      script.remove();
+      onError(new Error('加载乐谱脚本失败'));
+    };
+    document.head.appendChild(script);
   }
 
   /* 由音级集合推断和弦名 */
@@ -233,26 +267,19 @@
         return String(state).toLowerCase().indexOf('playing') !== -1;
       },
 
-      /* ---------------- 通过乐谱 Id 请求乐谱 ---------------- */
+      /* ---------------- 通过乐谱 Id 请求乐谱（CDN 缓存 JS 方案） ---------------- */
       loadScoreFromApi: function () {
         var self = this;
         this.apiLoading = true;
         this.phase = 'loading';
         this.overlayMsg = '正在加载乐谱…';
         try { if (this.at && this.scoreLoaded) this.at.stop(); } catch (e) { /* ignore */ }
-        var url = API_BASE + '/atq/api/totab?id=' + encodeURIComponent(tid);
-        fetch(url).then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          var cd = '';
-          try { cd = res.headers.get('Content-Disposition') || ''; } catch (e) { /* ignore */ }
-          var m = cd.match(/filename\*?="?([^";]+)"?/i);
-          if (m && m[1]) self.fileName = m[1];
-          return res.arrayBuffer();
-        }).then(function (buf) {
-          self.loadBytes(new Uint8Array(buf));
-        }).catch(function () {
+        loadScoreScript(tid, function (cached) {
+          self.fileName = cached.name;
+          self.loadBytes(b64ToBytes(cached.data));
+        }, function () {
           self.apiLoading = false;
-          self.phase = 'error';   // 仅显示「乐谱未加载」
+          self.phase = 'error';
         });
       },
 

@@ -26,7 +26,7 @@ class SiteConstant(object):
     COOKIE_TOKEN_KEY = "u_key"
     PAGE_SIZE_AD = 20
     MAX_PAGE_NUM = 1000          # 前端列表最大页码，超限自动截断
-    COUNT_CACHE_TTL = 60         # count_documents 缓存秒数
+    COUNT_CACHE_TTL = 300        # count_documents 缓存秒数（5分钟，列表页合计数变化慢）
     MAX_SEARCH_TOTAL = 5000      # 搜索结果最大条数，超限截断
     SEARCH_CACHE_TTL = 60        # 搜索结果缓存秒数
     SITE_KEY = os.environ.get('SITE_KEY', 'ebsite20015')

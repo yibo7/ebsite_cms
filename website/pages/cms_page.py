@@ -4,6 +4,7 @@ from urllib.parse import quote
 import pymongo
 from flask import render_template, render_template_string, abort, request, make_response, current_app
 
+import eb_cache
 from bll.new_class import NewsClass
 from bll.new_content import NewsContent
 from bll.temp_data_provider import TempDataProvider
@@ -12,6 +13,7 @@ from bll.content_tags import ContentTags
 from bll.templates import Templates
 from eb_utils import http_helper
 from eb_utils.configs import SiteConstant
+from signals import content_saved
 from website.pages import pages_blue
 
 
@@ -23,7 +25,26 @@ def list(id: int, p: int):
         rewrite_rule = f'/c{id}p{{0}}.html'
         model.page_size = current_app.config["list_page_size"]
         sort_key = [("order_id", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)]
-        data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule, {'class_id': model._id}, sort_key=sort_key)
+        # 列表页只返回模板需要的字段，大幅减少 MongoDB 网络传输
+        list_projection = {
+            'title': 1, 'column_1': 1, 'column_2': 1, 'column_3': 1,
+            'column_4': 1, 'column_13': 1, 'hits': 1, 'id': 1
+        }
+        # 缓存键：版本号 + 分类 + 页码，内容更新时自动失效
+        ver_key = f"list_ver:{id}"
+        ver = eb_cache.get(ver_key) or 0
+        cache_key = f"list_data:{id}:{p}:v{ver}"
+        cached = eb_cache.get(cache_key)
+        if cached:
+            data_list, pager = cached
+        else:
+            data_list, pager = bll.find_pager(p, model.page_size, rewrite_rule,
+                                              {'class_id': model._id},
+                                              sort_key=sort_key,
+                                              projection=list_projection)
+            # 仅当有数据时才缓存（避免空缓存穿透）
+            if data_list:
+                eb_cache.set_data((data_list, pager), ex_second=300, key=cache_key)
         temp_model = Templates(1).find_one_by_id(model.class_temp_id)
         if temp_model.temp_model == 1:
             return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager)
@@ -186,3 +207,16 @@ def search():
 
     data_list, pager = bll.search_full(key_word,page_number,page_size, rewrite_rule)
     return render_template("search.html",key_word=key_word, data_list=data_list, pager=pager)
+
+
+@content_saved.connect
+def _invalidate_list_cache(sender, model):
+    """内容保存后自动失效对应分类的列表缓存，确保前台即时看到更新"""
+    try:
+        class_n_id = getattr(model, 'class_n_id', None) or getattr(model, 'id', None)
+        if class_n_id:
+            ver_key = f"list_ver:{class_n_id}"
+            ver = eb_cache.get(ver_key) or 0
+            eb_cache.set_data(ver + 1, ex_second=86400, key=ver_key)
+    except Exception:
+        pass  # 缓存失效不影响主流程

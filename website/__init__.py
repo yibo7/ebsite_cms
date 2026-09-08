@@ -75,4 +75,16 @@ def create_app():  # run_mode
     app_created.send(app)  # 发送应用创建信号
     load_modules(app)
 
+    # 确保关键复合索引存在（后台非阻塞，仅 create_index 的 if_not_exists 语义）
+    with app.app_context():
+        try:
+            news_collection = app.db['NewsContent']
+            # 分类列表页排序索引：class_id + order_id + _id
+            news_collection.create_index(
+                [("class_id", 1), ("order_id", -1), ("_id", -1)],
+                background=True
+            )
+        except Exception:
+            pass  # 索引创建失败不影响启动
+
     return app

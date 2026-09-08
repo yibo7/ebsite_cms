@@ -65,7 +65,7 @@
           <div class="side-card flex-fill p-3 d-flex flex-column justify-content-center">
             <div class="label">{{ new_list[0].class_name }} </div>
             <h3 class="mb-0">{{ new_list[0].title }}</h3>
-            <div class="sub">{{ new_list[0].column_1 }} · {{ new_list[0].column_13 or 'General' }}</div>
+            <div class="sub">{{ new_list[0].column_1 }} · {{ style_map.get(new_list[0].column_13, 'General') }}</div>
           </div>
         </a>
         {% endif %}
@@ -74,7 +74,7 @@
           <div class="side-card flex-fill p-3 d-flex flex-column justify-content-center">
             <div class="label">{{ new_list[0].class_name }} </div>
             <h3 class="mb-0">{{ new_list[1].title }}</h3>
-            <div class="sub">{{ new_list[1].column_1 }} · {{ new_list[1].column_13 or 'General' }}</div>
+            <div class="sub">{{ new_list[1].column_1 }} · {{ style_map.get(new_list[1].column_13, 'General') }}</div>
           </div>
         </a>
         {% endif %}

@@ -11,7 +11,6 @@
      配置
   ===================================================== */
   var SOUNDFONT_URL = 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.8.4/dist/soundfont/sonivox.sf2';
-  var API_BASE = '';  // 走相对路径，与详情页一致
 
   /* =====================================================
      状态
@@ -47,6 +46,41 @@
         return e.state === alphaTab.PlayerState.Playing;
     } catch (_) {}
     return String(e.state).toLowerCase().indexOf('playing') !== -1;
+  }
+
+  /* =====================================================
+     Base64 → Uint8Array（配合 CDN 缓存 JS 方案）
+  ===================================================== */
+  function b64ToBytes(b64) {
+    var binaryStr = atob(b64);
+    var bytes = new Uint8Array(binaryStr.length);
+    for (var i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  /** 加载乐谱 JS 缓存（动态 <script> 标签，支持 CDN 缓存） */
+  function loadScoreScript(tid, onSuccess, onError) {
+    if (window.__cachedScores && window.__cachedScores[tid]) {
+      onSuccess(window.__cachedScores[tid]);
+      return;
+    }
+    var script = document.createElement('script');
+    script.src = '/atq/api/totab/' + encodeURIComponent(tid) + '.js';
+    script.onload = function () {
+      script.remove();
+      if (window.__cachedScores && window.__cachedScores[tid]) {
+        onSuccess(window.__cachedScores[tid]);
+      } else {
+        onError(new Error('加载乐谱后缓存数据未找到'));
+      }
+    };
+    script.onerror = function () {
+      script.remove();
+      onError(new Error('加载乐谱脚本失败'));
+    };
+    document.head.appendChild(script);
   }
 
   /** 从播放按钮的 data-tid 获取 MongoDB ObjectId */
@@ -248,40 +282,38 @@
     stopWave();
     try { state.at.stop(); } catch (_) {}
 
-    // 加载新乐谱
-    var url = API_BASE + '/atq/api/totab?id=' + encodeURIComponent(id);
-    fetch(url)
-      .then(function (r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.arrayBuffer();
-      })
-      .then(function (buf) {
-        if (!state.at || state.currentId !== id) return;
-        var ok = false;
-        try { ok = state.at.load(new Uint8Array(buf)); } catch (_) { ok = false; }
-        if (!ok) throw new Error('load() 失败');
-        // 等播放器就绪后自动播放
-        var tryPlay = function (attempt) {
-          if (!state.at || state.currentId !== id) return;
-          if (state.ready) {
-            try { state.at.playPause(); } catch (_) {}
-            state.loading = false;
-          } else if (attempt < 50) {
-            setTimeout(function () { tryPlay(attempt + 1); }, 200);
-          } else {
-            state.loading = false;
-            syncAllButtons();
-          }
-        };
-        // 给渲染一点时间
-        setTimeout(function () { tryPlay(0); }, 400);
-      })
-      .catch(function (err) {
-        console.error('[列表播放器] 加载乐谱失败', err);
+    // 加载新乐谱（CDN 缓存 JS 方案）
+    loadScoreScript(id, function (cached) {
+      if (!state.at || state.currentId !== id) return;
+      var ok = false;
+      try { ok = state.at.load(b64ToBytes(cached.data)); } catch (_) { ok = false; }
+      if (!ok) {
         state.loading = false;
         state.currentId = null;
         syncAllButtons();
-      });
+        return;
+      }
+      // 等播放器就绪后自动播放
+      var tryPlay = function (attempt) {
+        if (!state.at || state.currentId !== id) return;
+        if (state.ready) {
+          try { state.at.playPause(); } catch (_) {}
+          state.loading = false;
+        } else if (attempt < 50) {
+          setTimeout(function () { tryPlay(attempt + 1); }, 200);
+        } else {
+          state.loading = false;
+          syncAllButtons();
+        }
+      };
+      // 给渲染一点时间
+      setTimeout(function () { tryPlay(0); }, 400);
+    }, function () {
+      console.error('[列表播放器] 加载乐谱失败');
+      state.loading = false;
+      state.currentId = null;
+      syncAllButtons();
+    });
   }
 
   /* =====================================================

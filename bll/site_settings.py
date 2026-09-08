@@ -23,7 +23,7 @@ class SiteSettings:
             "app_token_expired": "24",
             "list_page_size": 20,
             "max_page_num": 1000,
-            "count_cache_ttl": 60,
+            "count_cache_ttl": 300,
             "max_search_total": 5000,
             "search_cache_ttl": 60,
             "login_force_verify": True
