@@ -28,12 +28,30 @@ class NewsClass(BllBase[NewsClassModel]):
             if not is_successful:
                 raise Exception(f"保存前被接收者 {receiver.__name__} 阻止: {err}")
 
+        # 记录旧的分类名称（更新场景），用于后续同步到内容表
+        old_class_name: str | None = None
+        if model._id:
+            old_model = self.find_one_by_id(str(model._id))
+            if old_model:
+                old_class_name = old_model.class_name
 
         if model.class_name:
             data_id = self.save(model)
             if data_id:  # 保存成功触发事件
                 model._id = data_id
-                content_saved.send(model)
+                content_saved.send(model, model=model)
+
+                # 分类名称变更 → 同步更新所有关联内容的 class_name
+                if old_class_name is not None and old_class_name != model.class_name:
+                    self._sync_class_name_to_contents(model)
+
+    def _sync_class_name_to_contents(self, model: NewsClassModel):
+        """将分类名称变更同步到所有关联的内容记录"""
+        content_table = self.db["NewsContent"]
+        content_table.update_many(
+            {"class_id": model._id},
+            {"$set": {"class_name": model.class_name}}
+        )
 
 
 

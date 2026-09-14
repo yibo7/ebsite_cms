@@ -266,7 +266,7 @@ class NewsContent(BllBase[NewsContentModel]):
             data_id = self.save(model)
             if data_id: # 保存成功触发事件
                 model._id = data_id
-                content_saved.send(model)
+                content_saved.send(model, model=model)
                 # 更新标签计数
                 if model.tags:
                     tag_bll = ContentTags()

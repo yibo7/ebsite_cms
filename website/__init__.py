@@ -1,4 +1,6 @@
 import os
+import json
+import glob as glob_module
 
 from flask import Flask
 from jinja2 import ChoiceLoader, FileSystemLoader
@@ -18,7 +20,7 @@ class MD5Converter(BaseConverter):
     regex = r'[a-fA-F0-9]{32}'
 
 # ──────────────────────────────────────────────
-# WSGI 中间件：在 Flask 路由之前剥离 /en/ 前缀
+# WSGI 中间件：在 Flask 路由之前剥离语言前缀（如 /en/、/ja/）
 # ──────────────────────────────────────────────
 class _LangPrefixWSGIMiddleware:
     def __init__(self, app):
@@ -27,11 +29,48 @@ class _LangPrefixWSGIMiddleware:
     def __call__(self, environ, start_response):
         path = environ.get('PATH_INFO', '')
         environ['ORIG_PATH_INFO'] = path
-        if path.startswith('/en/'):
-            environ['PATH_INFO'] = path[3:]
-        elif path == '/en':
-            environ['PATH_INFO'] = '/'
+
+        # 从 environ 中获取支持的语言列表（启动时注入）
+        supported = environ.get('_SUPPORTED_LANGS', set())
+        default = environ.get('_DEFAULT_LANG', 'zh')
+
+        for code in supported:
+            if code == default:
+                continue
+            prefix = f'/{code}'
+            if path == prefix or path.startswith(f'{prefix}/'):
+                environ['PATH_INFO'] = path[len(prefix):] or '/'
+                break
+
         return self.app(environ, start_response)
+
+
+def _discover_langs(app):
+    """启动时扫描 i18n/ 目录，获取支持的语言及所有 _lang_name_* 名称"""
+    theme_name = app.config.get('base_settings', {}).get('ThemeName', 'aitanqin')
+    i18n_dir = os.path.join(app.root_path, 'themes', theme_name, 'i18n')
+    files = glob_module.glob(os.path.join(i18n_dir, '*.json'))
+    langs = {}
+    for f in files:
+        code = os.path.splitext(os.path.basename(f))[0]
+        if code and not code.startswith('_'):
+            try:
+                with open(f, 'r', encoding='utf-8') as fh:
+                    data = json.load(fh)
+            except Exception:
+                data = {}
+            # 收集所有 _lang_name_* 条目作为多语言名称
+            names = {}
+            for k, v in data.items():
+                if k.startswith('_lang_name'):
+                    names[k] = v
+            if names:
+                langs[code] = names
+            else:
+                # 兼容旧文件，用 code 自身作为所有语言的名称
+                langs[code] = {'_lang_name': code}
+    return langs
+
 
 def create_app():  # run_mode
     """
@@ -52,7 +91,7 @@ def create_app():  # run_mode
     app = Flask(__name__,template_folder=theme_template_path, static_folder=theme_static_path,static_url_path='/')
     app.url_map.converters['md5'] = MD5Converter  # 注册路由转换器，目前主要应用于标签页面URl强制md5规则
 
-    # 注册 WSGI 中间件（在路由前剥离 /en/ 前缀）
+    # 注册 WSGI 中间件（在路由前剥离语言前缀）
     app.wsgi_app = _LangPrefixWSGIMiddleware(app.wsgi_app)
 
     # 加入多个模板目录
@@ -70,6 +109,28 @@ def create_app():  # run_mode
     app.config.update({'base_settings': base_setting})
 
     app.config['SiteKey'] = base_setting['APP_KEY']  # 网站的密钥
+
+    # ── 多语言自动发现 ──
+    default_lang = base_setting.get('DefaultLang', 'zh')
+    available_langs = _discover_langs(app)  # {code: display_name}
+    supported_langs = set(available_langs.keys())
+    app.config['DEFAULT_LANG'] = default_lang
+    app.config['SUPPORTED_LANGS'] = supported_langs
+    app.config['AVAILABLE_LANGS'] = available_langs
+    print(f"[i18n] default: {default_lang}, supported: {sorted(supported_langs)}")
+
+    # 将语言信息注入 WSGI environ（中间件需要）
+    _orig_mw = app.wsgi_app
+
+    class _LangInjectedMiddleware:
+        def __init__(self, inner):
+            self.inner = inner
+        def __call__(self, environ, start_response):
+            environ['_SUPPORTED_LANGS'] = supported_langs
+            environ['_DEFAULT_LANG'] = default_lang
+            return self.inner(environ, start_response)
+
+    app.wsgi_app = _LangInjectedMiddleware(app.wsgi_app)
     # endregion
 
     init_eb_db(app)

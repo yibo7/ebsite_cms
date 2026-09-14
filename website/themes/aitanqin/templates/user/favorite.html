@@ -17,7 +17,7 @@
 
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h5 class="mb-0 fw-bold">{{ lang.user_favorites or '我的收藏' }}</h5>
-        <span class="text-muted small">共 {{ data_list|length if data_list else 0 }} 条</span>
+        <span class="text-muted small">{{ lang.list_total or '共' }} {{ data_list|length if data_list else 0 }}{{ lang.list_total_suffix or ' 条' }}</span>
       </div>
 
       {% if data_list %}

@@ -31,7 +31,7 @@
         {% for item in data_list %}
         <a href="{{item.get_url()}}" class="tag-chip">
           <span class="tag-name">{{item.name}}</span>
-          <span class="tag-count">{{item.article_count}} 首</span>
+          <span class="tag-count">{{item.article_count}}{{ lang.tag_scores_count or ' 首' }}</span>
         </a>
         {% endfor %}
       </div>

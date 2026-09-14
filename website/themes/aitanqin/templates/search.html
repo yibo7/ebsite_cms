@@ -40,8 +40,8 @@
           </div>
           <h1 class="serif mb-1">🔍 {{key_word}}</h1>
           <div class="category-desc">
-            搜索「{{key_word}}」的结果
-            {% if data_list %} · 共 {{ data_list | length }} 条{% endif %}
+            {{ lang.search_result_before or '搜索「' }}{{key_word}}{{ lang.search_result_after or '」的结果' }}
+            {% if data_list %} · {{ lang.search_total_prefix or '共 ' }}{{ data_list | length }}{{ lang.search_total_suffix or ' 条' }}{% endif %}
           </div>
         </div>
       </div>

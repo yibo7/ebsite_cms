@@ -63,7 +63,7 @@
       <!-- 最近曲谱 -->
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h5 class="mb-0 fw-bold">{{ lang.nav_favorites or '我的曲谱' }}</h5>
-        <span class="text-muted small">共 {{ stats.total }} 首</span>
+        <span class="text-muted small">{{ lang.list_total or '共' }} {{ stats.total }}{{ lang.user_index_scores_suffix or ' 首' }}</span>
       </div>
 
       {% if data_list %}

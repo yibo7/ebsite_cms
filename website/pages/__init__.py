@@ -31,23 +31,48 @@ from werkzeug.test import EnvironBuilder
 
 def render_and_cache_index(lang='zh'):
     with current_app.app_context():
-        # 创建一个伪请求上下文,context_processor 被正常调用，SiteName 等变量也就能注入成功
-        builder = EnvironBuilder(path='/en/zh' if lang == 'en' else '/zh')
+        default = current_app.config.get('DEFAULT_LANG', 'zh')
+        # 首页缓存用真实根路径，request.path 不会被污染
+        builder = EnvironBuilder(path='/')
         env = builder.get_environ()
-        env['ORIG_PATH_INFO'] = f'/en/zh' if lang == 'en' else '/zh'
+        env['ORIG_PATH_INFO'] = f'/{lang}' if lang != default else '/'
         req = Request(env)
         with current_app.request_context(env):
             # 后台线程中没有 set_lang() 执行，手动设置语言标记
             from flask import g
             g.lang = lang
+            g.lang_dict = _load_lang_dict_for_cache(lang)
             temp_path = current_app.config.get('index_temp_path',"index.html")
             rendered = render_template(temp_path, index_data=TempDataProvider())
-            cache_key = f"{CacheKeys.INDEX_HTML}_{lang}"
-            time_key = f"{CacheKeys.INDEX_TIME}_{lang}"
+            cache_key = f"{CacheKeys.INDEX_HTML}_{lang}_v2"
+            time_key = f"{CacheKeys.INDEX_TIME}_{lang}_v2"
             eb_cache.set_data(rendered, ex_second=0, key=cache_key)
             eb_cache.set_data(time.time(), ex_second=0, key=time_key)
             print(f"index cache updated ({lang})")
             return rendered
+
+def _load_lang_dict_for_cache(lang):
+    """后台缓存线程专用：加载语言字典"""
+    import json
+    import os
+    try:
+        theme_name = current_app.config.get('base_settings', {}).get('ThemeName', 'aitanqin')
+        default = current_app.config.get('DEFAULT_LANG', 'zh')
+        def _load(code):
+            p = os.path.join(current_app.root_path, 'themes', theme_name, 'i18n', f'{code}.json')
+            try:
+                with open(p, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                return {}
+        result = _load(lang)
+        if lang != default:
+            defaults = _load(default)
+            for k, v in defaults.items():
+                result.setdefault(k, v)
+        return result
+    except Exception:
+        return {}
 
 def run_in_app_context(app, func, *args, **kwargs):
     def wrapped():
@@ -97,7 +122,11 @@ def login():
             if err_count > 0:
                 is_safe, err_msg = ImageCode().check_code(image_code)
             if is_safe:
-                _prefix = '/en' if getattr(g, 'lang', 'zh') == 'en' else ''
+                _prefix = ''
+                cur_lang = getattr(g, 'lang', '')
+                default = current_app.config.get('DEFAULT_LANG', 'zh')
+                if cur_lang and cur_lang != default:
+                    _prefix = f'/{cur_lang}'
                 resp = make_response(redirect(_prefix + WebPaths.USER_INDEX))
                 is_safe, err_msg = User().login(username, password, resp)
                 if is_safe:
@@ -157,7 +186,11 @@ def reg():
                 user.mobile_number = username
             [is_ok, msg] = User().reg_user(user)
             if is_ok:
-                _prefix = '/en' if getattr(g, 'lang', 'zh') == 'en' else ''
+                _prefix = ''
+                cur_lang = getattr(g, 'lang', '')
+                default = current_app.config.get('DEFAULT_LANG', 'zh')
+                if cur_lang and cur_lang != default:
+                    _prefix = f'/{cur_lang}'
                 resp = make_response(redirect(_prefix + WebPaths.USER_INDEX))
                 login_utils.set_cookie_token(user, resp)
 

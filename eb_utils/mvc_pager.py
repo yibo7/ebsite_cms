@@ -1,7 +1,7 @@
 from typing import List
 from urllib.parse import urlencode
 from urllib.parse import quote
-from flask import request
+from flask import request, g
 from markupsafe import Markup
 from eb_utils import url_links
 
@@ -73,12 +73,12 @@ class MvcPager:
         return url
 
     def show_pages(self) -> str:
-        # 判断语言
-        is_en = url_links.get_url_prefix() == '/en'
-        first_text = 'First' if is_en else '首页'
-        prev_text = 'Prev' if is_en else '上一页'
-        next_text = 'Next' if is_en else '下一页'
-        last_text = 'Last' if is_en else '尾页'
+        # 从 g.lang_dict 获取分页文字（无语言标记时用中文默认）
+        lang_dict = getattr(g, 'lang_dict', {})
+        first_text = lang_dict.get('list_first', '首页')
+        prev_text = lang_dict.get('list_prev', '上一页')
+        next_text = lang_dict.get('list_next', '下一页')
+        last_text = lang_dict.get('list_last', '尾页')
 
         sb = ["<ul class='pagination'>"]
         if self.current_page > 1:

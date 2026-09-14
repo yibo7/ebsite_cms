@@ -51,7 +51,7 @@
         <aside class="quick-action-card">
           <button class="play-entry-btn" @click="openPlayer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 17v-6"/><path d="M9 13.5L12 10.5l3 3"/></svg>
-            Open in Player
+            {{ lang.player_open or 'Open in Player' }}
           </button>
           <div class="quick-fact" v-html="quickFact"></div>
           <div class="action-row">
@@ -62,12 +62,12 @@
             <div class="download-wrap" ref="downloadWrap" :class="{'is-open': downloadOpen}">
               <button class="action-btn" @click="downloadOriginal">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 19h16"/></svg>
-                下载
+                {{ lang.content_download or '下载' }}
               </button>
             </div>
             <button class="action-btn" :disabled="!scoreLoaded" @click="printScore">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 8V3h10v5"/><rect x="4" y="8" width="16" height="8" rx="1.5"/><path d="M7 13h10v8H7z"/></svg>
-              打印
+              {{ lang.content_print or '打印' }}
             </button>
           </div>
         </aside>
@@ -127,26 +127,26 @@
                   <div class="ae-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5"/><path d="M12 16.5h.01"/></svg>
                   </div>
-                  <h4>乐谱未加载</h4>
-                  <button class="ae-btn" @click="loadScoreFromApi">重新加载</button>
+                  <h4>{{ lang.err_title or '乐谱未加载' }}</h4>
+                  <button class="ae-btn" @click="loadScoreFromApi">{{ lang.player_listen or '重新加载' }}</button>
                 </div>
               </div>
             </div>
-            <div class="score-watermark">爱弹琴 · aitanqin.com</div>
+            <div class="score-watermark">{{ lang.site_name or '爱弹琴' }} · aitanqin.com</div>
           </div>
 
           <!-- ============ 乐谱简介（富文本） ============ -->
           <section class="intro-card">
             <div class="intro-head">
-              <h3>乐谱简介</h3>
-              <span class="intro-tag">富文本</span>
+              <h3>{{ lang.content_intro or '乐谱简介' }}</h3>
+              <span class="intro-tag">{{ lang.content_rich_text or '富文本' }}</span>
             </div>
             <div class="file-meta-strip" v-if="scoreLoaded">
-              <span class="fm-chip" v-if="scoreArtist">作者<b>[[ scoreArtist ]]</b></span>
-              <span class="fm-chip" v-if="scoreAlbum">专辑<b>[[ scoreAlbum ]]</b></span>
-              <span class="fm-chip" v-if="scoreCopyright">版权<b>[[ scoreCopyright ]]</b></span>
-              <span class="fm-chip">小节<b>[[ bars ]]</b></span>
-              <span class="fm-chip">音轨<b>[[ tracks.length ]]</b></span>
+              <span class="fm-chip" v-if="scoreArtist">{{ lang.content_artist or '作者' }}<b>[[ scoreArtist ]]</b></span>
+              <span class="fm-chip" v-if="scoreAlbum">{{ lang.content_album or '专辑' }}<b>[[ scoreAlbum ]]</b></span>
+              <span class="fm-chip" v-if="scoreCopyright">{{ lang.content_copyright or '版权' }}<b>[[ scoreCopyright ]]</b></span>
+              <span class="fm-chip">{{ lang.content_bars or '小节' }}<b>[[ bars ]]</b></span>
+              <span class="fm-chip">{{ lang.content_tracks or '音轨' }}<b>[[ tracks.length ]]</b></span>
             </div>
             <div class="rich-text">
               {{model.info|safe}}
@@ -157,7 +157,7 @@
         <!-- ============ 侧边栏 ============ -->
         <aside>
           <div class="chords-card">
-            <h3>本谱涉及和弦 <span class="chord-src" v-if="chordsSource">· [[ chordsSource ]]</span></h3>
+            <h3>{{ lang.content_chords or '本谱涉及和弦' }} <span class="chord-src" v-if="chordsSource">· [[ chordsSource ]]</span></h3>
             <div class="chord-chips" v-if="chords.length">
               <span class="chord-chip" v-for="c in chords" :key="c">[[ c ]]</span>
             </div>
@@ -168,7 +168,7 @@
           </div>
 
           <div class="related-card">
-            <h3>你可能也喜欢</h3>
+            <h3>{{ lang.content_related or '你可能也喜欢' }}</h3>
             <ul class="related-list">
               {% set related_datas = temp_data.get_related_by_tags(model._id, 10) %}
               {% if related_datas %}

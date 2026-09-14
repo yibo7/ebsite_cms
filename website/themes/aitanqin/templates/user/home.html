@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-{{ user_info.ni_name }} 的曲谱
+{{ user_info.ni_name }}{{ lang.user_home_title_suffix or ' 的曲谱' }}
 {% endblock %}
 
 {% block content %}
@@ -14,7 +14,7 @@
       </div>
       <div>
         <h1 class="serif mb-1">{{ user_info.ni_name }}</h1>
-        <div class="category-desc">{{ lang.content_uploader or '制谱师' }} · 共 {{ data_list|length if data_list else 0 }} 首曲谱</div>
+        <div class="category-desc">{{ lang.content_uploader or '制谱师' }} · 共 {{ data_list|length if data_list else 0 }}{{ lang.user_scores_count or ' 首曲谱' }}</div>
       </div>
     </div>
   </div>

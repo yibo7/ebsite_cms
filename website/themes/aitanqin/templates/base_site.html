@@ -36,6 +36,8 @@
       <ul class="navbar-nav d-none d-lg-flex flex-row gap-4 mx-auto">
         <li class="nav-item"><a class="nav-link" href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '🏠 首页' }}</a></li>
        {{ widget("6a955899ccda0b6fd621002b") }}
+        <li class="nav-item"><a class="nav-link" href="/aplayer/">Score Player</a></li>
+
       </ul>
 
       <div class="d-flex align-items-center gap-2">
@@ -45,18 +47,30 @@
             <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
           </svg>
         </a>
-        <!-- 语言切换 -->
-        {% if current_lang == 'zh' %}
-        <a href="/en{{ request.path }}" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center" title="English">
-          <span style="font-size:14px;font-weight:600;">EN</span>
-        </a>
-        {% else %}
-        <a href="{{ request.path }}" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center" title="中文">
-          <span style="font-size:14px;font-weight:600;">中</span>
-        </a>
-        {% endif %}
+
         <span id="login_info"><a href="{{ LANG_PREFIX }}/login" class="btn btn-outline-brand rounded-pill btn-sm d-none d-lg-inline-flex px-3">{{ lang.nav_login or '登录' }}</a></span>
         <a href="{{ LANG_PREFIX }}/reg" class="btn btn-brand rounded-pill btn-sm px-3">{{ lang.nav_register or '制谱师入驻' }}</a>
+        <!-- 语言切换（下拉菜单） -->
+        <div class="dropdown d-none d-lg-inline-flex ms-2">
+          <button class="btn btn-outline-secondary btn-sm dropdown-toggle d-flex align-items-center gap-1 rounded-pill px-2"
+                  type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                  style="font-size:13px;border-color:var(--border,#e0e0e0);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:2px;">
+              <circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/>
+            </svg>
+            {{ available_langs.get(current_lang, current_lang) }}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            {% for code, name in available_langs.items() %}
+            <li>
+              <a class="dropdown-item {% if code == current_lang %}active{% endif %}"
+                 href="{% if code == default_lang %}{{ request.path }}{% else %}/{{ code }}{{ request.path }}{% endif %}">
+                {{ name }}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
         <a href="{{ LANG_PREFIX }}/search.html" class="btn btn-nav-icon d-lg-none d-inline-flex align-items-center justify-content-center"
            title="{{ lang.search_title or '搜索曲谱' }}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -149,25 +163,27 @@
     </a>
 
     <!-- 移动端语言切换 -->
-    {% if current_lang == 'zh' %}
-    <a href="/en/" class="menu-list-item">
-      <span class="menu-icon">🌐</span>
+    <div class="menu-section-label px-3 mt-3 mb-1" style="font-size:12px;color:var(--ink-faint);letter-spacing:0.5px;">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:4px;">
+        <circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/>
+      </svg>
+      {{ lang.nav_language or '语言' }}
+    </div>
+    {% for code, name in available_langs.items() %}
+    <a href="{% if code == default_lang %}/{% else %}/{{ code }}/{% endif %}"
+       class="menu-list-item {% if code == current_lang %}active{% endif %}">
+      <span class="menu-icon" style="font-size:14px;font-weight:600;width:24px;text-align:center;">{{ code | upper }}</span>
       <span class="flex-grow-1">
-        <span class="menu-title d-block">{{ lang.lang_switch_en or 'English' }}</span>
-        <span class="menu-sub">{{ lang.lang_switch_desc_en or 'Switch to English' }}</span>
+        <span class="menu-title d-block">{{ name }}</span>
+        <span class="menu-sub">{% if code == current_lang %}{{ lang.nav_current or '当前' }}{% endif %}</span>
       </span>
+      {% if code == current_lang %}
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+      {% else %}
       <span class="menu-chevron">›</span>
+      {% endif %}
     </a>
-    {% else %}
-    <a href="/" class="menu-list-item">
-      <span class="menu-icon">🌐</span>
-      <span class="flex-grow-1">
-        <span class="menu-title d-block">{{ lang.lang_switch_zh or '中文' }}</span>
-        <span class="menu-sub">{{ lang.lang_switch_desc_zh or '切换到中文' }}</span>
-      </span>
-      <span class="menu-chevron">›</span>
-    </a>
-    {% endif %}
+    {% endfor %}
   </div>
 </div>
 

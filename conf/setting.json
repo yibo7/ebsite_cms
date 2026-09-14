@@ -6,5 +6,6 @@
     "APP_KEY": "a0580f89a93b4a8f81c1a0595609a8dd",
     "IsDebug": true,
     "IsVercel": true,
-    "Port": 8066
+    "Port": 8066,
+    "DefaultLang": "zh"
 }

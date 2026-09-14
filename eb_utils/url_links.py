@@ -1,19 +1,21 @@
-from flask import g
+from flask import g, current_app
 
 
 def get_url_prefix() -> str:
-    """从当前请求上下文获取 URL 前缀（线程安全）"""
+    """从当前请求上下文获取 URL 前缀"""
     try:
         lang = getattr(g, 'lang', '')
-        return '/en' if lang == 'en' else ''
+        default = current_app.config.get('DEFAULT_LANG', 'zh')
+        return f'/{lang}' if lang and lang != default else ''
     except Exception:
         return ''
 
 
 def _localize(url: str) -> str:
-    """根据当前语言给 URL 添加 /en 前缀"""
-    if get_url_prefix() == '/en':
-        return '/en' + url
+    """根据当前语言给 URL 添加前缀"""
+    prefix = get_url_prefix()
+    if prefix and not url.startswith(prefix) and not url.startswith('http'):
+        return prefix + url
     return url
 
 
