@@ -62,7 +62,7 @@
   "list_next": "次へ",
   "list_first": "最初",
   "list_last": "最後",
-  "list_total": "全{count}件",
+  "list_total": "全 ",
   "login_title": "ログイン",
   "login_username": "ユーザー名 / メール / 電話番号",
   "login_password": "パスワード",
@@ -96,6 +96,8 @@
   "err_title": "エラー",
   "err_message": "申し訳ございません、サーバーで問題が発生しました。",
   "footer_rights": "© 2026 iTab · 音楽のある生活",
+  "footer_about": "リンク",
+  "footer_feedback": "申請",
   "btn_confirm": "確認",
   "btn_cancel": "キャンセル",
   "btn_save": "保存",
@@ -112,5 +114,14 @@
   "player_pause": "一時停止",
   "player_fullscreen": "全画面",
   "player_exit_fullscreen": "全画面終了",
-  "player_open": "プレイヤーを開く"
+  "player_open": "プレイヤーを開く",
+  "links_title": "リンク申請",
+  "links_subtitle": "相互に質の高いコンテンツを推薦",
+  "links_site_name": "サイト名",
+  "links_site_domain": "サイトドメイン",
+  "links_domain_eg": "example.com",
+  "links_contact": "連絡先",
+  "links_contact_placeholder": "QQ / メール / WeChat",
+  "links_code_title": "4文字の認証コード",
+  "links_btn": "申請を送信"
 }

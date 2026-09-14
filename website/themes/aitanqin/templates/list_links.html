@@ -1,0 +1,71 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{ lang.links_title or '申请友情链接' }}
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-card-top"></div>
+    <div class="auth-card-body">
+
+      <div class="text-center">
+        <div class="auth-title-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+        </div>
+        <h1 class="auth-title">{{ lang.links_title or '申请友情链接' }}</h1>
+        <p class="auth-subtitle">{{ lang.links_subtitle or '互相推荐优质内容' }}</p>
+      </div>
+
+      <form id="f_66c5fc188ed7536790fb844d" onsubmit="return on_custom_form(this)" method="post">
+
+        <div class="mb-3">
+          <label class="form-label">{{ lang.links_site_name or '网站名称' }}</label>
+          <input name="SiteName" minlength="1" maxlength="50" class="form-control"
+                 placeholder="{{ lang.links_site_name or '网站名称' }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ lang.links_site_domain or '网站域名' }}</label>
+          <input name="SiteDomain" minlength="1" type="url" class="form-control"
+                 placeholder="https://{{ lang.links_domain_eg or 'example.com' }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ lang.links_contact or '联系方式' }}</label>
+          <input name="Contact" minlength="1" maxlength="200" class="form-control"
+                 placeholder="{{ lang.links_contact_placeholder or 'QQ / 邮箱 / 微信' }}" required>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ lang.login_code or '验证码' }}</label>
+          <div class="captcha-row">
+            <input type="text" name="safe_code" class="form-control"
+                   title="{{ lang.links_code_title or '验证码为4个字符' }}" pattern=".{4}" required
+                   placeholder="{{ lang.login_code_placeholder or '输入验证码' }}">
+            <div class="captcha-img-wrap" title="{{ lang.login_code_placeholder or '点击刷新验证码' }}">
+              <img onClick="this.src+='&r='+Math.random()" src="/imgcode?" style="cursor:pointer;" alt="captcha">
+            </div>
+          </div>
+          <div class="captcha-hint">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            {{ lang.login_code_placeholder or '点击图片刷新验证码' }}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-brand mt-2">
+          {{ lang.links_btn or '提交申请' }}
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

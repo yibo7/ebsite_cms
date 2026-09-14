@@ -15,19 +15,57 @@ app.config['cdn'] = 'https://cdn.jsdmirror.com'
 # ──────────────────────────────────────────────
 # 全局语言检测（在所有 before_request 之前执行）
 # ──────────────────────────────────────────────
+def _detect_browser_lang(request, supported_langs):
+    """从 Accept-Language 头检测浏览器首选语言"""
+    accept = request.headers.get('Accept-Language', '')
+    if not accept:
+        return None
+    # 解析 q 值排序的语言列表
+    parsed = []
+    for part in accept.split(','):
+        part = part.strip()
+        if ';' in part:
+            lang, q = part.split(';', 1)
+            q = float(q.split('=')[-1]) if '=' in q else 1.0
+        else:
+            lang, q = part, 1.0
+        parsed.append((lang.split('-')[0], q))
+    parsed.sort(key=lambda x: -x[1])
+    for code, _ in parsed:
+        if code in supported_langs:
+            return code
+    return None
+
+
 @app.before_request
 def set_lang():
-    """根据 URL 前缀自动检测语言"""
+    """根据 URL 前缀或浏览器语言自动检测"""
     orig = request.environ.get('ORIG_PATH_INFO', '')
     supported = current_app.config.get('SUPPORTED_LANGS', {'zh', 'en'})
-    default = current_app.config.get('DEFAULT_LANG', 'zh')
-    found = default
+    default_setting = current_app.config.get('DEFAULT_LANG', 'zh')
+
+    # 1. 先按 URL 前缀匹配
     for code in supported:
         if orig == f'/{code}' or orig.startswith(f'/{code}/'):
-            found = code
-            break
-    g.lang = found
-    g.lang_dict = _load_lang_dict(found)
+            g.lang = code
+            g.effective_default = default_setting if default_setting != 'auto' else code
+            g.lang_dict = _load_lang_dict(code)
+            return
+
+    # 2. 无前缀，如果 DefaultLang=auto 则尝试浏览器检测
+    if default_setting == 'auto':
+        detected = _detect_browser_lang(request, supported)
+        if detected:
+            g.lang = detected
+            g.effective_default = detected
+            g.lang_dict = _load_lang_dict(detected)
+            return
+
+    # 3. 使用配置的默认语言（或第一个支持的语言）
+    fallback = default_setting if default_setting in supported else sorted(supported)[0]
+    g.lang = fallback
+    g.effective_default = fallback
+    g.lang_dict = _load_lang_dict(g.lang)
 
 
 def _load_lang_dict(lang: str) -> dict:
