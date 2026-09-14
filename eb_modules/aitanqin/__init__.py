@@ -27,7 +27,8 @@ def before_req():
     """
     # g.uid = None
     # g.u = None
-    print("请求了APP APIS...")
+    # print("请求了APP APIS...")
+    pass
 
 
 settings_temp = '''
