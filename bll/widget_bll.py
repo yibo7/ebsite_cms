@@ -1,5 +1,6 @@
 import re
 from typing import Tuple
+from flask import g
 
 from bson import ObjectId
 
@@ -25,7 +26,8 @@ class WidgetBll(BllBase[WidgetsModel]):
         model = self.find_one_by_id(_id)
         if model:
             if model.cache_time > 0:  # 需要缓存处理
-                data_key = f'widget_code_{_id}'
+                lang = getattr(g, 'lang', 'zh')
+                data_key = f'widget_code_{lang}_{_id}'
                 temp_code = eb_cache.get(data_key)
 
                 if not temp_code:

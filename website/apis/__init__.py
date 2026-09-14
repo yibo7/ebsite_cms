@@ -23,7 +23,7 @@ def before_req():
         g.u = user_token
         g.uid = user_token.id
     else:
-        return jsonify(api_err("你没有足够的权限访问此API"))
+        return jsonify(api_err("Login to continue"))
 
 
 from . import apis_cms

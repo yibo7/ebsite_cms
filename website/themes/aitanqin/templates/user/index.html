@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-个人中心
+{{ lang.user_center or '个人中心' }}
 {% endblock %}
 
 {% block content %}
@@ -27,7 +27,7 @@
             </div>
             <div>
               <div class="ucard-stat-card-num">{{ stats.total }}</div>
-              <div class="ucard-stat-card-label">我的曲谱</div>
+              <div class="ucard-stat-card-label">{{ lang.nav_favorites or '我的曲谱' }}</div>
             </div>
           </div>
         </div>
@@ -41,7 +41,7 @@
             </div>
             <div>
               <div class="ucard-stat-card-num">{{ stats.total_hits }}</div>
-              <div class="ucard-stat-card-label">总人气</div>
+              <div class="ucard-stat-card-label">{{ lang.content_hits or '总人气' }}</div>
             </div>
           </div>
         </div>
@@ -54,7 +54,7 @@
             </div>
             <div>
               <div class="ucard-stat-card-num">{{ stats.favorites }}</div>
-              <div class="ucard-stat-card-label">总收藏</div>
+              <div class="ucard-stat-card-label">{{ lang.user_favorites or '总收藏' }}</div>
             </div>
           </div>
         </div>
@@ -62,7 +62,7 @@
 
       <!-- 最近曲谱 -->
       <div class="d-flex align-items-center justify-content-between mb-3">
-        <h5 class="mb-0 fw-bold">我的曲谱</h5>
+        <h5 class="mb-0 fw-bold">{{ lang.nav_favorites or '我的曲谱' }}</h5>
         <span class="text-muted small">共 {{ stats.total }} 首</span>
       </div>
 
@@ -82,8 +82,8 @@
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
         </div>
-        <p class="text-muted">还没有发布曲谱</p>
-        <a href="/atq/post_data" class="btn btn-outline-brand rounded-pill btn-sm">去发布</a>
+        <p class="text-muted">{{ lang.index_no_data or '还没有发布曲谱' }}</p>
+        <a href="{{ LANG_PREFIX }}/atq/post_data" class="btn btn-outline-brand rounded-pill btn-sm">{{ lang.nav_register or '去发布' }}</a>
       </div>
       {% endif %}
 

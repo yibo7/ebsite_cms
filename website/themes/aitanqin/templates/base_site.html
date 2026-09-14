@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="{% if current_lang == 'en' %}en{% else %}zh-CN{% endif %}">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
-  <title>{% block title %}{% endblock %}-ATQ</title>
+  <title>{% block title %}{% endblock %}-{{ lang.site_name or 'ATQ' }}</title>
   <link rel="icon" href="/favicon.svg" />
   <meta name="keywords" content="{% block head_keywords %}{% endblock %}" />
   <meta name="description" content="{% block head_description %}{% endblock %}" />
+  <!-- hreflang 多语言 -->
+  <link rel="alternate" hreflang="zh" href="{% if current_lang == 'en' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
+  <link rel="alternate" hreflang="en" href="{% if current_lang == 'zh' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
+  <link rel="canonical" href="{% if current_lang == 'en' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
   <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
   <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
@@ -19,39 +23,49 @@
   <nav class="navbar navbar-expand-lg">
     <div class="container py-2">
 
-      <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="/">
+      <a class="navbar-brand d-flex align-items-center gap-2 me-4" href="{{ LANG_PREFIX }}/">
         <span class="brand-icon d-flex align-items-center justify-content-center">
           <img alt="logo" src="/images/logo.png" />
         </span>
         <span class="d-flex flex-column">
-          <span class="brand-name serif fw-bold">爱弹琴</span>
-          <span class="brand-tag d-none d-md-inline">爱琴生活自有人懂</span>
+          <span class="brand-name serif fw-bold">{{ lang.site_name or '爱弹琴' }}</span>
+          <span class="brand-tag d-none d-md-inline">{{ lang.site_tagline or '爱琴生活自有人懂' }}</span>
         </span>
       </a>
 
       <ul class="navbar-nav d-none d-lg-flex flex-row gap-4 mx-auto">
-        <li class="nav-item"><a class="nav-link" href="/">🏠 首页</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '🏠 首页' }}</a></li>
        {{ widget("6a955899ccda0b6fd621002b") }}
       </ul>
 
       <div class="d-flex align-items-center gap-2">
-        <a href="/search.html" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center"
-           title="搜索曲谱">
+        <a href="{{ LANG_PREFIX }}/search.html" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center"
+           title="{{ lang.search_title or '搜索曲谱' }}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
           </svg>
         </a>
-        <span id="login_info"><a href="/login" class="btn btn-outline-brand rounded-pill btn-sm d-none d-lg-inline-flex px-3">登录</a></span>
-        <a href="/reg" class="btn btn-brand rounded-pill btn-sm px-3">制谱师入驻</a>
-        <a href="/search.html" class="btn btn-nav-icon d-lg-none d-inline-flex align-items-center justify-content-center"
-           title="搜索曲谱">
+        <!-- 语言切换 -->
+        {% if current_lang == 'zh' %}
+        <a href="/en{{ request.path }}" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center" title="English">
+          <span style="font-size:14px;font-weight:600;">EN</span>
+        </a>
+        {% else %}
+        <a href="{{ request.path }}" class="btn btn-nav-icon d-none d-lg-inline-flex align-items-center justify-content-center" title="中文">
+          <span style="font-size:14px;font-weight:600;">中</span>
+        </a>
+        {% endif %}
+        <span id="login_info"><a href="{{ LANG_PREFIX }}/login" class="btn btn-outline-brand rounded-pill btn-sm d-none d-lg-inline-flex px-3">{{ lang.nav_login or '登录' }}</a></span>
+        <a href="{{ LANG_PREFIX }}/reg" class="btn btn-brand rounded-pill btn-sm px-3">{{ lang.nav_register or '制谱师入驻' }}</a>
+        <a href="{{ LANG_PREFIX }}/search.html" class="btn btn-nav-icon d-lg-none d-inline-flex align-items-center justify-content-center"
+           title="{{ lang.search_title or '搜索曲谱' }}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
           </svg>
         </a>
         <button class="btn menu-toggle-btn d-lg-none d-flex align-items-center justify-content-center"
                 type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileMenu"
-                aria-controls="mobileMenu" aria-label="菜单">
+                aria-controls="mobileMenu" aria-label="{{ lang.modal_close or '菜单' }}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
             <path d="M3 6h18M3 12h18M3 18h18"/>
           </svg>
@@ -72,84 +86,99 @@
           <path d="M3 9h18" />
         </svg>
       </span>
-      <span class="brand-name serif fw-bold" id="mobileMenuLabel">爱弹琴</span>
+      <span class="brand-name serif fw-bold" id="mobileMenuLabel">{{ lang.site_name or '爱弹琴' }}</span>
     </div>
-    <button type="button" class="btn-close btn-close-white"  aria-label="关闭"></button>
+    <button type="button" class="btn-close btn-close-white" aria-label="{{ lang.modal_close or '关闭' }}"></button>
   </div>
 
   <div class="offcanvas-body">
-    <a href="/" class="menu-list-item active" >
+    <a href="{{ LANG_PREFIX }}/" class="menu-list-item active" >
       <span class="menu-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h3v-6h6v6h3a1 1 0 0 0 1-1v-9"/>
         </svg>
       </span>
       <span class="flex-grow-1">
-        <span class="menu-title d-block">首页</span>
-        <span class="menu-sub">发现本周精选曲谱</span>
+        <span class="menu-title d-block">{{ lang.menu_home or '首页' }}</span>
+        <span class="menu-sub">{{ lang.menu_home_sub or '发现本周精选曲谱' }}</span>
       </span>
       <span class="menu-chevron">›</span>
     </a>
 
-    <a href="/c112p1.html" class="menu-list-item"  >
-      <span class="menu-icon">
-        🎸
-      </span>
+    <a href="{{ LANG_PREFIX }}/c112p1.html" class="menu-list-item"  >
+      <span class="menu-icon">🎸</span>
       <span class="flex-grow-1">
-        <span class="menu-title d-block">吉他谱</span>
-        <span class="menu-sub">兼容GTP格式</span>
+        <span class="menu-title d-block">{{ lang.menu_guitar or '吉他谱' }}</span>
+        <span class="menu-sub">{{ lang.menu_guitar_sub or '兼容GTP格式' }}</span>
       </span>
       <span class="menu-chevron">›</span>
     </a>
-        <a href="/c113p1.html" class="menu-list-item" >
-      <span class="menu-icon">
-       🎹
-      </span>
+    <a href="{{ LANG_PREFIX }}/c113p1.html" class="menu-list-item" >
+      <span class="menu-icon">🎹</span>
       <span class="flex-grow-1">
-        <span class="menu-title d-block">钢琴谱</span>
-        <span class="menu-sub">兼容MuseScore格式</span>
+        <span class="menu-title d-block">{{ lang.menu_piano or '钢琴谱' }}</span>
+        <span class="menu-sub">{{ lang.menu_piano_sub or '兼容MuseScore格式' }}</span>
       </span>
       <span class="menu-chevron">›</span>
     </a>
 
-    <a href="/search.html" class="menu-list-item" >
+    <a href="{{ LANG_PREFIX }}/search.html" class="menu-list-item" >
       <span class="menu-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>
         </svg>
       </span>
       <span class="flex-grow-1">
-        <span class="menu-title d-block">搜索曲谱</span>
-        <span class="menu-sub">曲谱、歌手、制谱师</span>
+        <span class="menu-title d-block">{{ lang.menu_search or '搜索曲谱' }}</span>
+        <span class="menu-sub">{{ lang.menu_search_sub or '曲谱、歌手、制谱师' }}</span>
       </span>
       <span class="menu-chevron">›</span>
     </a>
 
-    <a href="/login" class="menu-list-item" >
+    <a href="{{ LANG_PREFIX }}/login" class="menu-list-item" >
       <span class="menu-icon">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/>
         </svg>
       </span>
       <span class="flex-grow-1">
-        <span class="menu-title d-block">登录 / 注册</span>
-        <span class="menu-sub">同步你的收藏和乐谱</span>
+        <span class="menu-title d-block">{{ lang.menu_login or '登录 / 注册' }}</span>
+        <span class="menu-sub">{{ lang.menu_login_sub or '同步你的收藏和乐谱' }}</span>
       </span>
       <span class="menu-chevron">›</span>
     </a>
+
+    <!-- 移动端语言切换 -->
+    {% if current_lang == 'zh' %}
+    <a href="/en/" class="menu-list-item">
+      <span class="menu-icon">🌐</span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">{{ lang.lang_switch_en or 'English' }}</span>
+        <span class="menu-sub">{{ lang.lang_switch_desc_en or 'Switch to English' }}</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+    {% else %}
+    <a href="/" class="menu-list-item">
+      <span class="menu-icon">🌐</span>
+      <span class="flex-grow-1">
+        <span class="menu-title d-block">{{ lang.lang_switch_zh or '中文' }}</span>
+        <span class="menu-sub">{{ lang.lang_switch_desc_zh or '切换到中文' }}</span>
+      </span>
+      <span class="menu-chevron">›</span>
+    </a>
+    {% endif %}
   </div>
 </div>
 
-
-
 <!-- ===== 全局公共变量 ===== -->
 {% set style_map = {
-    '1': '总谱',
-    '2': '吉他独奏',
-    '3': '钢琴独奏',
-    '4': '架子鼓独奏',
-    '5': '贝斯独奏',
-    '6': '尤克里里独奏'
+    '1': 'Total',
+    '2': 'Guitar',
+    '3': 'Piano',
+    '4': 'Drums',
+    '5': 'Bass',
+    '6': 'Ukulele'
 } %}
 
 {% set level_map = {1: 'Easy', 2: 'Medium', 3: 'Hard'} %}
@@ -159,12 +188,12 @@
 <!-- ===== FOOTER ===== -->
 <footer class="site-footer py-4">
   <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 small">
-    <span>© 2026 爱弹琴 · 好弹好唱</span>
+    <span>{{ lang.footer_rights or '© 2026 爱弹琴 · 好弹好唱' }}</span>
     <div class="d-flex gap-4">
-      <a href="#" class="text-decoration-none">关于</a>
-      <a href="#" class="text-decoration-none">帮助</a>
-      <a href="#" class="text-decoration-none">版权</a>
-      <a href="#" class="text-decoration-none">反馈</a>
+      <a href="#" class="text-decoration-none">{{ lang.footer_about or '关于' }}</a>
+      <a href="#" class="text-decoration-none">{{ lang.footer_help or '帮助' }}</a>
+      <a href="#" class="text-decoration-none">{{ lang.footer_copyright or '版权' }}</a>
+      <a href="#" class="text-decoration-none">{{ lang.footer_feedback or '反馈' }}</a>
     </div>
   </div>
 </footer>

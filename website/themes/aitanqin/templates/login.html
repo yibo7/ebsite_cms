@@ -1,291 +1,15 @@
 {% extends 'base_site.html' %}
 {% block title %}
-用户登录
+{{ lang.login_title or '用户登录' }}
 {% endblock %}
 
 {% block content %}
-
-<style>
-  /* ---- 登录/注册页共用品牌样式 ---- */
-  .auth-wrapper {
-    min-height: calc(100vh - 72px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 16px;
-    background: linear-gradient(180deg, var(--cream) 0%, #f5ede4 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  .auth-wrapper::before {
-    content: '';
-    position: absolute;
-    top: -120px;
-    right: -120px;
-    width: 360px;
-    height: 360px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(232,93,38,0.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .auth-wrapper::after {
-    content: '♫';
-    position: absolute;
-    bottom: 40px;
-    left: 40px;
-    font-size: 120px;
-    color: rgba(200,154,60,0.06);
-    pointer-events: none;
-    font-family: serif;
-    line-height: 1;
-  }
-
-  /* 品牌卡片 */
-  .auth-card {
-    width: 100%;
-    max-width: 440px;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: 0 12px 40px rgba(30, 22, 18, 0.08);
-    position: relative;
-    z-index: 1;
-    overflow: hidden;
-  }
-  .auth-card-top {
-    height: 6px;
-    background: linear-gradient(90deg, var(--orange), var(--gold), var(--orange));
-    border-radius: var(--radius) var(--radius) 0 0;
-  }
-  .auth-card-body {
-    padding: 36px 36px 32px;
-  }
-  @media (max-width: 480px) {
-    .auth-card-body { padding: 28px 20px 24px; }
-  }
-
-  /* 品牌标题 */
-  .auth-title {
-    font-family: "Noto Serif SC", "Songti SC", serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--ink);
-    text-align: center;
-    margin-bottom: 4px;
-  }
-  .auth-subtitle {
-    font-size: 13px;
-    color: var(--ink-faint);
-    text-align: center;
-    margin-bottom: 28px;
-    letter-spacing: 0.5px;
-  }
-  .auth-title-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
-    background: var(--orange-bg);
-    color: var(--orange);
-    margin-bottom: 12px;
-  }
-  .auth-title-icon svg { width: 24px; height: 24px; }
-
-  /* 表单控件品牌化 */
-  .auth-card .form-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--ink-soft);
-    margin-bottom: 6px;
-  }
-  .auth-card .form-control {
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-size: 14px;
-    color: var(--ink);
-    background: #fff;
-    transition: border-color .25s, box-shadow .25s;
-    height: auto;
-  }
-  .auth-card .form-control:focus {
-    border-color: var(--orange);
-    box-shadow: 0 0 0 4px rgba(232, 93, 38, 0.08);
-    outline: none;
-  }
-  .auth-card .form-control::placeholder {
-    color: var(--ink-faint);
-    font-size: 13px;
-  }
-  .auth-card .form-control.is-invalid,
-  .auth-card .was-validated .form-control:invalid {
-    border-color: #dc3545;
-    box-shadow: none;
-  }
-  .auth-card .invalid-feedback {
-    font-size: 12px;
-    margin-top: 4px;
-  }
-
-  /* 验证码行 */
-  .captcha-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .captcha-row .form-control {
-    flex: 1;
-    min-width: 0;
-    max-width: 140px;
-  }
-  .captcha-img-wrap {
-    flex-shrink: 0;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    transition: border-color .25s;
-    cursor: pointer;
-    line-height: 0;
-  }
-  .captcha-img-wrap:hover {
-    border-color: var(--orange);
-  }
-  .captcha-img-wrap img {
-    display: block;
-    height: 46px;
-    width: auto;
-  }
-  .captcha-hint {
-    font-size: 11px;
-    color: var(--ink-faint);
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  /* 提交按钮 */
-  .auth-card .btn-brand {
-    width: 100%;
-    height: 50px;
-    border-radius: var(--radius-sm);
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    transition: all .25s;
-  }
-  .auth-card .btn-brand:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(232, 93, 38, 0.35);
-  }
-  .auth-card .btn-brand:active {
-    transform: translateY(0);
-  }
-
-  /* 社交登录按钮 */
-  .social-login-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    height: 48px;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    background: #fff;
-    color: var(--ink-soft);
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all .25s;
-    cursor: pointer;
-  }
-  .social-login-btn:hover {
-    border-color: #07C160;
-    color: #07C160;
-    background: #f0faf4;
-    text-decoration: none;
-  }
-  .social-login-btn svg {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-  }
-  .social-login-btn .wx-icon {
-    color: #07C160;
-  }
-
-  /* 分隔线 */
-  .divider-row {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin: 18px 0;
-  }
-  .divider-row::before,
-  .divider-row::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  .divider-row span {
-    font-size: 12px;
-    color: var(--ink-faint);
-    white-space: nowrap;
-  }
-
-  /* 底部链接 */
-  .auth-footer {
-    text-align: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-  }
-  .auth-footer-text {
-    font-size: 13px;
-    color: var(--ink-soft);
-  }
-  .auth-footer-text a {
-    color: var(--orange);
-    text-decoration: none;
-    font-weight: 600;
-    transition: color .2s;
-  }
-  .auth-footer-text a:hover {
-    color: var(--orange-dark);
-    text-decoration: underline;
-  }
-
-  /* 错误提示 */
-  .auth-alert {
-    border-radius: var(--radius-sm);
-    border: 1px solid #f5c6cb;
-    background: #fff5f5;
-    color: #c0392b;
-    font-size: 13px;
-    padding: 10px 14px;
-    margin-top: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .auth-alert svg {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    color: #c0392b;
-  }
-</style>
 
 <div class="auth-wrapper">
   <div class="auth-card">
     <div class="auth-card-top"></div>
     <div class="auth-card-body">
 
-      <!-- 标题区域 -->
       <div class="text-center">
         <div class="auth-title-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -293,35 +17,34 @@
             <path d="M3 9h18"/>
           </svg>
         </div>
-        <h1 class="auth-title">欢迎回来</h1>
-        <p class="auth-subtitle">登录爱弹琴，继续你的音乐之旅</p>
+        <h1 class="auth-title">{{ lang.login_title or '欢迎回来' }}</h1>
+        <p class="auth-subtitle">{{ lang.login_title }}</p>
       </div>
 
-      <!-- 表单 -->
       <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
 
         <div class="mb-3">
-          <label class="form-label" for="username">Email 或手机号</label>
+          <label class="form-label" for="username">{{ lang.login_username or 'Email 或手机号' }}</label>
           <input type="text" class="form-control" id="username" name="username"
-                 placeholder="请输入邮箱或手机号" required>
-          <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
+                 placeholder="{{ lang.login_username or '请输入邮箱或手机号' }}" required>
+          <div class="invalid-feedback">{{ lang.login_error_email or '请输入有效的手机号或邮件地址。' }}</div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label" for="pass">密码</label>
+          <label class="form-label" for="pass">{{ lang.login_password or '密码' }}</label>
           <input type="password" class="form-control" id="pass" name="pass"
-                 placeholder="请输入密码" required>
-          <div class="invalid-feedback">密码不能为空。</div>
+                 placeholder="{{ lang.login_password or '请输入密码' }}" required>
+          <div class="invalid-feedback">{{ lang.login_error_email or '密码不能为空。' }}</div>
         </div>
 
         {%if is_safe_code %}
         <div class="mb-3">
-          <label class="form-label">验证码</label>
+          <label class="form-label">{{ lang.login_code or '验证码' }}</label>
           <div class="captcha-row">
-            <input type="text" class="form-control" title="验证码为4个字符"
-                   pattern=".{4}" name="code" placeholder="输入验证码" required>
-            <div class="captcha-img-wrap" title="点击刷新验证码">
-              <img onClick="this.src+='&r='+Math.random()" src="/imgcode?" style="cursor:pointer;" alt="验证码">
+            <input type="text" class="form-control" title=" captcha"
+                   pattern=".{4}" name="code" placeholder="{{ lang.login_code_placeholder or '输入验证码' }}" required>
+            <div class="captcha-img-wrap" title="{{ lang.login_code_placeholder or '点击刷新验证码' }}">
+              <img onClick="this.src+='&r='+Math.random()" src="/imgcode?" style="cursor:pointer;" alt="captcha">
             </div>
           </div>
           <div class="captcha-hint">
@@ -329,18 +52,17 @@
               <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
               <path d="M12 16v-4M12 8h.01"/>
             </svg>
-            点击图片刷新验证码
+            {{ lang.login_code_placeholder or '点击图片刷新验证码' }}
           </div>
         </div>
         {%endif%}
 
         <button onclick="on_post()" type="submit" class="btn btn-brand">
-          登 录
+          {{ lang.login_btn or '登 录' }}
         </button>
 
-        <!-- 社交登录 -->
         <div class="divider-row">
-          <span>其他方式</span>
+          <span>{{ lang.login_title or '其他方式' }}</span>
         </div>
         <a href="javascript:;" onclick="openlogin('OpenLoginWixin')" class="social-login-btn">
           <svg class="wx-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -362,10 +84,9 @@
 
       </form>
 
-      <!-- 底部链接 -->
       <div class="auth-footer">
         <span class="auth-footer-text">
-          还没有账号？<a href="/reg">立即注册</a>
+          {{ lang.login_no_account or '还没有账号？' }}<a href="{{ LANG_PREFIX }}/reg">{{ lang.login_register_link or '立即注册' }}</a>
         </span>
       </div>
 
@@ -375,7 +96,7 @@
 
 <script>
   function on_post(){
-    blockTips("提交中...",2)
+    blockTips("{{ lang.login_loading or '提交中...' }}",2)
   }
 </script>
 {% endblock %}

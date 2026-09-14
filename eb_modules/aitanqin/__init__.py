@@ -1,4 +1,6 @@
-from flask import Flask, Blueprint
+import os
+
+from flask import Flask, Blueprint, send_from_directory, send_file
 
 from .. import module_attribute, ModuleInfo
 
@@ -56,6 +58,20 @@ def module_init(app:Flask, model:ModuleInfo):
 
     app.register_blueprint(bp_atq_apis)
     app.register_blueprint(bp_atq_pages)
+
+    # 为 /aplayer/ 下所有静态资源及 SPA 提供服务
+    # 真实文件直接返回，否则 fallback 到 index.html（SPA 客户端路由）
+    @app.route('/aplayer/', defaults={'subpath': None})
+    @app.route('/aplayer/<path:subpath>')
+    def aplayer_serve(subpath):
+        aplayer_dir = os.path.join(app.static_folder, 'aplayer')
+        if subpath:
+            file_path = os.path.join(aplayer_dir, subpath)
+            # 如果请求的是真实文件（JS/CSS/MP3/SVG等），直接返回
+            if os.path.isfile(file_path):
+                return send_from_directory(aplayer_dir, subpath)
+        # 否则当作 SPA 入口返回 index.html
+        return send_file(os.path.join(aplayer_dir, 'index.html'))
 
 
 from . import atq_pages

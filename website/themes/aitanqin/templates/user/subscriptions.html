@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-我的订阅
+{{ lang.user_subscriptions or '我的订阅' }}
 {% endblock %}
 
 {% block content %}
@@ -16,7 +16,7 @@
     <div class="col-lg-9">
 
       <div class="d-flex align-items-center justify-content-between mb-3">
-        <h5 class="mb-0 fw-bold">我的订阅</h5>
+        <h5 class="mb-0 fw-bold">{{ lang.user_subscriptions or '我的订阅' }}</h5>
         <span class="text-muted small">共 {{ sub_count }} 位</span>
       </div>
 
@@ -35,11 +35,11 @@
                 <div class="ucard-sub-meta">
                   <span class="text-muted small">@{{ suser.username }}</span>
                   <span class="mx-1">·</span>
-                  <span class="text-muted small">{{ suser.content_count }} 首曲谱</span>
+                  <span class="text-muted small">{{ suser.content_count }} {{ lang.content_score or '首曲谱' }}</span>
                 </div>
               </div>
               <a href="/u{{ suser._id }}p1.html" class="ucard-sub-link btn btn-sm btn-outline-brand rounded-pill">
-                查看
+                {{ lang.content_more or '查看' }}
               </a>
             </div>
           </div>
@@ -56,8 +56,8 @@
             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
         </div>
-        <p class="text-muted">还没有订阅任何制谱师</p>
-        <a href="/" class="btn btn-outline-brand rounded-pill btn-sm">去发现</a>
+        <p class="text-muted">{{ lang.index_no_data or '还没有订阅任何制谱师' }}</p>
+        <a href="{{ LANG_PREFIX }}/" class="btn btn-outline-brand rounded-pill btn-sm">{{ lang.menu_search or '去发现' }}</a>
       </div>
       {% endif %}
 

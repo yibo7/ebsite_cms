@@ -619,7 +619,11 @@
       doFavorite: function () {
         var self = this;
         toggleFavorite(tid, function (err, data) {
-          if (err) { console.error(err); return; }
+          if (err) { console.error(err); self.showLoginModal(); return; }
+          if (data && !data.favorited && data.msg) {
+            self.showLoginModal();
+            return;
+          }
           self.favOn = data.favorited;
         });
       },
@@ -628,7 +632,7 @@
         var self = this;
         if (!self.authorUserId) return;
         toggleSubscribe(self.authorUserId, function (err, data) {
-          if (err) { console.error(err); return; }
+          if (err) { console.error(err); self.showLoginModal(); return; }
           self.subOn = data.subscribed;
         });
       },
@@ -636,16 +640,53 @@
       /* ---------------- 其他 ---------------- */
       downloadOriginal: function () {
         this.downloadOpen = false;
-        if (!this.fileBytes) return;
-        var blob = new Blob([this.fileBytes], { type: 'application/octet-stream' });
-        var url = URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.href = url;
-        a.download = this.fileName || ('score_' + tid);
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+        var self = this;
+        // 先检查登录状态
+        $.getJSON('/api/login_info', function (rz) {
+          if (rz && rz.code === 0) {
+            // 已登录，执行下载
+            if (!self.fileBytes) return;
+            var blob = new Blob([self.fileBytes], { type: 'application/octet-stream' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = self.fileName || ('score_' + tid);
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+          } else {
+            self.showLoginModal();
+          }
+        });
+      },
+
+      openPlayer: function () {
+        window.open('/aplayer/?tid=' + tid, '_blank');
+      },
+
+      /* ---------------- 登录提示弹窗（Bootstrap Modal） ---------------- */
+      showLoginModal: function () {
+        var modalId = 'loginPromptModal';
+        var existing = document.getElementById(modalId);
+        if (existing) { existing.remove(); }
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML =
+          '<div class="modal fade" id="' + modalId + '" tabindex="-1">' +
+            '<div class="modal-dialog modal-dialog-centered modal-sm">' +
+              '<div class="modal-content" style="border-radius:12px;">' +
+                '<div class="modal-body text-center py-5">' +
+                  '<p class="mb-4" style="font-size:15px;color:var(--ink-soft);">Please log in first</p>' +
+                  '<a href="/login" class="btn btn-brand rounded-pill px-4">Log In</a>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        document.body.appendChild(wrapper.firstElementChild);
+        var modalEl = document.getElementById(modalId);
+        var bsModal = new bootstrap.Modal(modalEl);
+        modalEl.addEventListener('hidden.bs.modal', function () { modalEl.remove(); });
+        bsModal.show();
       },
 
       onDocClick: function (e) {

@@ -7,7 +7,7 @@
 <div  class="d-lg-none" style="height:50px;"></div>
     <div class="container">
         <div class="title">
-            <div class="title-txt"><span ><a href='/' >{{SiteName}}</a></span> >
+            <div class="title-txt"><span ><a href='{{ LANG_PREFIX }}/' >{{ lang.nav_home or '首页' }}</a></span> >
                 <span><a href='{{ get_class_link(model.class_n_id) }}' >{{model.class_name}}</a></span> </div>
         </div>
     </div>
@@ -38,7 +38,7 @@
             </div>
             <div class="col-lg-3 d-none d-lg-block ">
                 <div class="eb-box">
-                    <div class="right-width-tt">猜你喜欢</div>
+                    <div class="right-width-tt">{{ lang.related_title or '猜你喜欢' }}</div>
                     <ul class="rank-list">
                          {{ widget("683ab7d64b6149cc6b93c78d") }}
                     </ul>

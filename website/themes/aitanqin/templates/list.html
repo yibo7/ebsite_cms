@@ -9,7 +9,7 @@
 <div class="d-lg-none" style="height:50px;"></div>
 <div class="container">
     <div class="title">
-        <div class="title-txt"><span><a href='/'>{{SiteName}}</a></span> > <span><a
+        <div class="title-txt"><span><a href='{{ LANG_PREFIX }}/'>{{SiteName}}</a></span> > <span><a
                     href='{{model.get_url()}}'>{{model.class_name}}</a></span></div>
     </div>
 </div>
@@ -38,7 +38,7 @@
             </div>
 
             {% else %}
-            <div class="p-5 text-center">暂无数据</div>
+            <div class="p-5 text-center">{{ lang.index_no_data or '暂无数据' }}</div>
             {% endif %} 
             {% include 'includes/loading_more.html' %}
             <div class="pagination-wrap">
@@ -49,7 +49,7 @@
         <div class="col-lg-3 d-none d-lg-block">
 
             <div class="eb-box mt-2">
-                <div class="right-width-tt right-width-tt03">标签<a href="/tags1.html">更多>></a></div>
+                <div class="right-width-tt right-width-tt03">{{ lang.tag_hot or '标签' }}<a href="{{ LANG_PREFIX }}/tags1.html">{{ lang.index_more or '更多' }}>></a></div>
                 <div class="taglist">
                     {{ widget("682f3dca7c0da18d4038d198") }}
                 </div>

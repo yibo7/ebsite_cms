@@ -2,7 +2,7 @@ import threading
 from urllib.parse import quote
 
 import pymongo
-from flask import render_template, render_template_string, abort, request, make_response, current_app
+from flask import render_template, render_template_string, abort, request, make_response, current_app, g
 
 import eb_cache
 from bll.new_class import NewsClass
@@ -33,10 +33,11 @@ def list(id: int, p: int):
             'column_4': 1, 'column_13': 1, 'hits': 1, 'id': 1
         }
 
-        # 缓存键：版本号 + 分类 + 页码，内容更新时自动失效
+        # 缓存键：版本号 + 分类 + 页码 + 语言，内容更新时自动失效
         ver_key = f"list_ver:{id}"
         ver = eb_cache.get(ver_key) or 0
-        cache_key = f"list_data:{id}:{p}:v{ver}"
+        lang = getattr(g, 'lang', 'zh')
+        cache_key = f"list_data:{id}:{p}:{lang}:v{ver}"
         cached = eb_cache.get(cache_key)
 
         if cached:

@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-所有标签-{{SiteName}}
+{{ lang.tag_all or '所有标签' }}-{{SiteName}}
 {% endblock %}
 
 {% block content %}
@@ -12,12 +12,12 @@
     <div class="d-flex flex-wrap align-items-end justify-content-between gap-2">
       <div>
         <div class="breadcrumb-nav mb-1">
-          <a href="/">首页</a><span class="sep">/</span><span class="current">所有标签</span>
+          <a href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '首页' }}</a><span class="sep">/</span><span class="current">{{ lang.tag_all or '所有标签' }}</span>
         </div>
-        <h1 class="serif mb-1">🏷️ 所有标签</h1>
-        <div class="category-desc">按标签浏览曲谱，快速找到你喜欢的风格</div>
+        <h1 class="serif mb-1">🏷️ {{ lang.tag_all or '所有标签' }}</h1>
+        <div class="category-desc">{{ lang.menu_search_sub or '按标签浏览曲谱' }}</div>
       </div>
-      <div class="category-count">{{ data_list | length }} 个标签</div>
+      <div class="category-count">{{ data_list | length }} {{ lang.tag_count or '个标签' }}</div>
     </div>
   </div>
 </section>
@@ -36,7 +36,7 @@
         {% endfor %}
       </div>
       {% else %}
-      <div class="p-5 text-center" style="color: var(--ink-faint);">暂无标签</div>
+      <div class="p-5 text-center" style="color: var(--ink-faint);">{{ lang.index_no_data or '暂无标签' }}</div>
       {% endif %}
     </div>
   </div>

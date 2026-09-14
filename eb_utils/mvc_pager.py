@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from urllib.parse import quote
 from flask import request
 from markupsafe import Markup
+from eb_utils import url_links
 
 
 def pager_html_admin(count: int, page_number: int, page_size: int, prams=None):
@@ -65,15 +66,26 @@ class MvcPager:
         if self.params:
             params = urlencode(self.params, quote_via=quote)
             url = f"{url}&{params}"
+        # 添加语言前缀
+        prefix = url_links.get_url_prefix()
+        if prefix:
+            url = prefix + url
         return url
 
     def show_pages(self) -> str:
+        # 判断语言
+        is_en = url_links.get_url_prefix() == '/en'
+        first_text = 'First' if is_en else '首页'
+        prev_text = 'Prev' if is_en else '上一页'
+        next_text = 'Next' if is_en else '下一页'
+        last_text = 'Last' if is_en else '尾页'
+
         sb = ["<ul class='pagination'>"]
         if self.current_page > 1:
             if self.current_page > self.show_code_num:
-                sb.append(f"<li class='page-item'><a href='{self.build_url(1)}'>首页</a></li>")
+                sb.append(f"<li class='page-item'><a href='{self.build_url(1)}'>{first_text}</a></li>")
             sb.append(
-                f"<li class='page-item'><a class='page-link' href='{self.build_url(self.current_page - 1)}'>上一页</a></li>")
+                f"<li class='page-item'><a class='page-link' href='{self.build_url(self.current_page - 1)}'>{prev_text}</a></li>")
 
         for i in self.current_pages:
             if i + 1 == self.current_page:
@@ -83,10 +95,10 @@ class MvcPager:
 
         if self.current_page < self.page_num:
             sb.append(
-                f"<li class='page-item'><a class='page-link next-page' href='{self.build_url(self.current_page + 1)}'>下一页</a></li>")
+                f"<li class='page-item'><a class='page-link next-page' href='{self.build_url(self.current_page + 1)}'>{next_text}</a></li>")
             if self.current_page < (self.page_num - self.show_code_num - 1):
                 sb.append(
-                    f"<li class='page-item'><a class='page-link' href='{self.build_url(self.page_num)}'>尾页</a></li>")
+                    f"<li class='page-item'><a class='page-link' href='{self.build_url(self.page_num)}'>{last_text}</a></li>")
 
         sb.append("</ul>")
         return Markup("".join(sb))

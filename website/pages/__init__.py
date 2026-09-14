@@ -29,18 +29,24 @@ from flask import Request
 from werkzeug.test import EnvironBuilder
 
 
-def render_and_cache_index():
+def render_and_cache_index(lang='zh'):
     with current_app.app_context():
         # 创建一个伪请求上下文,context_processor 被正常调用，SiteName 等变量也就能注入成功
-        builder = EnvironBuilder(path='/')
+        builder = EnvironBuilder(path='/en/zh' if lang == 'en' else '/zh')
         env = builder.get_environ()
+        env['ORIG_PATH_INFO'] = f'/en/zh' if lang == 'en' else '/zh'
         req = Request(env)
         with current_app.request_context(env):
+            # 后台线程中没有 set_lang() 执行，手动设置语言标记
+            from flask import g
+            g.lang = lang
             temp_path = current_app.config.get('index_temp_path',"index.html")
             rendered = render_template(temp_path, index_data=TempDataProvider())
-            eb_cache.set_data(rendered, ex_second=0, key=CacheKeys.INDEX_HTML)
-            eb_cache.set_data(time.time(), ex_second=0, key=CacheKeys.INDEX_TIME)
-            print("index cache updated")
+            cache_key = f"{CacheKeys.INDEX_HTML}_{lang}"
+            time_key = f"{CacheKeys.INDEX_TIME}_{lang}"
+            eb_cache.set_data(rendered, ex_second=0, key=cache_key)
+            eb_cache.set_data(time.time(), ex_second=0, key=time_key)
+            print(f"index cache updated ({lang})")
             return rendered
 
 def run_in_app_context(app, func, *args, **kwargs):
@@ -51,19 +57,22 @@ def run_in_app_context(app, func, *args, **kwargs):
 
 @pages_blue.route('/', methods=['GET'])
 def index():
+    current_lang = getattr(g, 'lang', 'zh')
     temp_path = current_app.config.get('index_temp_path',"index.html")
     cache_time = current_app.config.get('index_cache_time', 0)
     cache_time = int(cache_time)
     if cache_time > 0:
-        cached_html = eb_cache.get(CacheKeys.INDEX_HTML)
+        cache_key = f"{CacheKeys.INDEX_HTML}_{current_lang}"
+        cached_html = eb_cache.get(cache_key)
         if cached_html:
-            last_update = eb_cache.get(CacheKeys.INDEX_TIME) or 0
+            time_key = f"{CacheKeys.INDEX_TIME}_{current_lang}"
+            last_update = eb_cache.get(time_key) or 0
             if time.time() - last_update > cache_time:
                 use_app = current_app._get_current_object()
-                run_in_app_context(use_app, render_and_cache_index)
+                run_in_app_context(use_app, render_and_cache_index, current_lang)
             return make_response(cached_html)
 
-        rendered = render_and_cache_index()
+        rendered = render_and_cache_index(current_lang)
         return make_response(rendered)
 
     return render_template(temp_path, index_data=TempDataProvider())
@@ -88,7 +97,8 @@ def login():
             if err_count > 0:
                 is_safe, err_msg = ImageCode().check_code(image_code)
             if is_safe:
-                resp = make_response(redirect(WebPaths.USER_INDEX))
+                _prefix = '/en' if getattr(g, 'lang', 'zh') == 'en' else ''
+                resp = make_response(redirect(_prefix + WebPaths.USER_INDEX))
                 is_safe, err_msg = User().login(username, password, resp)
                 if is_safe:
                     return resp
@@ -147,7 +157,8 @@ def reg():
                 user.mobile_number = username
             [is_ok, msg] = User().reg_user(user)
             if is_ok:
-                resp = make_response(redirect(WebPaths.USER_INDEX))
+                _prefix = '/en' if getattr(g, 'lang', 'zh') == 'en' else ''
+                resp = make_response(redirect(_prefix + WebPaths.USER_INDEX))
                 login_utils.set_cookie_token(user, resp)
 
                 return resp

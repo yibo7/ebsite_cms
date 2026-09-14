@@ -51,8 +51,8 @@
               <div class="wave flex-grow-1 d-flex align-items-center js-wave"></div>
             </div>
             <div class="song-meta-footer d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 mt-auto">
-              <div>调式 <span class="key">{{item.column_2 or '-'}}</span></div>
-              <div>难度
+              <div>{{ lang.content_style or '调式' }} <span class="key">{{item.column_2 or '-'}}</span></div>
+              <div>{{ lang.content_level or '难度' }}
                 <span value="{{item.column_4 or '0'}}" class="level-value frets d-inline-flex gap-1"></span>
               </div>
             </div>
@@ -63,7 +63,7 @@
 
     </div>
  {% else %}
-  <div class="p-5 text-center">暂无数据</div>
+  <div class="p-5 text-center">{{ lang.index_no_data or '暂无数据' }}</div>
 {% endif %}
 </section>
 

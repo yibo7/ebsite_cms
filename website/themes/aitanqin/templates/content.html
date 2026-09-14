@@ -11,7 +11,7 @@
     <!-- ============ 面包屑 ============ -->
     <div class="container">
       <nav class="breadcrumb-nav">
-        <a href="#">首页</a><span class="sep">/</span>
+        <a href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '首页' }}</a><span class="sep">/</span>
         <a href='{{ get_class_link(model.class_n_id) }}' >{{model.class_name}}</a><span class="sep">/</span>
         <span class="current">{{model.title}}</span>
       </nav>
@@ -36,26 +36,23 @@
               <div class="arranger-name">
                 <a href="/u{{ model.user_id }}.html">{{ model.user_ni_name or model.user_name }}</a><svg class="verified" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 2.4 3.4-.3.3 3.4L21 10l-2.9 2.5.3 3.4-3.4-.3L12 18l-2.4-2.4-3.4.3-.3-3.4L3 10l2.9-2.5-.3-3.4 3.4.3z"/></svg>
               </div>
-              <div class="arranger-sub">制谱师</div>
+              <div class="arranger-sub">{{ lang.content_uploader or '制谱师' }}</div>
             </div>
             <a href="javascript:;" class="arranger-follow" :class="{'is-subed': subOn}" @click="doSubscribe">[[ subOn ? '已订阅' : '+ 订阅' ]]</a>
           </div>
           <div class="detail-meta-grid">
-            <div class="meta-cell"><span class="meta-label">难度</span><span class="meta-value">{{ level_map.get(model.column_4, 'Medium') }}</span></div>
-            <div class="meta-cell"><span class="meta-label">时长</span><span class="meta-value mono">[[ heroDuration ]]</span></div>
-            <div class="meta-cell"><span class="meta-label">定弦</span><span class="meta-value">EADGBE</span></div>
-<!--            <div class="meta-cell"><span class="meta-label">还原度</span><span class="meta-value">93%</span></div>-->
-            <div class="meta-cell"><span class="meta-label">上传时间</span><span class="meta-value mono">{{ model.add_time|to_time_name }}</span></div>
-            <div class="meta-cell"><span class="meta-label">播放次数</span><span class="meta-value">{{ model.hits }}</span></div>
+            <div class="meta-cell"><span class="meta-label">{{ lang.content_level or '难度' }}</span><span class="meta-value">{{ level_map.get(model.column_4, 'Medium') }}</span></div>
+            <div class="meta-cell"><span class="meta-label">{{ lang.content_upload_time or '上传时间' }}</span><span class="meta-value mono">{{ model.add_time|to_time_name }}</span></div>
+<!--            <div class="meta-cell"><span class="meta-label">播放次数</span><span class="meta-value">{{ model.hits }}</span></div>-->
           </div>
         </div>
 
         <!-- 右侧操作卡 -->
         <aside class="quick-action-card">
-<!--          <button class="play-entry-btn" :disabled="apiLoading" @click="openLocalScore">-->
-<!--            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 17v-6"/><path d="M9 13.5L12 10.5l3 3"/></svg>-->
-<!--            打开本地乐谱…-->
-<!--          </button>-->
+          <button class="play-entry-btn" @click="openPlayer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 17v-6"/><path d="M9 13.5L12 10.5l3 3"/></svg>
+            Open in Player
+          </button>
           <div class="quick-fact" v-html="quickFact"></div>
           <div class="action-row">
             <button class="action-btn fav" :class="{'is-active': favOn}" @click="doFavorite">
@@ -247,10 +244,8 @@
   };
 </script>
 
-<!-- 第三方库：Vue 3 + AlphaTab（defer 保持顺序执行，不阻塞 HTML 解析） -->
 <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/@coderline/alphatab@1.8.4/dist/alphaTab.js" defer></script>
-
-<!-- 乐谱详情页主脚本：异步加载，依赖 Vue 和 alphaTab -->
 <script src="/atq_static/content-player.js" defer></script>
+<script src="/eb_ad.js" defer></script>
 {% endblock %}

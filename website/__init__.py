@@ -17,6 +17,22 @@ from temp_expand import reg_temp_expand
 class MD5Converter(BaseConverter):
     regex = r'[a-fA-F0-9]{32}'
 
+# ──────────────────────────────────────────────
+# WSGI 中间件：在 Flask 路由之前剥离 /en/ 前缀
+# ──────────────────────────────────────────────
+class _LangPrefixWSGIMiddleware:
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        path = environ.get('PATH_INFO', '')
+        environ['ORIG_PATH_INFO'] = path
+        if path.startswith('/en/'):
+            environ['PATH_INFO'] = path[3:]
+        elif path == '/en':
+            environ['PATH_INFO'] = '/'
+        return self.app(environ, start_response)
+
 def create_app():  # run_mode
     """
     创建app
@@ -35,6 +51,9 @@ def create_app():  # run_mode
     theme_static_path = os.path.join('themes', theme_name, 'static')
     app = Flask(__name__,template_folder=theme_template_path, static_folder=theme_static_path,static_url_path='/')
     app.url_map.converters['md5'] = MD5Converter  # 注册路由转换器，目前主要应用于标签页面URl强制md5规则
+
+    # 注册 WSGI 中间件（在路由前剥离 /en/ 前缀）
+    app.wsgi_app = _LangPrefixWSGIMiddleware(app.wsgi_app)
 
     # 加入多个模板目录
     # app.jinja_loader = ChoiceLoader([
