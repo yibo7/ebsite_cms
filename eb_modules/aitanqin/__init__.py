@@ -41,8 +41,17 @@ settings_temp = '''
 
         '''
 
-@module_attribute('AI_TAN_QIN','爱弹琴相关的服务。',"",settings_temp,'atq')
-def module_init(app:Flask, model:ModuleInfo):
+@module_attribute(
+    'AI_TAN_QIN',
+    '爱弹琴相关的服务。',
+    "",
+    settings_temp,
+    'atq',
+    config_fields={
+        'tab_api_key': 'str',
+    }
+)
+def module_init(app: Flask, model: ModuleInfo):
     """
     在模块加载成功后触发，此函数名称不能更改
     @param model: 当前模块实例
@@ -55,6 +64,12 @@ def module_init(app:Flask, model:ModuleInfo):
 
     bp_atq_apis.config = module_configs
     bp_atq_pages.config = module_configs
+
+    # 注册配置热更新
+    def refresh_config(saved_config):
+        bp_atq_apis.config = saved_config
+        bp_atq_pages.config = saved_config
+    model.on_config_changed(refresh_config)
 
     app.register_blueprint(bp_atq_apis)
     app.register_blueprint(bp_atq_pages)

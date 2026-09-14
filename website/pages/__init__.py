@@ -57,7 +57,9 @@ def _load_lang_dict_for_cache(lang):
     import os
     try:
         theme_name = current_app.config.get('base_settings', {}).get('ThemeName', 'aitanqin')
-        default = current_app.config.get('DEFAULT_LANG', 'zh')
+        raw_default = current_app.config.get('DEFAULT_LANG', 'zh')
+        supported = current_app.config.get('SUPPORTED_LANGS', {'zh'})
+        default = raw_default if raw_default in supported else sorted(supported)[0]
         def _load(code):
             p = os.path.join(current_app.root_path, 'themes', theme_name, 'i18n', f'{code}.json')
             try:
@@ -124,7 +126,7 @@ def login():
             if is_safe:
                 _prefix = ''
                 cur_lang = getattr(g, 'lang', '')
-                default = current_app.config.get('DEFAULT_LANG', 'zh')
+                default = getattr(g, 'effective_default', current_app.config.get('DEFAULT_LANG', 'zh'))
                 if cur_lang and cur_lang != default:
                     _prefix = f'/{cur_lang}'
                 resp = make_response(redirect(_prefix + WebPaths.USER_INDEX))
@@ -188,7 +190,7 @@ def reg():
             if is_ok:
                 _prefix = ''
                 cur_lang = getattr(g, 'lang', '')
-                default = current_app.config.get('DEFAULT_LANG', 'zh')
+                default = getattr(g, 'effective_default', current_app.config.get('DEFAULT_LANG', 'zh'))
                 if cur_lang and cur_lang != default:
                     _prefix = f'/{cur_lang}'
                 resp = make_response(redirect(_prefix + WebPaths.USER_INDEX))

@@ -7,5 +7,5 @@
     "IsDebug": true,
     "IsVercel": true,
     "Port": 8066,
-    "DefaultLang": "en"
+    "DefaultLang": "auto"
 }

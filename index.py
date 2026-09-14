@@ -71,11 +71,12 @@ def set_lang():
 def _load_lang_dict(lang: str) -> dict:
     """加载对应语言的翻译 JSON 文件，缺失键用默认语言回退"""
     theme_name = app.config['base_settings'].get('ThemeName', 'aitanqin')
-    default = app.config.get('DEFAULT_LANG', 'zh')
-    # 先加载目标语言
+    raw_default = app.config.get('DEFAULT_LANG', 'zh')
+    # 如果默认语言设为 auto，取第一个支持的语言作为实际回退
+    supported = app.config.get('SUPPORTED_LANGS', {'zh'})
+    default = raw_default if raw_default in supported else sorted(supported)[0]
     result = _load_json_file(theme_name, lang)
     if lang != default:
-        # 用默认语言补缺
         defaults = _load_json_file(theme_name, default)
         for k, v in defaults.items():
             result.setdefault(k, v)
@@ -96,8 +97,9 @@ def _load_json_file(theme_name, lang):
 def inject_i18n_globals():
     """向所有模板注入国际化变量"""
     lang = getattr(g, 'lang', app.config.get('DEFAULT_LANG', 'zh'))
-    default = app.config.get('DEFAULT_LANG', 'zh')
-    lang_dict = _load_lang_dict(lang)
+    # 使用 set_lang() 解析后的有效默认语言（兼容 auto 模式）
+    default = getattr(g, 'effective_default', app.config.get('DEFAULT_LANG', 'zh'))
+    lang_dict = getattr(g, 'lang_dict', _load_lang_dict(lang))
     # 构建当前语言下的可用语言显示名称
     raw_langs = app.config.get('AVAILABLE_LANGS', {})
     avail = {}
@@ -118,7 +120,7 @@ def inject_i18n_globals():
 def localize_url(url):
     """Jinja2 过滤器：根据当前语言给 URL 添加前缀"""
     lang = getattr(g, 'lang', 'zh')
-    default = app.config.get('DEFAULT_LANG', 'zh')
+    default = getattr(g, 'effective_default', app.config.get('DEFAULT_LANG', 'zh'))
     if lang != default and url and not url.startswith(f'/{lang}') and not url.startswith('http'):
         return f'/{lang}' + url
     return url

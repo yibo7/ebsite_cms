@@ -28,8 +28,18 @@ settings_temp = '''
         
         '''
 
-@module_attribute('积分管理系统','扩展系统的积分管理，比如，购买积分，积分流水，积分申请与审核等。',"/credits/credits_orders",settings_temp,'ebsite')
-def module_init(app:Flask, model:ModuleInfo):
+@module_attribute(
+    '积分管理系统',
+    '扩展系统的积分管理，比如，购买积分，积分流水，积分申请与审核等。',
+    "/credits/credits_orders",
+    settings_temp,
+    'ebsite',
+    config_fields={
+        'credits_price': 'int',
+        'pay_back_url': 'str',
+    }
+)
+def module_init(app: Flask, model: ModuleInfo):
     """
     在模块加载成功后触发，此函数名称不能更改
     @param model: 当前模块实例
@@ -40,6 +50,12 @@ def module_init(app:Flask, model:ModuleInfo):
 
     bp_credits_pages.config = module_configs
     bp_credits_apis.config = module_configs
+
+    # 注册配置热更新：后台修改配置后自动刷新蓝图上的配置对象
+    def refresh_config(saved_config):
+        bp_credits_pages.config = saved_config
+        bp_credits_apis.config = saved_config
+    model.on_config_changed(refresh_config)
 
     app.register_blueprint(bp_credits_pages)
     app.register_blueprint(bp_credits_apis)

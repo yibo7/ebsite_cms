@@ -43,14 +43,33 @@ settings_temp = '''
 
         '''
 
-@module_attribute('APP-APIS','提供客户端程序调用的API集，可为APP、小程序、网页客户端，桌面程序等使用。API 文档在apifox上。',"",settings_temp,'ebsite')
-def module_init(app:Flask, model:ModuleInfo):
+@module_attribute(
+    'APP-APIS',
+    '提供客户端程序调用的API集，可为APP、小程序、网页客户端，桌面程序等使用。API 文档在apifox上。',
+    "",
+    settings_temp,
+    'ebsite',
+    config_fields={
+        'wxzf_appid': 'str',
+        'secret': 'str',
+        'wxzf_mch_id': 'str',
+    }
+)
+def module_init(app: Flask, model: ModuleInfo):
     """
     在模块加载成功后触发，此函数名称不能更改
     @param model: 当前模块实例
     @param app: 当前 flask app实例
     @return:
     """
+    module_configs = model.get_configs()
+    bp_app_apis.config = module_configs
+
+    # 注册配置热更新
+    def refresh_config(saved_config):
+        bp_app_apis.config = saved_config
+    model.on_config_changed(refresh_config)
+
     app.register_blueprint(bp_app_apis)
 
 

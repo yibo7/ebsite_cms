@@ -42,6 +42,11 @@ def module_init(app:Flask, model:ModuleInfo):
 
     bp_shop_pages.config = module_configs
 
+    # 注册配置热更新
+    def refresh_config(saved_config):
+        bp_shop_pages.config = saved_config
+    model.on_config_changed(refresh_config)
+
     app.register_blueprint(bp_shop_pages)
 
     content_saving.connect(on_content_saving)
