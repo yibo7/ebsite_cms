@@ -31,7 +31,8 @@ from werkzeug.test import EnvironBuilder
 
 def render_and_cache_index(lang='zh'):
     with current_app.app_context():
-        default = current_app.config.get('DEFAULT_LANG', 'zh')
+        # 使用启动时解析好的真实默认语言，避免在 auto 模式下用 sorted() 排序
+        default = current_app.config.get('DEFAULT_LANG_RESOLVED', 'zh')
         # 首页缓存用真实根路径，request.path 不会被污染
         builder = EnvironBuilder(path='/')
         env = builder.get_environ()
@@ -41,6 +42,8 @@ def render_and_cache_index(lang='zh'):
             # 后台线程中没有 set_lang() 执行，手动设置语言标记
             from flask import g
             g.lang = lang
+            g.lang_from_url = (lang != default)  # 非默认语言才有 URL 前缀
+            g.effective_default = default        # 语言切换器用
             g.lang_dict = _load_lang_dict_for_cache(lang)
             temp_path = current_app.config.get('index_temp_path',"index.html")
             rendered = render_template(temp_path, index_data=TempDataProvider())
@@ -57,9 +60,7 @@ def _load_lang_dict_for_cache(lang):
     import os
     try:
         theme_name = current_app.config.get('base_settings', {}).get('ThemeName', 'aitanqin')
-        raw_default = current_app.config.get('DEFAULT_LANG', 'zh')
-        supported = current_app.config.get('SUPPORTED_LANGS', {'zh'})
-        default = raw_default if raw_default in supported else sorted(supported)[0]
+        default = current_app.config.get('DEFAULT_LANG_RESOLVED', 'zh')
         def _load(code):
             p = os.path.join(current_app.root_path, 'themes', theme_name, 'i18n', f'{code}.json')
             try:
@@ -68,9 +69,15 @@ def _load_lang_dict_for_cache(lang):
             except Exception:
                 return {}
         result = _load(lang)
+        # 第一级 fallback：英文（通用中间语言）
+        if lang != 'en':
+            en_dict = _load('en')
+            for k, v in en_dict.items():
+                result.setdefault(k, v)
+        # 第二级 fallback：站点默认语言
         if lang != default:
-            defaults = _load(default)
-            for k, v in defaults.items():
+            default_dict = _load(default)
+            for k, v in default_dict.items():
                 result.setdefault(k, v)
         return result
     except Exception:
@@ -89,10 +96,10 @@ def index():
     cache_time = current_app.config.get('index_cache_time', 0)
     cache_time = int(cache_time)
     if cache_time > 0:
-        cache_key = f"{CacheKeys.INDEX_HTML}_{current_lang}"
+        cache_key = f"{CacheKeys.INDEX_HTML}_{current_lang}_v2"
         cached_html = eb_cache.get(cache_key)
         if cached_html:
-            time_key = f"{CacheKeys.INDEX_TIME}_{current_lang}"
+            time_key = f"{CacheKeys.INDEX_TIME}_{current_lang}_v2"
             last_update = eb_cache.get(time_key) or 0
             if time.time() - last_update > cache_time:
                 use_app = current_app._get_current_object()

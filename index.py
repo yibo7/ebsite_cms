@@ -43,42 +43,49 @@ def set_lang():
     orig = request.environ.get('ORIG_PATH_INFO', '')
     supported = current_app.config.get('SUPPORTED_LANGS', {'zh', 'en'})
     default_setting = current_app.config.get('DEFAULT_LANG', 'zh')
+    # 启动时解析好的真实默认语言（auto 模式下也是具体语言代码）
+    resolved_default = current_app.config.get('DEFAULT_LANG_RESOLVED', 'zh')
 
     # 1. 先按 URL 前缀匹配
     for code in supported:
         if orig == f'/{code}' or orig.startswith(f'/{code}/'):
             g.lang = code
-            g.effective_default = default_setting if default_setting != 'auto' else code
+            g.lang_from_url = True   # ← 语言来自 URL 前缀
+            g.effective_default = resolved_default  # 语言切换器用
             g.lang_dict = _load_lang_dict(code)
             return
+
+    g.lang_from_url = False          # ← 以下三种情况都不是来自 URL 前缀
 
     # 2. 无前缀，如果 DefaultLang=auto 则尝试浏览器检测
     if default_setting == 'auto':
         detected = _detect_browser_lang(request, supported)
         if detected:
             g.lang = detected
-            g.effective_default = detected
+            g.effective_default = resolved_default
             g.lang_dict = _load_lang_dict(detected)
             return
 
-    # 3. 使用配置的默认语言（或第一个支持的语言）
-    fallback = default_setting if default_setting in supported else sorted(supported)[0]
-    g.lang = fallback
-    g.effective_default = fallback
+    # 3. 使用解析后的默认语言
+    g.lang = resolved_default
+    g.effective_default = resolved_default
     g.lang_dict = _load_lang_dict(g.lang)
 
 
 def _load_lang_dict(lang: str) -> dict:
     """加载对应语言的翻译 JSON 文件，缺失键用默认语言回退"""
     theme_name = app.config['base_settings'].get('ThemeName', 'aitanqin')
-    raw_default = app.config.get('DEFAULT_LANG', 'zh')
-    # 如果默认语言设为 auto，取第一个支持的语言作为实际回退
-    supported = app.config.get('SUPPORTED_LANGS', {'zh'})
-    default = raw_default if raw_default in supported else sorted(supported)[0]
+    default = app.config.get('DEFAULT_LANG_RESOLVED', 'zh')
     result = _load_json_file(theme_name, lang)
+    # 第一级 fallback：英文（通用中间语言）
+    if lang != 'en':
+        en_dict = _load_json_file(theme_name, 'en')
+        for k, v in en_dict.items():
+            result.setdefault(k, v)
+    # 第二级 fallback：站点默认语言
     if lang != default:
-        defaults = _load_json_file(theme_name, default)
-        for k, v in defaults.items():
+        default_dict = _load_json_file(theme_name, default)
+        for k, v in default_dict.items():
             result.setdefault(k, v)
     return result
 
@@ -96,9 +103,9 @@ def _load_json_file(theme_name, lang):
 @app.context_processor
 def inject_i18n_globals():
     """向所有模板注入国际化变量"""
-    lang = getattr(g, 'lang', app.config.get('DEFAULT_LANG', 'zh'))
-    # 使用 set_lang() 解析后的有效默认语言（兼容 auto 模式）
-    default = getattr(g, 'effective_default', app.config.get('DEFAULT_LANG', 'zh'))
+    lang = getattr(g, 'lang', app.config.get('DEFAULT_LANG_RESOLVED', 'zh'))
+    # 使用 set_lang() 解析后的有效默认语言
+    default = getattr(g, 'effective_default', app.config.get('DEFAULT_LANG_RESOLVED', 'zh'))
     lang_dict = getattr(g, 'lang_dict', _load_lang_dict(lang))
     # 构建当前语言下的可用语言显示名称
     raw_langs = app.config.get('AVAILABLE_LANGS', {})
@@ -107,12 +114,14 @@ def inject_i18n_globals():
         # 始终显示语言自身的名称（native name），方便用户识别母语
         lang_name = names.get('_lang_name', code)
         avail[code] = lang_name
+    # LANG_PREFIX 取决于语言是否来自 URL 前缀，而非语言比较
+    lang_from_url = getattr(g, 'lang_from_url', False)
     return {
         'lang': lang_dict,
         'current_lang': lang,
         'default_lang': default,
         'available_langs': avail,
-        'LANG_PREFIX': f'/{lang}' if lang != default else '',
+        'LANG_PREFIX': f'/{lang}' if lang_from_url else '',
     }
 
 
@@ -120,8 +129,8 @@ def inject_i18n_globals():
 def localize_url(url):
     """Jinja2 过滤器：根据当前语言给 URL 添加前缀"""
     lang = getattr(g, 'lang', 'zh')
-    default = getattr(g, 'effective_default', app.config.get('DEFAULT_LANG', 'zh'))
-    if lang != default and url and not url.startswith(f'/{lang}') and not url.startswith('http'):
+    lang_from_url = getattr(g, 'lang_from_url', False)
+    if lang_from_url and url and not url.startswith(f'/{lang}') and not url.startswith('http'):
         return f'/{lang}' + url
     return url
 

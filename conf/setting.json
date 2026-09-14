@@ -4,7 +4,7 @@
     "ThemeName": "aitanqin",
     "REDIS_SERV": "",
     "APP_KEY": "APP_KEY环境变量未设置时的开发兜底密钥",
-    "IsDebug": false,
+    "IsDebug": true,
     "IsVercel": true,
     "Port": 8066,
     "DefaultLang": "auto"

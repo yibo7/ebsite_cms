@@ -129,10 +129,22 @@ def create_app():  # run_mode
     default_lang = base_setting.get('DefaultLang', 'zh')
     available_langs = _discover_langs(app)  # {code: display_name}
     supported_langs = set(available_langs.keys())
+    lang_list = list(available_langs.keys())  # 保留发现顺序
     app.config['DEFAULT_LANG'] = default_lang
     app.config['SUPPORTED_LANGS'] = supported_langs
+    app.config['SUPPORTED_LIST'] = lang_list
     app.config['AVAILABLE_LANGS'] = available_langs
-    print(f"[i18n] default: {default_lang}, supported: {sorted(supported_langs)}")
+    # 解析出真正的默认语言（auto → 取 'zh'，无中文 → 第一个发现的）
+    if default_lang in supported_langs:
+        resolved = default_lang
+    elif 'zh' in supported_langs:
+        resolved = 'zh'  # 中文站点默认中文
+    elif lang_list:
+        resolved = lang_list[0]
+    else:
+        resolved = 'zh'
+    app.config['DEFAULT_LANG_RESOLVED'] = resolved
+    print(f"[i18n] default: {default_lang}, resolved: {resolved}, supported: {sorted(supported_langs)}")
 
     # 将语言信息注入 WSGI environ（中间件需要）
     _orig_mw = app.wsgi_app

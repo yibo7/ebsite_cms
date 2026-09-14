@@ -38,7 +38,7 @@ def logout_user(resp):
     token_key = request.cookies.get(SiteConstant.COOKIE_TOKEN_KEY)
     if token_key:
         eb_cache.delete(token_key)
-        resp.delete_cookie(token_key)
+        resp.delete_cookie(SiteConstant.COOKIE_TOKEN_KEY)
     return token_key
 
 
@@ -46,7 +46,7 @@ def logout_admin(resp):
     token_key = request.cookies.get(SiteConstant.COOKIE_AD_TOKEN_KEY)
     if token_key:
         eb_cache.delete(token_key)
-        resp.delete_cookie(token_key)
+        resp.delete_cookie(SiteConstant.COOKIE_AD_TOKEN_KEY)
     return token_key
 
 
@@ -108,9 +108,9 @@ def set_cookie_token(model: UserModel, resp):
     group_model = UserGroup().find_one_by_id(model.group_id)
     token = UserToken(model._id, model.username, model.ni_name, model.group_id, group_model.name, model.avatar,
                       model.openid)
-    app_token_expired = current_app.config['app_token_expired'] or 24
+    app_token_expired = current_app.config.get('app_token_expired', 24)
     user_key = eb_cache.set_ex_hours(token, int(app_token_expired))
-    expires = datetime.datetime.now() + datetime.timedelta(hours=24)
+    expires = datetime.datetime.now() + datetime.timedelta(hours=int(app_token_expired))
     resp.set_cookie(SiteConstant.COOKIE_TOKEN_KEY, user_key, expires=expires)
     # return session_id
 
@@ -119,8 +119,9 @@ def set_cookie_token_admin(user: AdminUserModel, resp):
     设置管理员登录的Token，其实也就是COOKIE_AD_TOKEN_KEY不一样
     """
     token = UserToken(user._id, user.user_name, user.real_name, user.role_id, user.role_name, "")
-    admin_key = eb_cache.set_ex_hours(token, 24)
-    expires = datetime.datetime.now() + datetime.timedelta(hours=24)
+    app_token_expired = current_app.config.get('app_token_expired', 24)
+    admin_key = eb_cache.set_ex_hours(token, int(app_token_expired))
+    expires = datetime.datetime.now() + datetime.timedelta(hours=int(app_token_expired))
     resp.set_cookie(SiteConstant.COOKIE_AD_TOKEN_KEY, admin_key, expires=expires)
 
 # def set_token_admin(token: UserToken, resp):

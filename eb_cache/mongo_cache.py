@@ -15,6 +15,14 @@ class MongoCache(BaseCache):
 
         self.collection = collection
 
+        # 在集合上创建索引
+        # 1) exp 索引：加速过期查询和清理
+        # 2) _id 前缀查询索引：加速 clear() 按前缀删除
+        try:
+            self.collection.create_index("exp")
+        except Exception:
+            pass
+
 
 
     @classmethod
@@ -81,3 +89,38 @@ class MongoCache(BaseCache):
         for key in keys:
             self.delete(key)
         return True
+
+    def incr(self, key, initial=0):
+        """
+        原子自增操作（使用 $inc）。
+        若键不存在则先插入初始值再自增。
+        """
+        key = self._get_prefix_key(key)
+        after = self.collection.find_one_and_update(
+            {"_id": key},
+            {"$inc": {"val": 1}},
+            upsert=True,
+            return_document=True
+        )
+        # 如果返回的文档没有 val（刚 upsert 但 $inc 没反应到返回里）
+        # 兜底：手动读一次
+        if after is None or "val" not in after:
+            self.collection.update_one(
+                {"_id": key, "val": {"$exists": False}},
+                {"$set": {"val": initial, "exp": 0}},
+                upsert=True
+            )
+            return initial + 1
+        # find_one_and_update + $inc 返回的是更新后的文档
+        return after["val"] if isinstance(after["val"], int) else int(after["val"])
+
+    def cleanup_expired(self, batch_size=100):
+        """
+        清理已过期的缓存条目（配合 exp 索引使用）。
+        返回本次清理的文档数。
+        """
+        now = time.time()
+        result = self.collection.delete_many(
+            {"exp": {"$gt": 0, "$lte": now}}
+        )
+        return result.deleted_count

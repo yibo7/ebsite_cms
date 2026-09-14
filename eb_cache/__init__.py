@@ -1,5 +1,4 @@
 import os
-import pickle
 import uuid
 
 from flask import current_app
@@ -55,7 +54,11 @@ def generate_key():
 def get_str(key: str) -> str:
     if key:
         v = cache.get(key)
-        return v.decode('utf-8') if v else ""
+        if v is None:
+            return ""
+        if isinstance(v, bytes):
+            return v.decode('utf-8')
+        return str(v)
     return ""
 
 
@@ -68,12 +71,7 @@ def get(key: str, default_value=None):
 
 def get_obj(key: str):
     if key:
-        # 从Redis中获取保存的二进制数据
-        binary_data = cache.get(key)
-        if binary_data:
-            # 将二进制数据转换回字典对象
-            data_obj = pickle.loads(binary_data)
-            return data_obj
+        return cache.get(key)  # 后端（RedisCache/MongoCache）已处理反序列化
     return None
 
 def set_data(obj, ex_second=0, key=None):
@@ -105,9 +103,7 @@ def set_obj(obj, ex_second=0, key=None):
     if not key:
         key = generate_key()
 
-    # 序列化对象为 JSON 字符串
-    obj = obj if isinstance(obj, (str, int, float)) else pickle.dumps(obj)
-
+    # 直接交给后端序列化（RedisCache/MongoCache 内部已做 pickle.dumps）
     if ex_second:
         cache.set(key, obj, timeout=ex_second)
     else:
@@ -180,13 +176,15 @@ def next_id(key, timeout=None):
     :param timeout: 缓存超时时间
     :return: 当前的值
     """
-
-    # 尝试获取当前值，如果键不存在则返回初始值
-    current_value = cache.get(key)
-    if not current_value:
-        current_value = 0  # 如果键不存在时的初始值
-    # print(current_value)
-    # 将值加一，并设置回缓存，超时时间由参数决定
-    new_value = current_value + 1
-    cache.set(key, new_value, timeout=timeout)
+    # 优先使用后端的原子自增（如 MongoCache.incr 或 RedisCache.incr）
+    incr = getattr(cache, "incr", None)
+    if incr:
+        new_value = incr(key)
+    else:
+        # 兜底：get-then-set（非原子，适用于低并发场景）
+        current_value = cache.get(key)
+        if not current_value:
+            current_value = 0
+        new_value = current_value + 1
+        cache.set(key, new_value, timeout=timeout)
     return new_value

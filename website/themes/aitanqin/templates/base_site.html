@@ -35,8 +35,18 @@
 
       <ul class="navbar-nav d-none d-lg-flex flex-row gap-4 mx-auto">
         <li class="nav-item"><a class="nav-link" href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '🏠 首页' }}</a></li>
-       {{ widget("6a955899ccda0b6fd621002b") }}
-        <li class="nav-item"><a class="nav-link" href="/aplayer/">Score Player</a></li>
+        {#
+          {{ widget("6a955899ccda0b6fd621002b") }}
+        #}
+        <li class="nav-item">
+           <a cid="113" class="nav-link" href="{{ LANG_PREFIX }}/c113p1.html">{{ lang.nav_piano or '🎹 Piano' }}</a>
+        </li>
+
+        <li class="nav-item">
+           <a cid="112" class="nav-link" href="{{ LANG_PREFIX }}/c112p1.html">{{ lang.nav_guitar or '🎸 Guitar' }}</a>
+        </li>
+
+        <li class="nav-item"><a target="_blank" class="nav-link" href="/aplayer/">{{ lang.nav_score_player or 'Score Player' }}</a></li>
 
       </ul>
 
