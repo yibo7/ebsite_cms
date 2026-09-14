@@ -79,9 +79,24 @@ def create_app():  # run_mode
     """
 
     base_setting = XsJson("conf/setting.json").load()
-    # db_conn = os.environ.get('MONGODB_SERV', None)
-    # if db_conn:
-    #     base_setting["MONGODB_SERV"] = db_conn
+
+    # ── 加载 .env 文件（仅开发环境；生产环境通过平台设环境变量）──
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
+    # ── 敏感配置优先从环境变量读取，setting.json 仅作开发兜底 ──
+    for env_key, cfg_key in [
+        ('MONGODB_SERV', 'MONGODB_SERV'),
+        ('MONGODB_NAME', 'MONGODB_NAME'),
+        ('APP_KEY', 'APP_KEY'),
+    ]:
+        env_val = os.environ.get(env_key)
+        if env_val:
+            base_setting[cfg_key] = env_val
+
     default_theme = base_setting["ThemeName"]
 
     theme_name = os.environ.get('THEME', default_theme)

@@ -144,8 +144,20 @@ def not_found_error(error):
 
 @app.errorhandler(Exception)
 def handle_exception(error):
+    import traceback, sys
+    tb = traceback.format_exc()
     app.logger.exception("发生未捕获的异常: %s", error)
-    return render_template('err.html', code=500, errinfo=error), 500
+    app.logger.error("完整堆栈:\n%s", tb)
+    print(f"[ERROR] 异常: {error}", flush=True)
+    print(f"[ERROR] 类型: {type(error).__name__}", flush=True)
+    print(f"[ERROR] errno: {getattr(error, 'errno', 'N/A')}", flush=True)
+    print(f"[ERROR] 堆栈:\n{tb}", flush=True)
+    # 额外诊断信息
+    if isinstance(error, OSError):
+        print(f"[ERROR] filename: {getattr(error, 'filename', 'N/A')}", flush=True)
+        print(f"[ERROR] strerror: {getattr(error, 'strerror', 'N/A')}", flush=True)
+        print(f"[ERROR] winerror: {getattr(error, 'winerror', 'N/A')}", flush=True)
+    return render_template('err.html', code=500, errinfo=str(error)), 500
 
 
 @app.errorhandler(EbTipError)

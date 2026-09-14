@@ -12,3 +12,4 @@ xmltodict~=0.13.0
 flask-caching~=2.3.0
 blinker~=1.8.2
 cos-python-sdk-v5
+python-dotenv~=1.0.1  # 仅本地开发需要，生产环境通过平台设环境变量

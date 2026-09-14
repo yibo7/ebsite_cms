@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 import hashlib
 import base64
@@ -16,6 +17,9 @@ def _read_score_file(score_id):
     """
     根据乐谱ID查询并读取乐谱文件内容。
     返回 (file_bytes, filename) 或抛出异常。
+
+    安全校验：
+      解析后的真实路径必须在 uploads 目录内（防御路径遍历）
     """
     bll = NewsContent()
     model = bll.find_one_by_id(score_id)
@@ -27,14 +31,21 @@ def _read_score_file(score_id):
     if not score_path:
         raise FileNotFoundError(f"未设置乐谱文件路径: {score_id}")
 
+    # ── 还原为原始路径拼接逻辑（保证兼容已有数据）──
     relative_path = score_path.lstrip('/')
     directory = os.path.dirname(relative_path)
     filename = os.path.basename(relative_path)
     upload_folder = os.path.join(current_app.root_path, 'uploads', directory)
     file_full_path = os.path.join(upload_folder, filename)
 
+    # ── 安全校验：解析后的真实路径必须在 uploads 目录内 ──
+    real_uploads = os.path.realpath(os.path.join(current_app.root_path, 'uploads'))
+    real_target = os.path.realpath(file_full_path)
+    if not real_target.startswith(real_uploads + os.sep):
+        raise FileNotFoundError(f"非法的乐谱文件路径: {score_path}")
+
     if not os.path.exists(file_full_path):
-        raise FileNotFoundError(f"乐谱文件不存在: {file_full_path}")
+        raise FileNotFoundError(f"乐谱文件不存在")
 
     with open(file_full_path, 'rb') as f:
         file_bytes = f.read()

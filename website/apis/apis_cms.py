@@ -1,6 +1,8 @@
 
 from flask import jsonify, request
 
+import re
+
 from bll.admin_menus import AdminMenus
 from bll.custom_form import CustomForm
 from bll.custom_form_data import CustomFormData
@@ -196,6 +198,24 @@ def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
         return jsonify(api_msg.api_err("发布失败，不存在用户或不存在分类"))
 
     dic_prams = http_helper.get_prams_dict()
+
+    # ── 字段白名单：只允许 API 调用者设置以下安全字段，防止 SSTI 注入 ──
+    ALLOWED_FIELDS = {
+        'title', 'info', 'small_pic', 'seo_title', 'seo_keyword', 'seo_description',
+        'column_1', 'column_2', 'column_3', 'column_4',
+        'column_6', 'column_7', 'column_8', 'column_9', 'column_10',
+        'column_11', 'column_12', 'column_13', 'column_14', 'column_15',
+        'column_16', 'column_17', 'column_18', 'column_19', 'column_20', 'column_21',
+    }
+    # column_5（乐谱文件路径）故意不在白名单中，防止路径遍历攻击
+    # is_good、hits、user_id 等敏感字段也不在白名单中
+    dic_prams = {k: v for k, v in dic_prams.items() if k in ALLOWED_FIELDS}
+
+    # ── 内容字段过滤 Jinja2 模板语法，防止 SSTI ──
+    _JINJA2_PATTERN = re.compile(r'\{\{.*?\}\}|\{%.*?%\}|{#.*?#}')
+    for field in list(dic_prams.keys()):
+        if isinstance(dic_prams[field], str):
+            dic_prams[field] = _JINJA2_PATTERN.sub('', dic_prams[field])
 
     bll = NewsContent()
     model = bll.new_instance()
