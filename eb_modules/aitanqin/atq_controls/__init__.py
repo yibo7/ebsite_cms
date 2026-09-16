@@ -1,0 +1,1 @@
+from . import score_type_select
