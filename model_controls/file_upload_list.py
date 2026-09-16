@@ -5,7 +5,7 @@ class FileUploadList(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 8
+        self.id: str = 'sys_8'
         self.name: str = '多文件上传控件'
         self.info: str = '多文件上传控件'
 

@@ -6,7 +6,7 @@ class ProductSku(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 10
+        self.id: str = 'eb_shop_1'
         self.name: str = '商品规格'
         self.info: str = '商品规格实际上就是商品的SKU，往往每个SKU会对应着：市场价格，成本价，库存量，产品图片'
         # 模拟用户组数据，实际使用时会从数据库读取

@@ -5,7 +5,7 @@ class MultilineInput(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 2
+        self.id: str = 'sys_2'
         self.name: str = '多行文本输入框'
         self.info: str = '简单多行文本输入框'
 

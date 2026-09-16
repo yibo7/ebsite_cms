@@ -27,11 +27,14 @@ def get_table_html(data_source, btn_actions=None, show_selbox: bool = True, sel_
         tr_item = []
         int_id_value = ""
         g_id_value = ""
+        g_type_value = ""
 
         if hasattr(item, 'id'):
             int_id_value = item.id
         if hasattr(item, '_id'):
             g_id_value = item._id
+        if hasattr(item, 'type'):
+            g_type_value = item.type
 
         for title in item.get_titles():
             tr_item.append(title.get('value'))
@@ -43,12 +46,14 @@ def get_table_html(data_source, btn_actions=None, show_selbox: bool = True, sel_
         opt_html = ""
         if btn_actions:
             for btn in btn_actions:
-                cf = "onclick=\"return confirm('确认要执行吗？');\"" if btn["confirm"] else ""
-                opt_html = f"{opt_html} <a href=\"{btn['url']}\" {cf} class='btn btn-info btn-sm' >{btn['show_name']}</a>"
+                cf = "onclick=\"return confirm('确认要执行吗？');\"" if btn.get("confirm") else ""
+                target = f" target=\"{btn['target']}\"" if btn.get("target") else ""
+                opt_html = f"{opt_html} <a href=\"{btn['url']}\" {cf}{target} class='btn btn-info btn-sm' >{btn['show_name']}</a>"
 
         if opt_html:
             opt_html = opt_html.replace("#id#", str(int_id_value))
             opt_html = opt_html.replace("#_id#", str(g_id_value))
+            opt_html = opt_html.replace("#type#", str(g_type_value))
             tr_item.append(opt_html)
         if show_selbox:
             check_tag = ''

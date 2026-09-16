@@ -1,85 +1,264 @@
 {% extends 'base_admin.html' %}
 {% block content %}
-<div style="background-color: #142131" class="container-fluid">
-        <header class="d-flex flex-wrap justify-content-between  py-2">
+<style>
+.login-wrapper {
+    min-height: 100vh;
+    background: #1d4ed8;
+    display: flex;
+    flex-direction: column;
+}
 
-            <div class="container">
-            <header class="d-flex flex-wrap justify-content-between py-2">
-                <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto" href="/">
-                    <i  class="fa fa-location-arrow fa-2x logotext"></i>
-                    &nbsp;<span class="logotext fs-4">EBSITE</span>
-                </a>
+.login-header {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
 
-                <div>
-                    <ul id="indexnav" class="nav nav-pills">
-                         <li class="nav-item" >
-                           <a href="/" class="nav-link "> 首 页 </a>
+.login-header .logotext {
+    color: #3b82f6;
+    font-weight: 700;
+}
+
+.login-header .nav-pills .nav-link {
+    color: rgba(255,255,255,0.75);
+    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.login-header .nav-pills .nav-link:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+}
+
+.login-card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.login-box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 420px;
+    padding: 40px 36px 32px;
+    animation: loginFadeIn 0.5s ease;
+}
+
+@keyframes loginFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-box .boxheader {
+    padding: 0 0 24px 0;
+    border-bottom: none;
+    text-align: center;
+}
+
+.login-box .boxheader h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.login-box .boxheader p {
+    color: #888;
+    font-size: 14px;
+    margin-top: 6px;
+    margin-bottom: 0;
+}
+
+.login-box .eb-content {
+    padding: 0;
+}
+
+.login-box .form-label {
+    font-weight: 500;
+    color: #444;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.login-box .form-control {
+    height: 44px;
+    border-radius: 8px;
+    border: 1.5px solid #e0e0e0;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: all 0.25s ease;
+    background: #fafafa;
+}
+
+.login-box .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    background: #fff;
+}
+
+.login-box .btn-primary {
+    height: 44px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    background: #3b82f6;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.35);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.login-box .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(59,130,246,0.45);
+    transform: translateY(-1px);
+    background: #2563eb;
+}
+
+.login-box .btn-primary:active {
+    transform: translateY(0);
+}
+
+.login-box .alert {
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+.login-box .alert-danger {
+    background: #fff2f0;
+    border: 1px solid #ffccc7;
+    color: #cf1322;
+}
+
+.login-box .imgcode {
+    border-radius: 8px;
+    overflow: hidden;
+    height: 44px;
+}
+
+.login-box .imgcode img {
+    height: 44px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.login-footer {
+    text-align: center;
+    padding: 20px;
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+}
+
+.login-footer a {
+    color: rgba(255,255,255,0.5);
+    transition: color 0.2s ease;
+}
+
+.login-footer a:hover {
+    color: rgba(255,255,255,0.8);
+}
+
+.login-box .form-check-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #3b82f6;
+}
+</style>
+
+<div class="login-wrapper">
+    <div class="container login-header">
+        <header class="d-flex flex-wrap justify-content-between py-2">
+            <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto" href="/">
+                <i class="fa fa-location-arrow fa-2x logotext"></i>
+                &nbsp;<span class="logotext fs-4">EBSITE</span>
+            </a>
+            <div>
+                <ul id="indexnav" class="nav nav-pills">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">首 页</a>
+                    </li>
+                    {% if g.user_gid %}
+                        <li class="nav-item">
+                            <a href="/user/index" class="nav-link">用户中心</a>
                         </li>
-                        {% if g.user_gid %}
-                            <li class="nav-item" >
-                                <a href="/user/index" class="nav-link "> 用户中心 </a>
-                            </li>
-                        {%else%}
-                            <li class="nav-item" >
-                               <a href="/login" class="nav-link "> 登 录 </a>
-                            </li>
-                            <li class="nav-item" >
-                                <a href="/reg" class="nav-link "> 注 册 </a>
-                            </li>
-                        {%endif%}
-                    </ul>
-                </div>
+                    {% else %}
+                        <li class="nav-item">
+                            <a href="/login" class="nav-link">登 录</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/reg" class="nav-link">注 册</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </header>
+    </div>
 
-            </header>
-        </div>
-
-       </header>
-</div>
-<div style="max-width: 500px" class="row cbrowbox">
-    <div class="col-sm-12 col-md-12 ">
-        <div class="boxheader headertips">
-                <h3>管理员登录</h3>
+    <div class="login-card">
+        <div class="login-box">
+            <div class="boxheader">
+                <h3><i class="fa fa-shield" style="color:#3b82f6;margin-right:8px;"></i>管理员登录</h3>
+                <p>请输入您的管理账号信息</p>
             </div>
             <div class="eb-content">
-
                 <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label class="form-label" for="username">管理账号</label>
-                        <input class="form-control" id="username" name="username" minlength="3" required>
+                    <div class="mb-4">
+                        <label class="form-label" for="username">
+                            <i class="fa fa-user" style="margin-right:4px;color:#3b82f6;"></i>管理账号
+                        </label>
+                        <input class="form-control" id="username" name="username" placeholder="请输入管理账号" minlength="3" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="pass">密 码</label>
-                        <input type="password" class="form-control" id="pass" name="pass" placeholder="密码" minlength="6" required>
+                    <div class="mb-4">
+                        <label class="form-label" for="pass">
+                            <i class="fa fa-lock" style="margin-right:4px;color:#3b82f6;"></i>密 码
+                        </label>
+                        <input type="password" class="form-control" id="pass" name="pass" placeholder="请输入密码" minlength="6" required>
                     </div>
-                    {%if is_safe_code %}
-                        <div class="row">
-                            <label class="form-label" >验证码</label>
-                            <div class="col-sm-8">
-                                <input type="text" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" required/>
+                    {% if is_safe_code %}
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="fa fa-shield" style="margin-right:4px;color:#3b82f6;"></i>验证码
+                        </label>
+                        <div class="row g-2">
+                            <div class="col-7">
+                                <input type="text" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" placeholder="输入验证码" required/>
                             </div>
-                            <div class="col-sm-4">
-                              <img  onClick="this.src+=Math.random()" src="/imgcode?" style="cursor: pointer;" />
+                            <div class="col-5">
+                                <div class="imgcode">
+                                    <img onClick="this.src+=Math.random()" src="/imgcode?" style="cursor: pointer;height:44px;width:100%;object-fit:cover;" />
+                                </div>
                             </div>
-                          </div>
-                    {%endif%}
-                    <br><br>
-                    <button class="btn btn-primary" style="width: 120px;" type="submit">  登  录 </button>
-                    <br><br>
-                    {%if err %}
-                     <div class="alert alert-danger" role="alert">
-                         {{err}}
                         </div>
-                    {%endif%}
+                    </div>
+                    {% endif %}
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-sign-in" style="margin-right:6px;"></i>登 录
+                    </button>
+                    {% if err %}
+                    <div class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                        <i class="fa fa-exclamation-circle" style="margin-right:8px;"></i>
+                        <span>{{err}}</span>
+                    </div>
+                    {% endif %}
                 </form>
-
-
             </div>
+        </div>
     </div>
-</div>
-<div>
-    <div style="text-align: center; padding: 20px;">
-        @2009 okx Inc. All rights reserved Powered by <a target="_blank" href="#">okx</a>
-    </div>
-</div>
 
+    <div class="login-footer">
+        <div>&copy; 2009 okx Inc. All rights reserved. Powered by <a target="_blank" href="#">okx</a></div>
+    </div>
+</div>
 {% endblock %}

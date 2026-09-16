@@ -92,3 +92,4 @@ def module_init(app: Flask, model: ModuleInfo):
 
 from . import atq_pages
 from . import atq_apis
+from .atq_controls import score_type_select

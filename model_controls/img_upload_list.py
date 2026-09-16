@@ -5,7 +5,7 @@ class ImgUploadList(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 7
+        self.id: str = 'sys_7'
         self.name: str = '多图上传控件'
         self.info: str = '多图上传控件'
 

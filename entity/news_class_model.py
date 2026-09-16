@@ -52,7 +52,7 @@ class NewsClassModel(ModelBase):
 
     @annotation("分类数据")
     def c_id(self):
-        return f'<a href="content_list?cid={self._id}">查看数据<a/>'
+        return f'<a href="content_list?cid={self._id}" class="btn btn-info btn-sm">查看数据</a>'
 
     @annotation("排序ID")
     def d_order_id(self):

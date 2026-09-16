@@ -74,7 +74,7 @@ def model_fields():
         dict_prams = http_helper.get_prams_dict()
 
         ctr_id = dict_prams.get('control_id')
-        control = bll.get_control_by_id(int(ctr_id))
+        control = bll.get_control_by_id(ctr_id)
         dict_prams['control_name'] = control.name  # 获取控件的名称
         field_model = FieldModel(**dict_prams)
         is_ok = bll.save_fields(model, field_model,field_name)

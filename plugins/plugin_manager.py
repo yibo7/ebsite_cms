@@ -1,7 +1,8 @@
-from typing import Tuple
+from typing import Tuple, Union
 
 import eb_utils.flask_utils
 from bll.send_msg_data import SendMsgData
+from entity.file_model import FileModel
 from plugins.plugin_base import PluginBase, SMSSender, EmailSender, Uploader, OpenLoginBase, SearchBase, PaymentBase
 from temp_expand import reg_temp_expand
 
@@ -144,4 +145,17 @@ class PluginManager:
         provider = self.get_by_id(uploader_id)
         if provider:
             return provider.upload(fileb_bytes, model)
-        return False, '找不到相应的邮件发送插件！'
+        return False, '找不到相应的上传插件！'
+
+    def readfile(self, model: FileModel) -> Tuple[bool, Union[bytes, str, None]]:
+        """
+        通过当前文件对应的上传插件读取文件内容
+        :param model: 文件模型（从数据库查出）
+        :return: (True, bytes) 代理输出；
+                 (True, 'redirect:https://...') 重定向；
+                 (False, 错误信息)
+        """
+        provider = self.get_by_id(model.plugin_id)
+        if provider:
+            return provider.read(model)
+        return False, '找不到对应的上传插件！'

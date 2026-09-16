@@ -22,8 +22,9 @@ def class_list():
     del_btn = {"show_name": "删除", "url": "class_list_del?ids=#_id#", "confirm": True}
     modify_btn = {"show_name": "修改", "url": "class_list_save?_id=#_id#", "confirm": False}
     add_content_btn = {"show_name": "添加内容", "url": "content_list_save?cid=#_id#", "confirm": False}
+    copy_btn = {"show_name": "复制", "url": "class_list_copy?_id=#_id#", "confirm": True}
 
-    table_html = get_table_html(data_list, [del_btn, modify_btn,add_content_btn])
+    table_html = get_table_html(data_list, [del_btn, modify_btn, add_content_btn, copy_btn])
 
     return render_template(WebPaths.get_admin_path("news_class/class_list.html"), table_html=table_html)
 
@@ -75,7 +76,34 @@ def class_list_save():
 
 @admin_blue.route('class_list_del', methods=['GET', 'POST'])
 def class_list_del():
-    NewsClass().delete_from_page(http_helper.get_prams("ids"))
+    ids_str = http_helper.get_prams("ids")
+    if ids_str:
+        bll = NewsClass()
+        ids = ids_str.split(',')
+        if 'on' in ids:
+            ids.remove('on')
+
+        # 递归收集所有子孙分类 ID，一并删除
+        all_ids = set(ids)
+        for _id in list(all_ids):
+            sub_ids = bll.get_all_descendant_ids(_id)
+            all_ids.update(sub_ids)
+
+        bll.delete_by_ids(list(all_ids))
+    return redirect("class_list")
+
+
+@admin_blue.route('class_list_copy', methods=['GET'])
+def class_list_copy():
+    _id = http_helper.get_prams('_id')
+    if _id:
+        bll = NewsClass()
+        model = bll.find_one_by_id(_id)
+        if model:
+            model._id = None
+            model.id = None
+            model.class_name = model.class_name + "-Copy"
+            bll.save_class(model)
     return redirect("class_list")
 
 

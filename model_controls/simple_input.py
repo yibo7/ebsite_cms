@@ -5,7 +5,7 @@ class SimpleInput(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 1
+        self.id: str = 'sys_1'
         self.name: str = '单行文本输入框-必填'
         self.info: str = '简单单行文本输入框'
 

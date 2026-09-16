@@ -15,16 +15,16 @@ class SiteModel(BllBase[SiteModelEntity]):
     def _get_default_fields(self,model:SiteModelEntity):
         fields: list[dict] = []
         if model.type_id == 1:
-            field = FieldModel(name='title', show_name='标题', control_id='1', control_name='单行文本输入框',
+            field = FieldModel(name='title', show_name='标题', control_id='sys_1', control_name='单行文本输入框',
                                control_size='3')
             fields.append(field.__dict__)
 
-            field = FieldModel(name='info', show_name='内容', control_id='2', control_name='多行文本输入框',
+            field = FieldModel(name='info', show_name='内容', control_id='sys_2', control_name='多行文本输入框',
                                control_size='5')
             fields.append(field.__dict__)
 
         elif model.type_id == 2:
-            field = FieldModel(name='info', show_name='分类简介', control_id='2', control_name='多行文本输入框',
+            field = FieldModel(name='info', show_name='分类简介', control_id='sys_2', control_name='多行文本输入框',
                                control_size='5')
             fields.append(field.__dict__)
 
@@ -114,14 +114,24 @@ class SiteModel(BllBase[SiteModelEntity]):
 
         # 创建一个列表来存储所有子类的实例
         instances = []
+        seen_ids = {}
         # 遍历所有子类，并为每个子类创建一个实例
         for subclass in subclasses:
             instance = subclass()
+            ctr_id = instance.id
+            if ctr_id in seen_ids:
+                raise Exception(
+                    f"模型控件ID冲突：'{seen_ids[ctr_id].__class__.__name__}' "
+                    f"和 '{instance.__class__.__name__}' "
+                    f"都使用了 ID='{ctr_id}'。\n"
+                    f"请确保每个控件的 id 全局唯一（格式：模块名_序号，如 sys_1、aitanqin_1、eb_shop_1）。"
+                )
+            seen_ids[ctr_id] = instance
             instances.append(instance)
         return instances
 
     @staticmethod
-    def get_control_by_id(ctr_id: int) -> ControlBase:
+    def get_control_by_id(ctr_id: str) -> ControlBase:
         ctrs = SiteModel.get_controls()
         # result = [item for item in ctrs if item.value == ctr_id]
         result = [item for item in ctrs if item.id == ctr_id]
@@ -183,7 +193,7 @@ class SiteModel(BllBase[SiteModelEntity]):
             return ""
         a_html = []
         for field in model.fields:
-            control_id = int(field.get('control_id'))
+            control_id = field.get('control_id')
             ctr_instance = SiteModel.get_control_by_id(control_id)
             if ctr_instance:
                 a_html.append(ctr_instance.get_control_temp(field))

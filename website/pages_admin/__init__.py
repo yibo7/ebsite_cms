@@ -240,7 +240,8 @@ def files():
     datas, pager = bll.search_content(keyword, plugin_id, page_index)
 
     del_btn = {"show_name": "删除", "url": "files_del?ids=#_id#", "confirm": True}
-    table_html = get_table_html(datas, [del_btn])
+    visit_btn = {"show_name": "访问", "url": "/api/file/#_id##type#", "confirm": False, "target": "_blank"}
+    table_html = get_table_html(datas, [del_btn, visit_btn])
 
     return render_template(WebPaths.get_admin_path("configs/files.html"),table_html=table_html,pager=pager, uploaders=uploaders)
 

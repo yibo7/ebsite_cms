@@ -1,36 +1,150 @@
 {% extends 'base_admin.html' %}
 {% block content %}
- 
-<div style="max-width: 500px" class="row cbrowbox">
-    <div class="col-sm-12 col-md-12 ">
-        <div style="padding-bottom: 20px !important; display: block;" class="boxheader">
-            <h3>初始化默认数据</h3>
-            检测到某些表不存在，你可在此页面还原这些表及演示数据  <a class="text-success" href="/">返回首页</a>
-            
+
+<style>
+.setup-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.setup-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 520px;
+    overflow: hidden;
+}
+
+.setup-card .boxheader {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.setup-card .boxheader .icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #fff7e6, #ffe7ba);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #fa8c16;
+    flex-shrink: 0;
+}
+
+.setup-card .boxheader h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.setup-card .boxheader .hint {
+    font-size: 13px;
+    color: #999;
+    margin-top: 4px;
+}
+
+.setup-card .eb-content {
+    padding: 24px 28px 28px;
+}
+
+.setup-card .btn-primary {
+    height: 44px;
+    padding: 0 32px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: #3b82f6;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    transition: all 0.3s;
+}
+
+.setup-card .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    transform: translateY(-1px);
+    background: #2563eb;
+}
+
+.setup-card .alert {
+    border-radius: 8px;
+    font-size: 13px;
+    margin: 0;
+}
+
+.setup-card .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #52c41a;
+    font-weight: 500;
+    font-size: 13px;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.setup-card .back-link:hover {
+    color: #73d13d;
+}
+</style>
+
+<div class="setup-wrapper">
+    <div class="setup-card">
+        <div class="boxheader">
+            <div class="icon-wrap">
+                <i class="fa fa-database"></i>
+            </div>
+            <div>
+                <h3>初始化默认数据</h3>
+                <div class="hint">检测到某些表不存在，你可在此页面还原这些表及演示数据</div>
+            </div>
         </div>
         <div class="eb-content">
             {% if is_allow %}
             <form action="{{request.full_path}}" method="post" onsubmit='return post_confirm()' class="needs-validation" novalidate>
-                <button class="btn btn-primary" style="width: 120px;" type="submit">  初始化数据 </button>
+                <p style="color:#666;font-size:13px;margin-bottom:20px;line-height:1.6;">
+                    <i class="fa fa-info-circle" style="color:#3b82f6;margin-right:4px;"></i>
+                    点击下方按钮将初始化系统所需的默认数据表及演示数据。
+                </p>
+                <button class="btn btn-primary" type="submit">
+                    <i class="fa fa-rocket" style="margin-right:6px;"></i>初始化数据
+                </button>
+                <div class="mt-3">
+                    <a class="back-link" href="/">
+                        <i class="fa fa-arrow-left"></i> 返回首页
+                    </a>
+                </div>
             </form>
-            {%else%}
-              <div class="alert alert-danger" role="alert">
-                   当前不允许初始化数据！
-              </div>
-            {%endif%}
-            <br>
+            {% else %}
+            <div class="alert alert-danger d-flex align-items-center" role="alert">
+                <i class="fa fa-exclamation-triangle" style="margin-right:8px;font-size:16px;"></i>
+                <span>当前不允许初始化数据！</span>
+            </div>
+            <div class="mt-3">
+                <a class="back-link" href="/">
+                    <i class="fa fa-arrow-left"></i> 返回首页
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
- <script>
+
+<script>
     function post_confirm(){
         if(confirm("确定要初始化数据吗？")){
             blockTips("提交中...");
             return true;
         }
         return false;
-        
     }
- </script>
+</script>
 
 {% endblock %}

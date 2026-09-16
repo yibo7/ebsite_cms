@@ -5,7 +5,7 @@ class HtmlInput(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 3
+        self.id: str = 'sys_3'
         self.name: str = '富文本编辑框'
         self.info: str = '富文本编辑框'
 

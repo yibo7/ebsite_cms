@@ -17,6 +17,8 @@ class FileModel(ModelBase):
         self.id: int = 0
         self.plugin_id:str=""
         self.plugin_name: str = ""
+        self.user_id: str = ""
+        self.user_name: str = ""
 
     # 如下配置，需要在表格中显示的列,命名[a-z]是为了排序用：
 
@@ -47,6 +49,10 @@ class FileModel(ModelBase):
     @annotation("上传插件")
     def f_plugin_id(self):
         return self.plugin_name
+
+    @annotation("上传者")
+    def g_user_name(self):
+        return self.user_name
 
     @annotation("上传时间|to_time_name")
     def n_add_time(self):

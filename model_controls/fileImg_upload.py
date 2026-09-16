@@ -5,7 +5,7 @@ class FileImgUpload(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 9
+        self.id: str = 'sys_9'
         self.name: str = '单图上传-显示路径'
         self.info: str = '单图上传-显示路径'
 

@@ -4,86 +4,275 @@
 {% endblock %}
 
 {% block content %}
-<div  class="d-lg-none" style="height:50px;"></div>
-        <main>
-        <!-- Hero area Start-->
-        <div class="hero-area section-bg2">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-12">
-                        <div class="slider-area">
-                            <div class="slider-height2 slider-bg4 d-flex align-items-center justify-content-center">
-                                <div class="hero-caption hero-caption2">
-                                    <h2>{{ model.class_name }}</h2>
-                                    <nav aria-label="breadcrumb">
-                                        <ol class="breadcrumb justify-content-center">
-                                            <li class="breadcrumb-item"><a href="/">Home</a></li>
-                                            <li class="breadcrumb-item"><a href="{{ model.get_url() }}">{{ model.class_name }}</a></li>
-                                        </ol>
-                                    </nav>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+ <section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>/</span>
+      <span>产品中心</span>
+    </div>
+    <h1>复印机<span>感光鼓芯</span>全系列</h1>
+    <p>覆盖佳能、东芝、柯尼卡、京瓷、施乐、夏普、理光、三星等 8 大品牌，上千种型号一站式采购，出货前 100% 全检。</p>
+
+  </div>
+</section>
+
+<!-- ===== 主体：侧边栏 + 产品列表 ===== -->
+<div class="container">
+  <div class="shop-layout">
+
+    <!-- ---------- 桌面端固定筛选侧边栏（≤820px 隐藏） ---------- -->
+    <aside class="sidebar" id="desktopSidebar">
+      <div class="sidebar-head">
+        <h3>🔍 筛选条件</h3>
+        <button class="sidebar-reset" onclick="resetFilters()">重置</button>
+      </div>
+
+      <!-- 品牌 -->
+      <div class="filter-group">
+        <div class="filter-title">
+          品牌
         </div>
-        <div class="listing-area pt-50 pb-50">
-            <div class="container">
-                <div class="row">
-                    <div class="col-xl-3 col-lg-4 col-md-4">
-                        <div class="category-listing mb-50 taglist">
-                            {{ widget("6852ca7e9d0e112569a8cc00") }}
-                        </div>
-                    </div>
-                    <!-- Right content -->
-                    <div class="col-xl-9 col-lg-8 col-md-8">
-                        <div class="latest-items latest-items2">
-                            <div class="row">
-                                {%  if data_list %}
-                                <div  class="list-group">
-                                    {% for item in data_list%}
-
-                                        <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
-                                            <div class="properties pb-30">
-                                                <div class="properties-card">
-                                                    <div class="properties-img">
-                                                        <a href="{{item.get_url()}}"><img src="{{ item.small_pic }}" alt=""></a>
-{#                                                        <div class="socal_icon">#}
-{#                                                            <a href="#"><i class="ti-shopping-cart"></i></a>#}
-{#                                                            <a href="#"><i class="ti-heart"></i></a>#}
-{#                                                            <a href="#"><i class="ti-zoom-in"></i></a>#}
-{#                                                        </div>#}
-                                                    </div>
-                                                    <div class="properties-caption properties-caption2">
-                                                        <h3><a href="{{item.get_url()}}">{{item.title}}</a></h3>
-{#                                                        <div class="properties-footer">#}
-{#                                                            <div class="price">#}
-{#                                                                <span>$98.00 <span>$120.00</span></span>#}
-{#                                                            </div>#}
-{#                                                        </div>#}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    {% endfor %}
-                                </div>
-
-                                {% else %}
-                                    <div class="p-5 text-center">暂无数据</div>
-                                {% endif %}
-
-                                {% include 'loading_more.html' %}
-                                {{pager}}
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="filter-list">
+          <label class="filter-item"> 佳能 <span class="count">320</span></label>
+          <label class="filter-item"> 东芝 <span class="count">185</span></label>
+          <label class="filter-item"> 柯尼卡 <span class="count">142</span></label>
+          <label class="filter-item"> 京瓷 <span class="count">98</span></label>
+          <label class="filter-item"> 施乐 <span class="count">76</span></label>
+          <label class="filter-item"> 夏普 <span class="count">88</span></label>
+          <label class="filter-item"> 理光 <span class="count">105</span></label>
+          <label class="filter-item"> 三星 <span class="count">56</span></label>
         </div>
-        <!-- listing-area Area End -->
+      </div>
+
+      <!-- 类型 -->
+      <div class="filter-group">
+        <div class="filter-title"  >
+          型号
+        </div>
+        <div class="filter-list">
+          <label class="filter-item"> 原厂</label>
+          <label class="filter-item"> OEM</label>
+          <label class="filter-item"> 新都</label>
+          <label class="filter-item"> 原色/绿色</label>
+        </div>
+      </div>
+
+
+    </aside>
+
+    <!-- ---------- 内容区 ---------- -->
+    <main class="content-area">
+
+      <!-- 工具栏 -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <!-- 移动端筛选按钮（打开 Bootstrap Offcanvas） -->
+          <button class="filter-toggle-mobile" type="button" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas" aria-controls="filterOffcanvas">
+            ☰ 筛选条件
+          </button>
+          <span class="result-count">产品列表</span>
+          <div class="active-filters" id="activeFilters"></div>
+        </div>
+      </div>
+
+      <!-- 产品网格 -->
+      <div class="product-grid" id="productGrid">
+
+        <!-- 产品 1 -->
+        <div class="product-card" data-brand="佳能" data-type="原色/绿色" data-life="50000" data-price="20" data-stock="in" data-newest="1">
+          <div class="product-thumb"><span class="badge hot">热销</span><img src="images/GX-C220-039/2.jpg" alt="佳能 IR1730 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IR1730 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IR1730</span>
+              <span class="tag green">原色/绿色</span>
+              <span class="tag gray">寿命 5 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥20.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 2 -->
+        <div class="product-card" data-brand="佳能" data-type="原色/绿色" data-life="40000" data-price="20" data-stock="in" data-newest="2">
+          <div class="product-thumb"><img src="images/GX-C220-038/1.jpg" alt="佳能 IR1435 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IR1435 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IR1435</span>
+              <span class="tag green">原色/绿色</span>
+              <span class="tag gray">寿命 4 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥20.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 3 -->
+        <div class="product-card" data-brand="佳能" data-type="原厂" data-life="80000" data-price="23" data-stock="in" data-newest="3">
+          <div class="product-thumb"><img src="images/GX-BH1050-049/1.jpg" alt="佳能 IR2016 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IR2016 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IR2016</span>
+              <span class="tag">原厂</span>
+              <span class="tag gray">寿命 8 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥23.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 4 -->
+        <div class="product-card" data-brand="佳能" data-type="原厂" data-life="80000" data-price="28" data-stock="in" data-newest="4">
+          <div class="product-thumb"><img src="images/GX-AR310-091/1.jpg" alt="佳能 IR2270 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IR2270 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IR2270</span>
+              <span class="tag">原厂</span>
+              <span class="tag gray">寿命 8 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥28.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 5 -->
+        <div class="product-card" data-brand="佳能" data-type="原厂" data-life="80000" data-price="28" data-stock="in" data-newest="5">
+          <div class="product-thumb"><span class="badge new">新品</span><img src="images/GX-AF1013-115/1.jpg" alt="佳能 IR2525 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IR2525 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IR2525</span>
+              <span class="tag">原厂</span>
+              <span class="tag gray">寿命 8 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥28.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 6 -->
+        <div class="product-card" data-brand="佳能" data-type="OEM" data-life="30000" data-price="12" data-stock="in" data-newest="6">
+          <div class="product-thumb"><img src="images/GX-BH283-036/1.jpg" alt="佳能 IR1018 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IR1018 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IR1018</span>
+              <span class="tag gray">OEM</span>
+              <span class="tag gray">寿命 3 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥12.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 7 -->
+        <div class="product-card" data-brand="佳能" data-type="新都" data-life="80000" data-price="31" data-stock="in" data-newest="7">
+          <div class="product-thumb"><img src="images/GX-C200-037/1.jpg" alt="佳能 IRC5540 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 IRC5540 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">IRC5540</span>
+              <span class="tag">新都</span>
+              <span class="tag gray">寿命 8 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥31.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 产品 8 -->
+        <div class="product-card" data-brand="佳能" data-type="新都" data-life="80000" data-price="31" data-stock="in" data-newest="8">
+          <div class="product-thumb"><img src="images/GX-BH920-050/1.avif" alt="佳能 iRC5030 鼓芯"></div>
+          <div class="product-body">
+            <div class="product-brand">佳能 Canon</div>
+            <h3>佳能 iRC5030 鼓芯</h3>
+            <div class="product-tags">
+              <span class="tag">iRC5030</span>
+              <span class="tag">新都</span>
+              <span class="tag gray">寿命 8 万页</span>
+            </div>
+            <div class="product-foot">
+              <span class="product-price">¥31.00 <small>/ 支</small></span>
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" onclick="this.textContent='已加入 ✓'">加入询价</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 空状态（默认隐藏） -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">🔍</div>
+        <h3>没有找到匹配的产品</h3>
+        <p>试试调整筛选条件，或直接联系我们获取完整产品目录。</p>
+        <button class="btn" onclick="resetFilters()">清空筛选条件</button>
+      </div>
+
+      <!-- 分页 -->
+      <div class="pagination" id="pagination">
+        <button class="page-btn" disabled>‹</button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span class="page-dots">…</span>
+        <button class="page-btn">12</button>
+        <button class="page-btn">›</button>
+      </div>
+
     </main>
-
+  </div>
+</div>
+<script>
+    let cid = {{model.id}};
+</script>
+<script src="/ui_js/products.js"></script>
 {% endblock %}

@@ -56,7 +56,20 @@ def special_list_save():
 
 @admin_blue.route('special_list_del', methods=['GET', 'POST'])
 def special_list_del():
-    NewsSpecial().delete_from_page(http_helper.get_prams("ids"))
+    ids_str = http_helper.get_prams("ids")
+    if ids_str:
+        bll = NewsSpecial()
+        ids = ids_str.split(',')
+        if 'on' in ids:
+            ids.remove('on')
+
+        # 递归收集所有子专题 ID，一并删除
+        all_ids = set(ids)
+        for _id in list(all_ids):
+            sub_ids = bll.get_all_descendant_ids(_id)
+            all_ids.update(sub_ids)
+
+        bll.delete_by_ids(list(all_ids))
     return redirect("special_list")
 
 

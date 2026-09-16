@@ -1,157 +1,252 @@
 {% extends 'base_admin.html' %}
 {% block content %}
 
-<div class="row eb-box">
-    <div class="col-sm-12 col-md-12 ">
+<style>
+.settings-wrapper {
+    padding: 24px;
+}
+
+.settings-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: hidden;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.settings-card .boxheader {
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-card .boxheader h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.settings-card .boxheader h3 i {
+    color: #3b82f6;
+}
+
+.settings-card .content {
+    padding: 24px 28px 28px;
+}
+
+.settings-card .form-label {
+    font-weight: 500;
+    color: #444;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.settings-card .form-control,
+.settings-card select.form-control {
+    border-radius: 6px;
+    border: 1.5px solid #e0e0e0;
+    padding: 8px 12px;
+    font-size: 13px;
+    transition: all 0.25s ease;
+    background: #fafafa;
+    max-width: 400px;
+}
+
+.settings-card .form-control:focus,
+.settings-card select.form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    background: #fff;
+}
+
+.settings-card .input-group {
+    max-width: 400px;
+}
+
+.settings-card .input-group .btn {
+    border-radius: 0 6px 6px 0;
+}
+
+.settings-card .btn-primary {
+    height: 40px;
+    padding: 0 28px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: #3b82f6;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    transition: all 0.3s;
+    margin-top: 8px;
+}
+
+.settings-card .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    transform: translateY(-1px);
+    background: #2563eb;
+}
+
+.settings-card .mb-3 {
+    margin-bottom: 20px !important;
+}
+</style>
+
+<div class="settings-wrapper">
+    <div class="settings-card">
         <div class="block-flat">
             <div class="boxheader">
+                <i class="fa fa-cog fa-lg" style="color:#3b82f6;"></i>
                 <h3>系统设置</h3>
             </div>
             <div class="content">
-
                 <form method="post" action="{{request.path}}">
                     <div class="mb-3">
-                        <label>网站名称</label>
+                        <label class="form-label"><i class="fa fa-globe" style="color:#3b82f6;margin-right:4px;"></i>网站名称</label>
                         <input placeholder="网站的名称" name="site_name" value="{{model.site_name}}" style="max-width:500px" class="form-control" required>
                         <div class="invalid-feedback">请输入网站名称。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>首页面缓存时间(单位秒，0表示不缓存)</label>
-                        <input type="number" name="index_cache_time" value="{{model.index_cache_time}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-clock-o" style="color:#3b82f6;margin-right:4px;"></i>首页面缓存时间（单位秒，0表示不缓存）</label>
+                        <input type="number" name="index_cache_time" value="{{model.index_cache_time}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
-
 
                     <div class="mb-3">
-                        <label>后台错误登录几次锁定</label>
-                        <input type="number" placeholder="登录超出会锁定" name="err_login_lock" value="{{model.err_login_lock}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-lock" style="color:#fa8c16;margin-right:4px;"></i>后台错误登录几次锁定</label>
+                        <input type="number" placeholder="登录超出会锁定" name="err_login_lock" value="{{model.err_login_lock}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
-
-
-                    <div class="mb-3 mt-3">
-                        <label>默认注册用户组</label>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa fa-users" style="color:#52c41a;margin-right:4px;"></i>默认注册用户组</label>
                         <select name="reg_group_id" style="max-width:300px" class="form-control">
                             {{build_sel_item(group,'_id','name',model.reg_group_id)}}
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label>注册赠送积分</label>
-                        <input type="number" placeholder="注册成功才会赠送" name="reg_credits" value="{{model.reg_credits}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-star" style="color:#faad14;margin-right:4px;"></i>注册赠送积分</label>
+                        <input type="number" placeholder="注册成功才会赠送" name="reg_credits" value="{{model.reg_credits}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>前端列表分页（每页显示数条）</label>
-                        <input type="number"  name="list_page_size" value="{{model.list_page_size}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-list" style="color:#3b82f6;margin-right:4px;"></i>前端列表分页（每页显示数条）</label>
+                        <input type="number" name="list_page_size" value="{{model.list_page_size}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>最大分页页码数</label>
-                        <input type="number" name="max_page_num" value="{{model.max_page_num}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-list-ol" style="color:#3b82f6;margin-right:4px;"></i>最大分页页码数</label>
+                        <input type="number" name="max_page_num" value="{{model.max_page_num}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>计数缓存时间(秒)</label>
-                        <input type="number" name="count_cache_ttl" value="{{model.count_cache_ttl}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-hourglass-half" style="color:#3b82f6;margin-right:4px;"></i>计数缓存时间（秒）</label>
+                        <input type="number" name="count_cache_ttl" value="{{model.count_cache_ttl}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>最大搜索总数</label>
-                        <input type="number" name="max_search_total" value="{{model.max_search_total}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-search" style="color:#3b82f6;margin-right:4px;"></i>最大搜索总数</label>
+                        <input type="number" name="max_search_total" value="{{model.max_search_total}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>搜索缓存时间(秒)</label>
-                        <input type="number" name="search_cache_ttl" value="{{model.search_cache_ttl}}" style="max-width:100px" class="form-control" required>
+                        <label class="form-label"><i class="fa fa-clock-o" style="color:#fa8c16;margin-right:4px;"></i>搜索缓存时间（秒）</label>
+                        <input type="number" name="search_cache_ttl" value="{{model.search_cache_ttl}}" style="max-width:120px" class="form-control" required>
                         <div class="invalid-feedback">请输入整数值。</div>
                     </div>
 
                     <div class="mb-3">
-                        <label>
-                            <input name="is_open_safe_code" type="checkbox" {{ "checked" if model.is_open_safe_code }} >是否开启验证码
+                        <label class="form-label">
+                            <input name="is_open_safe_code" type="checkbox" {{ "checked" if model.is_open_safe_code }} style="margin-right:6px;">是否开启验证码
                             <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="is_open_safe_code" value="checkbox_unchecked">
                         </label>
-                        <span class="text-danger"></span>
                     </div>
+
                     <div class="mb-3">
-                        <label>
-                            <input name="login_force_verify" type="checkbox" {{ "checked" if model.login_force_verify }} >登录强制Email或手机号验证
+                        <label class="form-label">
+                            <input name="login_force_verify" type="checkbox" {{ "checked" if model.login_force_verify }} style="margin-right:6px;">登录强制Email或手机号验证
                             <input type="hidden" title="checkbox未选提交辅助控件，只能放在同名checkbox下面" name="login_force_verify" value="checkbox_unchecked">
                         </label>
-                        <span class="text-danger"></span>
                     </div>
+
                     <div class="mb-3">
-                        <label>主题与皮肤（需要重启系统）</label>
+                        <label class="form-label"><i class="fa fa-paint-brush" style="color:#eb2f96;margin-right:4px;"></i>主题与皮肤（需要重启系统）</label>
                         <select name="theme_name" style="max-width:300px" class="form-control">
                              {% for item in theme_names %}
                                 <option value="{{ item }}" {% if item == theme_selected %}selected{% endif %}>{{ item }}</option>
                             {% endfor %}
                         </select>
                     </div>
+
                     <div class="mb-3">
-                        <label>首页模板</label>
-                        <input type="text" style="width: 200px;"  name="index_temp_path" value="{{model.index_temp_path}}"  class="form-control" required>
+                        <label class="form-label"><i class="fa fa-file-code-o" style="color:#3b82f6;margin-right:4px;"></i>首页模板</label>
+                        <input type="text" style="max-width:300px;" name="index_temp_path" value="{{model.index_temp_path}}" class="form-control" required>
                         <div class="invalid-feedback">首页模板文件名称不能为空。</div>
                     </div>
+
                     <div class="mb-3">
-                        <label>文件上传插件</label>
-                         <select name="uploader_id" style="max-width:300px" class="form-control">
+                        <label class="form-label"><i class="fa fa-upload" style="color:#52c41a;margin-right:4px;"></i>文件上传插件</label>
+                        <select name="uploader_id" style="max-width:300px" class="form-control">
                             {{build_sel_item(uploaders,'id','name',model.uploader_id)}}
                         </select>
                     </div>
-                     <div class="mb-3">
-                        <label>短信发送插件</label>
-                         <select name="sms_sender_id" style="max-width:300px" class="form-control">
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa fa-envelope" style="color:#fa8c16;margin-right:4px;"></i>短信发送插件</label>
+                        <select name="sms_sender_id" style="max-width:300px" class="form-control">
                             {{build_sel_item(sms_senders,'id','name',model.sms_sender_id)}}
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label>EMAIL发送插件</label>
-                        <div style="max-width:300px"  class="input-group">
+                        <label class="form-label"><i class="fa fa-envelope-o" style="color:#3b82f6;margin-right:4px;"></i>EMAIL发送插件</label>
+                        <div style="max-width:400px" class="input-group">
                             <select name="email_sender_id" style="max-width:300px" class="form-control">
                                 {{build_sel_item(email_senders,'id','name',model.email_sender_id)}}
                             </select>
                             <button type="button" onclick="send_test_email()" class="btn btn-primary">测试发送</button>
                         </div>
                     </div>
+
                     <div class="mb-3">
-                        <label>汇报EMAIL</label>
-                        <input placeholder="接收系统信息的EMAIL，多个用逗号分开" name="report_emails" value="{{model.report_emails}}" style="max-width:800px" class="form-control" >
-                        <div class="invalid-feedback">请输入网站名称。</div>
-                    </div>
-                     <div class="mb-3">
-                        <label>允许上传文件格式</label>
-                        <input placeholder="允许上传文件格式，多个用英文逗号分开" name="upload_types" value="{{model.upload_types}}" style="max-width:800px" class="form-control" >
-                        <div class="invalid-feedback">请输入网站名称。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label>上传文件最大限制(MB)</label>
-                        <input type="number" placeholder="文件最大限制" name="upload_max_size" value="{{model.upload_max_size}}" style="max-width:100px" class="form-control" required>
-                        <div class="invalid-feedback">请输入整数值。</div>
+                        <label class="form-label"><i class="fa fa-envelope-square" style="color:#3b82f6;margin-right:4px;"></i>汇报EMAIL</label>
+                        <input placeholder="接收系统信息的EMAIL，多个用逗号分开" name="report_emails" value="{{model.report_emails}}" style="max-width:600px" class="form-control">
                     </div>
 
                     <div class="mb-3">
-                        <label>AppToken过期时间(小时)</label>
-                        <input type="number" placeholder="App获取到Token后多长时间过期" name="app_token_expired" value="{{model.app_token_expired}}" style="max-width:100px" class="form-control" required>
-                        <div class="invalid-feedback">请输入整数值。</div>
+                        <label class="form-label"><i class="fa fa-file" style="color:#52c41a;margin-right:4px;"></i>允许上传文件格式</label>
+                        <input placeholder="允许上传文件格式，多个用英文逗号分开" name="upload_types" value="{{model.upload_types}}" style="max-width:600px" class="form-control">
                     </div>
 
-                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa fa-database" style="color:#fa8c16;margin-right:4px;"></i>上传文件最大限制（MB）</label>
+                        <input type="number" placeholder="文件最大限制" name="upload_max_size" value="{{model.upload_max_size}}" style="max-width:120px" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa fa-ticket" style="color:#eb2f96;margin-right:4px;"></i>AppToken过期时间（小时）</label>
+                        <input type="number" placeholder="App获取到Token后多长时间过期" name="app_token_expired" value="{{model.app_token_expired}}" style="max-width:120px" class="form-control" required>
+                    </div>
+
+                    <button class="btn btn-primary" type="submit">
+                        <i class="fa fa-save" style="margin-right:6px;"></i>保 存
+                    </button>
                 </form>
-
             </div>
         </div>
     </div>
 </div>
+
 <script>
     function send_test_email(){
         if(confirm("将向汇报EMAIL中的第一个地址发一分测试邮件，请确认汇报EMAIL是否存在？")){
@@ -161,4 +256,5 @@
         }
     }
 </script>
-{% endblock %} 
+
+{% endblock %}

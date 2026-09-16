@@ -1,6 +1,6 @@
 import hashlib
 from abc import ABC, abstractmethod
-from typing import Tuple
+from typing import Tuple, Union
 from urllib.parse import quote
 
 from flask import Request, request
@@ -133,9 +133,9 @@ class Uploader(PluginBase):
     def upload(self, fileb_bytes, model:FileModel) -> Tuple[bool, str]:
         """
         上传文件
-        :param fileb_bytes: 上传接口获取到的文件，在Python 3中是bytes类型，调用file.read()它会读取文件的内容并返回一个字符串，但这是一个字节序列，而不是一个普通的字符串。
-
-        :return: 是否成功，错误信息或上传后的文件相对路径
+        :param fileb_bytes: 上传接口获取到的文件bytes
+        :param model: 文件模型，实现方负责填充 model.url（访问路径）
+        :return: (成功, 提示信息)，如 (True, '上传成功') 或 (False, '磁盘空间不足')
         """
         pass
 
@@ -158,6 +158,18 @@ class Uploader(PluginBase):
         hash_md5.update(content_value)
         md5_value = hash_md5.hexdigest()
         return md5_value
+
+    def read(self, model: 'FileModel') -> Tuple[bool, Union[bytes, str, None]]:
+        """
+        根据文件模型读取文件内容。
+        子类可以覆写此方法实现各自的读取逻辑。
+
+        :param model: 文件模型（从数据库查出，包含 _id、url、mimetype、content 等）
+        :return: (True, bytes) 代理输出文件内容；
+                 (True, 'redirect:https://...') 重定向到直读 URL；
+                 (False, 错误信息) 文件无法读取
+        """
+        return False, 'not implemented'
 
 
 '''

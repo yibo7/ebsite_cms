@@ -1,55 +1,197 @@
 {% extends 'base_admin.html' %}
 {% block content %}
 
-<div class="row eb-box">
-    <div class="col-sm-12 col-md-12 ">
-        <div class="boxheader">
-            <h3><i class="icon-spinner4 spinner"></i>系统运行状况</h3>
+<style>
+.welcome-wrapper {
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.welcome-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.welcome-header {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.welcome-header .icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e6f7ff, #bae7ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #3b82f6;
+    flex-shrink: 0;
+}
+
+.welcome-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.welcome-header p {
+    font-size: 13px;
+    color: #999;
+    margin: 2px 0 0;
+}
+
+.welcome-body {
+    padding: 20px 28px 28px;
+}
+
+.info-row {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: #fafafa;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+}
+
+.info-row:hover {
+    background: #f0f5ff;
+}
+
+.info-row .info-label {
+    font-size: 13px;
+    color: #888;
+    width: 100px;
+    flex-shrink: 0;
+}
+
+.info-row .info-label i {
+    margin-right: 6px;
+    color: #3b82f6;
+    width: 16px;
+    text-align: center;
+}
+
+.info-row .info-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.welcome-actions {
+    padding: 16px 28px 24px;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.welcome-actions .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.welcome-actions .btn i {
+    font-size: 14px;
+}
+
+.backup-result {
+    margin: 0 28px 24px;
+    border-radius: 8px;
+    display: none;
+}
+</style>
+
+<div class="welcome-wrapper">
+    <div class="welcome-card">
+        <div class="welcome-header">
+            <div class="icon-wrap">
+                <i class="fa fa-dashboard"></i>
+            </div>
+            <div>
+                <h3>系统运行状况</h3>
+                <p>欢迎回来，{{admin_token.ni_name}}</p>
+            </div>
         </div>
-        <div>
-            <div class="mb-3 mt-3">
-                <label class="form-label">账号：{{admin_token.name}}</label>
+
+        <div class="welcome-body">
+            <div class="info-row">
+                <span class="info-label"><i class="fa fa-user"></i>账号</span>
+                <span class="info-value">{{admin_token.name}}</span>
             </div>
-            <div class="mb-3">
-                <label class="form-label">姓名：{{admin_token.ni_name}}</label>
+            <div class="info-row">
+                <span class="info-label"><i class="fa fa-id-card"></i>姓名</span>
+                <span class="info-value">{{admin_token.ni_name}}</span>
             </div>
-            <div class="mb-3">
-                <label class="form-label">角色：{{admin_token.group_name}}</label>
+            <div class="info-row">
+                <span class="info-label"><i class="fa fa-tag"></i>角色</span>
+                <span class="info-value">{{admin_token.group_name}}</span>
             </div>
-            <div class="mb-3">
-                <label class="form-label">运行环境：{{version_info}}</label>
+            <div class="info-row">
+                <span class="info-label"><i class="fa fa-cog"></i>环境</span>
+                <span class="info-value">{{version_info}}</span>
             </div>
-            <div class="mb-3">
-                <label class="form-label">数据库：{{db_version}}</label>
+            <div class="info-row">
+                <span class="info-label"><i class="fa fa-database"></i>数据库</span>
+                <span class="info-value">{{db_version}}</span>
             </div>
-            <div class="mb-3">
-                
-                <button type="button" onclick="backup_data(1)" class="btn btn-primary btn-sm">备份重要表数据</button>
-                <button type="button" onclick="backup_data(2)"  class="btn btn-success btn-sm">备份所有表数据</button>
-                <button type="button" onclick="backup_data(3)" class="btn btn-primary btn-sm">重建索引</button>
-            </div>
-            <div id="backup_tips" class="alert alert-info" style="display: none;" role="alert">备份结果</div>
+        </div>
+
+        <div class="welcome-actions">
+            <button type="button" onclick="backup_data(1)" class="btn btn-primary">
+                <i class="fa fa-download"></i> 备份重要表数据
+            </button>
+            <button type="button" onclick="backup_data(2)" class="btn btn-success">
+                <i class="fa fa-archive"></i> 备份所有表数据
+            </button>
+            <button type="button" onclick="backup_data(3)" class="btn btn-outline-primary">
+                <i class="fa fa-refresh"></i> 重建索引
+            </button>
+        </div>
+
+        <div id="backup_tips" class="alert alert-info backup-result" role="alert">
+            <i class="fa fa-info-circle" style="margin-right:6px;"></i>
+            <span id="backup_msg"></span>
         </div>
     </div>
 </div>
 
 <script>
-    function backup_data(backup_type){
-        let tips  = "vercel下备份可能会失败，确认后会覆盖当前备份目录下现在有数据，确定要备份数据吗？";
-        if(backup_type===3){
+    function backup_data(backup_type) {
+        var tips = "vercel下备份可能会失败，确认后会覆盖当前备份目录下现在有数据，确定要备份数据吗？";
+        if (backup_type === 3) {
             tips = "一般情况下不需要重建索引，除非你认识你的索引已经丢失，确认重建索引吗？";
         }
-        if(confirm(tips)){
-            blockTips("备份中...")
-            let prams = {"t":backup_type}
-            post_form("{{ admin_path }}api/databack", prams, (rz)=>{
-                unBlock();      
-                $("#backup_tips").text(rz.msg);
-                $("#backup_tips").show();
+        if (confirm(tips)) {
+            blockTips("备份中...");
+            var prams = {"t": backup_type};
+            post_form("{{ admin_path }}api/databack", prams, function(rz) {
+                unBlock();
+                $("#backup_msg").text(rz.msg);
+                $("#backup_tips").show().removeClass('alert-info alert-danger alert-success');
+                if (rz.code == 0) {
+                    $("#backup_tips").addClass('alert-success');
+                } else {
+                    $("#backup_tips").addClass('alert-danger');
+                }
             });
-        }        
+        }
     }
-    
 </script>
 
-{% endblock %} 
+{% endblock %}

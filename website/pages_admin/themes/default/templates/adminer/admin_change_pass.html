@@ -1,35 +1,134 @@
 {% extends 'base_admin.html' %}
 {% block content %}
 
-<div class="row eb-box">
-    <div class="col-sm-12 col-md-12 ">
-        <div class="block-flat">
-            <div class="boxheader">
-                <h3>修改密码</h3>
+<style>
+.pass-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.pass-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+}
+
+.pass-card .boxheader {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pass-card .boxheader .icon-wrap {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #f0f5ff, #d6e4ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: #2f54eb;
+    flex-shrink: 0;
+}
+
+.pass-card .boxheader h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.pass-card .content {
+    padding: 24px 28px 28px;
+}
+
+.pass-card .form-label {
+    font-weight: 500;
+    color: #444;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.pass-card .form-control {
+    height: 42px;
+    border-radius: 8px;
+    border: 1.5px solid #e0e0e0;
+    padding: 10px 14px;
+    font-size: 14px;
+    transition: all 0.25s ease;
+    background: #fafafa;
+}
+
+.pass-card .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    background: #fff;
+}
+
+.pass-card .btn-primary {
+    height: 42px;
+    padding: 0 32px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: #3b82f6;
+    border: none;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    transition: all 0.3s;
+}
+
+.pass-card .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    transform: translateY(-1px);
+    background: #2563eb;
+}
+
+.pass-card .alert {
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 16px;
+}
+</style>
+
+<div class="pass-wrapper">
+    <div class="pass-card">
+        <div class="boxheader">
+            <div class="icon-wrap">
+                <i class="fa fa-key"></i>
             </div>
-            <div class="content">
-                <form method="post">
-
-                    <div class="mb-3">
-                        <label>旧密码</label>
-                        <input type="password" name="old_pass" minlength="6" style="max-width:300px" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>新密码</label>
-                        <input type="password" name="new_pass" minlength="6" style="max-width:300px" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label>确认新密码</label>
-                        <input type="password" name="re_new_pass" style="max-width:300px" class="form-control" minlength="6" required>
-                    </div>
-                    <button class="btn btn-primary mb-3" type="submit">   保  存   </button>
-                    {% if err %}
-                        <div class="alert alert-info">{{err}}</div>
-                    {%endif%}
-
-                </form>
-
-            </div>
+            <h3>修改密码</h3>
+        </div>
+        <div class="content">
+            <form method="post">
+                <div class="mb-3">
+                    <label class="form-label"><i class="fa fa-lock" style="color:#3b82f6;margin-right:4px;"></i>旧密码</label>
+                    <input type="password" name="old_pass" minlength="6" style="max-width:100%" class="form-control" required placeholder="请输入旧密码">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fa fa-key" style="color:#52c41a;margin-right:4px;"></i>新密码</label>
+                    <input type="password" name="new_pass" minlength="6" style="max-width:100%" class="form-control" required placeholder="请输入新密码（至少6位）">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><i class="fa fa-check-circle" style="color:#52c41a;margin-right:4px;"></i>确认新密码</label>
+                    <input type="password" name="re_new_pass" style="max-width:100%" class="form-control" minlength="6" required placeholder="请再次输入新密码">
+                </div>
+                <button class="btn btn-primary" type="submit">
+                    <i class="fa fa-save" style="margin-right:6px;"></i>保 存
+                </button>
+                {% if err %}
+                <div class="alert alert-info d-flex align-items-center">
+                    <i class="fa fa-info-circle" style="margin-right:8px;"></i>
+                    <span>{{err}}</span>
+                </div>
+                {% endif %}
+            </form>
         </div>
     </div>
 </div>

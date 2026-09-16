@@ -5,7 +5,7 @@ class NumberInput(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 4
+        self.id: str = 'sys_4'
         self.name: str = '数字输入框'
         self.info: str = '数字输入框'
 

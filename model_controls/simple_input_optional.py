@@ -5,7 +5,7 @@ class SimpleInputOptional(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 11
+        self.id: str = 'sys_11'
         self.name: str = '单行文本输入框-选填'
         self.info: str = '简单单行文本输入框，可以不用填写'
 

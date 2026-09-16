@@ -1,17 +1,6 @@
-﻿
-$(function(){
-    var TopTags = new CustomTags();
-    TopTags.ParentObjName = "panrent-menu";
-    TopTags.SubObj = "span";
-    TopTags.CurrentClassName = "current";
-    TopTags.ClassName = "";
 
-    TopTags.fun = OnMainTags; // function () { OnMainTags(this) };
-
-    TopTags.InitOnclickInTags();
-
-    TopTags.InitOnclick(0);
-})
+// 顶部菜单初始化已移入 admin_index.html 内联脚本中管理
+// 此处不再自动执行，避免与内联脚本冲突
 
 //Custom-Tags
 function CustomTags() {

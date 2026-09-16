@@ -1,11 +1,12 @@
 {
-    "MONGODB_SERV": "MONGODB_SERV环境变量未设置时的开发兜底连接串",
-    "MONGODB_NAME": "eb_aitanqin",
-    "ThemeName": "aitanqin",
+    "MONGODB_SERV": "mongodb://root:112233@172.22.230.70:22015/?authSource=admin&directConnection=true",
+    "MONGODB_NAME": "eb_shop",
+    "ThemeName": "eb_shop",
     "REDIS_SERV": "",
-    "APP_KEY": "APP_KEY环境变量未设置时的开发兜底密钥",
+    "APP_KEY": "a0580f89a93b4a8f81c1a0595609a8dd",
     "IsDebug": true,
     "IsVercel": true,
     "Port": 8066,
-    "DefaultLang": "auto"
+    "DefaultLang": "auto",
+    "FileStorageSubdir": "shop"
 }

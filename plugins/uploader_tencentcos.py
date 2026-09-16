@@ -1,5 +1,5 @@
 
-from typing import Tuple
+from typing import Tuple, Union
 
 from qcloud_cos import CosConfig, CosS3Client
 
@@ -41,7 +41,10 @@ class UploaderTencentCos(Uploader):
         config = CosConfig(Region=region, SecretId=secret_id, SecretKey=secret_key, Token=token,
                            Domain=domain)  # 获取配置对象
         client = CosS3Client(config)
-        file_name = f"/upfile/{model._id}{model.type}"
+        base_settings = self.app.config.get('base_settings', {})
+        subdir = base_settings.get('FileStorageSubdir', '').strip()
+        prefix = f"upfile/{subdir}" if subdir else "upfile"
+        file_name = f"/{prefix}/{model.md5}{model.type}"
         # 字节流 简单上传
         response = client.put_object(
             Bucket=self.bucket,
@@ -53,9 +56,13 @@ class UploaderTencentCos(Uploader):
         model.plugin_id = self.id
         model.plugin_name = self.name
         model.url = f"{self.file_server}{file_name}"
+        return True, '上传成功'
 
-
-        return True, model.url
+    def read(self, model: FileModel) -> Tuple[bool, Union[bytes, str, None]]:
+        """
+        COS 文件通过重定向到 object 存储的直读 URL
+        """
+        return True, f'redirect:{model.url}'
 
     def params_temp(self):
         """

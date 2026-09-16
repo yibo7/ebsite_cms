@@ -23,6 +23,34 @@ class NewsSpecial(BllBase[NewsSpecialModel]):
         datas = self.find_list_by_where("", "order_id", pymongo.ASCENDING)
         return datas
 
+    def get_all_descendant_ids(self, special_id: str) -> list[str]:
+        """
+        递归获取指定专题下的所有子专题 ID（无限层级）
+
+        :param special_id: 父专题 ID
+        :return: 所有子专题 ID 列表（不包含 special_id 自身）
+        """
+        all_datas = self.get_all_datas()
+        children_map: dict[str, list[str]] = {}
+        for item in all_datas:
+            pid = str(item.parent_id) if item.parent_id else ''
+            if pid:
+                children_map.setdefault(pid, []).append(str(item._id))
+
+        result: list[str] = []
+        visited: set[str] = set()
+
+        def _collect(pid: str):
+            if pid in visited:
+                return
+            visited.add(pid)
+            for child_id in children_map.get(pid, []):
+                result.append(child_id)
+                _collect(child_id)
+
+        _collect(special_id)
+        return result
+
     def get_tree_text(self) -> list[NewsSpecialModel]:
         get_tree = []
         datas = self.get_all_datas()

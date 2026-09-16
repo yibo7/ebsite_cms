@@ -5,7 +5,7 @@ class FileUpload(ControlBase):
 
     def __init__(self):
         super().__init__()
-        self.id: int = 6
+        self.id: str = 'sys_6'
         self.name: str = '单文件上传控件'
         self.info: str = '单文件上传控件'
 

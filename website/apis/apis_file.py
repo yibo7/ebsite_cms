@@ -1,8 +1,11 @@
 import hashlib
 import os
+import re
 from io import BytesIO
 
-from flask import  request, jsonify, send_file, make_response, current_app, send_from_directory, abort
+from bson import ObjectId
+from flask import (request, jsonify, send_file,
+                   current_app, abort, redirect)
 
 from bll.file_upload import FileUpload
 from decorators import rate_limit_ip, check_admin_login
@@ -12,7 +15,7 @@ from website.apis import api_blue
 
 
 @api_blue.route('upfile', methods=['POST'])
-# @rate_limit_ip(10,1) # 同一IP，1分钟内只允许请求10次
+@rate_limit_ip(10,1) # 同一IP，1分钟内只允许请求10次
 @check_admin_login
 def up_file(admin_token:UserToken):
     request_type = request.args.get('t')  # t=ume
@@ -58,15 +61,32 @@ def up_file(admin_token:UserToken):
         model.type = file_extension
         model.size = size
         model_old = bll.find_one_by_where({"md5": model.md5})
+        if model_old:
+            # 仅检查本地文件是否被误删，MongoDB/COS 不容易误删，直接复用
+            file_exists = True
+            if model_old.url and model_old.url.startswith('/uploads/'):
+                file_exists = os.path.exists(
+                    os.path.join(current_app.root_path, model_old.url.lstrip('/'))
+                )
+
+            if not file_exists:
+                bll.delete_by_id(model_old._id)  # 文件丢了，删失效记录
+                model_old = None
+
         if not model_old:
-            is_succesful, url = current_app.pm.upfile(content_value, model) # 由当前设置的插件实现上传
+            model.user_id = admin_token.id
+            model.user_name = admin_token.name
+            is_succesful, msg = current_app.pm.upfile(content_value, model)
+            if not is_succesful:
+                data["state"] = msg
+                return jsonify(data)
             bll.add(model)
-        # data = bll.upload(model)
-        else:
-            url = model_old.url
+
         data["originalName"] = original_name
         data["name"] = original_name
-        data["url"] = url
+        # 返回给前端的 URL 一律用扁平格式
+        file_id = model._id if not model_old else model_old._id
+        data["url"] = f"/api/file/{file_id}{file_extension}"
         data["size"] = size
         data["state"] = "SUCCESS"
         data["type"] = file_extension
@@ -74,56 +94,42 @@ def up_file(admin_token:UserToken):
     return jsonify(data)
 
 
-@api_blue.route('upfile/<filename>', methods=['GET'])
-@cache.cached(timeout=600)  # 缓存10分钟
-def get_up_file(filename):
+@api_blue.route('file/<path:file_path>', methods=['GET'])
+# @cache.cached(timeout=600, query_string=True)
+def get_file(file_path):
     """
-    访问文件-mongodb
-    :param filename:
-    :return:
+    统一的文件读取接口，通过上传插件抽象读取所有后端的文件。
+    支持格式: /api/file/<file_id>.<ext>
     """
+    # 用正则从路径中提取 file_id，支持任意层子目录
+    match = re.search(r'([a-f0-9]{24})\.[a-zA-Z0-9]+$', file_path)
+    if not match:
+        abort(404)
+
+    file_id = match.group(1) #ObjectId()
     bll = FileUpload()
-    model = bll.find_one_by_where({'url': f'/api/upfile/{filename}'})
-    if model:
-        file_obj = BytesIO(model.content)
-        return send_file(file_obj, mimetype=model.mimetype)
-    return 'Image not found.', 404
+    model = bll.find_one_by_id(file_id)
+    if not model:
+        abort(404)
 
+    # 如果文件没有 plugin_id（旧数据），根据 url 特征判断后端
+    if not model.plugin_id:
+        if model.content:
+            # 退化为旧版 MongoDB 读取逻辑
+            return send_file(BytesIO(model.content), mimetype=model.mimetype)
+        abort(404)
 
-@api_blue.route('/uploads/<date>/<filename>')
-def uploaded_file(date, filename):
-    """
-    访问文件-本地存储
-    :param date: 文件上传日期
-    :param filename:
-    :return:
-    """
+    # 通过插件系统读取
+    success, result = current_app.pm.readfile(model)
+    if not success:
+        abort(404)
 
-    UPLOAD_FOLDER = os.path.join(current_app.root_path, 'uploads',date)
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    # 直读型插件（如 COS）返回重定向标记
+    if isinstance(result, str) and result.startswith('redirect:'):
+        return redirect(result[9:])
 
-    # 检查文件是否存在
-    if not os.path.exists(file_path):
-        abort(404, description="File not found")
-
-    try:
-        last_modified = os.path.getmtime(file_path)
-
-        if request.if_modified_since:
-            # 将request.if_modified_since转换为时间戳
-            request_time = request.if_modified_since.timestamp()
-
-            # 比较时间戳
-            if request_time >= last_modified:
-                return '', 304
-
-        response = make_response(send_from_directory(UPLOAD_FOLDER, filename))
-        response.last_modified = last_modified
-        return response
-    except Exception as e:
-        print(f'访问本地文件{filename}出错:{e}')
-        # 记录错误，但返回 404
-        # app.logger.error(f"Error serving file {filename}: {str(e)}")
-        abort(404, description="File not found or unable to access")
+    # 代理型插件返回文件内容
+    return send_file(BytesIO(result), mimetype=model.mimetype,
+                     last_modified=getattr(model, 'add_time', None))
 
 

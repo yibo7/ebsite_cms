@@ -1,6 +1,5 @@
 import os
-from datetime import datetime
-from typing import Tuple
+from typing import Tuple, Union
 
 from entity.file_model import FileModel
 from plugins.plugin_base import Uploader, plugin_attribute
@@ -14,29 +13,46 @@ class UploaderLocal(Uploader):
         self.info = "将文件上传到到本地uploadfile目录下"
         super().__init__(current_app)
 
-    def ensure_dir(self,path):
-        # 获取路径中的目录部分
-        directory = os.path.dirname(path)
+    def _get_subdir(self) -> str:
+        """从 setting.json 读取文件保存子目录名"""
+        base_settings = self.app.config.get('base_settings', {})
+        return base_settings.get('FileStorageSubdir', '').strip()
 
-        # 检查目录是否存在，如果不存在，则创建它
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-    def upload(self, fileb_bytes, model:FileModel) -> Tuple[bool, str]:
+    def upload(self, fileb_bytes, model: FileModel) -> Tuple[bool, str]:
 
         model.plugin_id = self.id
         model.plugin_name = self.name
 
-        # model.content = fileb_bytes
-        # 获取当前日期并格式化
-        date_str = datetime.now().strftime('%Y%m%d')
-        file_name = f'{date_str}/{model._id}{model.type}'
+        subdir = self._get_subdir()
+        if subdir:
+            file_name = f'{subdir}/{model.md5}{model.type}'
+            file_path = os.path.join(self.app.root_path, 'uploads', file_name)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        else:
+            file_name = f'{model.md5}{model.type}'
+            file_path = os.path.join(self.app.root_path, 'uploads', file_name)
 
-        model.url = f"/api/uploads/{file_name}"
+        model.url = f"/uploads/{file_name}"
 
-        file_path = os.path.join(self.app.root_path, 'uploads',file_name)
-        self.ensure_dir(file_path)
-        # 手动保存文件
-        with open(file_path, 'wb') as f:
-            f.write(fileb_bytes)
+        try:
+            with open(file_path, 'wb') as f:
+                f.write(fileb_bytes)
+        except OSError as e:
+            return False, f'文件写入失败: {str(e)}'
 
-        return True, model.url
+        return True, '上传成功'
+
+    def read(self, model: FileModel) -> Tuple[bool, Union[bytes, str, None]]:
+        """
+        从本地磁盘读取文件内容。
+        """
+        file_path = os.path.join(self.app.root_path, model.url.lstrip('/'))
+
+        if not os.path.exists(file_path):
+            return False, '文件不存在'
+
+        try:
+            with open(file_path, 'rb') as f:
+                return True, f.read()
+        except Exception as e:
+            return False, f'读取文件失败: {str(e)}'

@@ -47,77 +47,72 @@ $(function () {
     }else {
         $(".load_more_box").hide()
     }
-    $(".taglist a").each(function (i) {
-        this.style.color = "#" + randomcolor();
-    });
-
-
-    // 给有子菜单的导航添加一个下拉图标
-    $('#navigation li ul.submenu').parent('li').find('> a').append('<i class="fa fa-chevron-down"></i>');
-    // 给某个导航菜单添加new标识
-    $('#navigation li:nth-child(5)').addClass('new');
-    // 设置购物车数量
-//     get_web_api("ebshop_cart/GetCartCount", (resp) => {
-//         if (resp.Success) {
-//             $('.cart').attr('data-content', resp.Data);
-//         }
-//     });
-//$('.cart').attr('data-content', "12");
-
-    $("#headingOne").click(function () {
-        if ($("#collapseOne").is(":visible")) {
-            $("#collapseOne").slideUp();
-        } else {
-            $("#collapseOne").slideDown();
-        }
-    });
-
-    UpdateFilterBox();
-
-    // 以下是模板中的js
-    /* 1. Scroll Up */
-    $('#back-top i').on("click", function () {
-        $('body,html').animate({
-            scrollTop: 0
-        }, 800);
-        return false;
-    });
-    /* 2. slick Nav */
-    // mobile_menu
-    var menu = $('ul#navigation');
-    if(menu.length){
-      menu.slicknav({
-        prependTo: ".mobile_menu",
-        closedSymbol: '+',
-        openedSymbol:'-'
-      });
-    };
-    //3. Search Toggle
-    $("#search_input_box").hide();
-    $("#search_1").on("click", function () {
-        $("#search_input_box").slideToggle();
-        $("#search_input").focus();
-    });
-    $("#close_search").on("click", function () {
-        $('#search_input_box').slideUp(500);
-    });
-
 
 });
-/**
- *  小屏幕下商品筛洗程折叠状态
- */
-function UpdateFilterBox() {
-    var windowWidth = $(window).width();
-    if (windowWidth < 768) {
-        $('#headingOne button').click();
+
+function setActiveNav(cid, selector = '.nav-links a', activeClass = 'active') {
+    const links = document.querySelectorAll(selector);
+    if (!links.length) return;
+
+    let matched = false;
+
+    if (cid != null && cid !== '') {
+        links.forEach(el => {
+            if (el.getAttribute('cid') == cid) {
+                el.classList.add(activeClass);
+                matched = true;
+            }
+        });
+    }
+
+    if (!matched) {
+        links[0].classList.add(activeClass);
     }
 }
 
-function randomcolor() {
-    var str = Math.ceil(Math.random() * 16777215).toString(16);
-    if (str.length < 6) {
-        str = "0" + str;
-    }
-    return str;
-}
+// 关键：安全调用，避免 cid 未定义时报错
+setActiveNav(typeof cid !== 'undefined' ? cid : '');
+
+/* ===================================================================
+   Green Rich 金瑞治 — 公共 JavaScript
+   =================================================================== */
+
+// ===== 移动端导航切换 =====
+(function() {
+  const mobileToggle = document.querySelector('.mobile-toggle');
+  const navLinks = document.querySelector('.nav-links');
+  if (mobileToggle && navLinks) {
+    mobileToggle.addEventListener('click', function() {
+      const isFlex = navLinks.style.display === 'flex';
+      navLinks.style.display = isFlex ? 'none' : 'flex';
+      navLinks.style.flexDirection = 'column';
+      navLinks.style.position = 'absolute';
+      navLinks.style.top = '72px';
+      navLinks.style.left = '0';
+      navLinks.style.right = '0';
+      navLinks.style.background = '#fff';
+      navLinks.style.padding = '20px';
+      navLinks.style.boxShadow = '0 10px 30px rgba(30,75,138,.1)';
+      navLinks.style.gap = '16px';
+    });
+  }
+})();
+
+// ===== 平滑滚动 =====
+(function() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (href === '#') return;
+      e.preventDefault();
+      const target = document.querySelector(href);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const navLinks = document.querySelector('.nav-links');
+        if (window.innerWidth <= 768 && navLinks) {
+          navLinks.style.display = 'none';
+        }
+      }
+    });
+  });
+})();

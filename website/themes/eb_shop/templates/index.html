@@ -5,316 +5,406 @@
 
 {% block content %}
 
-<main>
-    <section class="slider-area">
-        <div class="slider-active">            
-            <div class="single-slider slider-bg1 slider-height d-flex align-items-center">
-                <div class="container">
-                    <div class="rowr">
-                        <div class="col-xxl-5 col-xl-6 col-lg-7 col-md-8  col-sm-10">
-                            <div class="hero-caption text-center">
+<!-- ===== Hero 轮播 ===== -->
+<section class="hero">
+  <div class="hero-carousel" id="heroCarousel">
 
-                                <h1 data-animation="bounceIn" data-delay="0.2s">印迹不凡，始于1997</h1>
-                                <p data-animation="fadeInUp" data-delay="0.4s">
-                                    Green Rich(金瑞治)专注有机感光鼓芯研发二十余载，凭借高感度、高耐用性产品，广泛应用于激光打印机、传真机与复印机领域。持续创新，只为每一次清晰、稳定的输出表现。
-                                </p>
-                                <a href="/c108p1.html" class="btn_1 hero-btn mb-10" data-animation="fadeInUp"
-                                    data-delay="0.7s">去看看</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="single-slider slider-bg2 slider-height d-flex align-items-center">
-                <div class="container">
-                    <div class="row justify-content-end">
-                        <div class="col-xxl-5 col-xl-6 col-lg-7 col-md-8 col-sm-10">
-                            <div class="hero-caption text-center">
-
-                                <h1 data-animation="bounceIn" data-delay="0.2s">合作共赢</h1>
-                                <p data-animation="fadeInUp" data-delay="0.4s">
-                                    合作共赢，携手创辉煌！我们致力于与您建立互利互惠的合作伙伴关系，共同追求业务成功和持续发展。</p>
-                                <a href="/c109p1.html" class="btn_1 hero-btn"
-                                    data-animation="fadeInUp" data-delay="0.7s">提交申请</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Slide 1: 产品卖点 -->
+    <div class="hero-slide active">
+      <div class="container hero-grid">
+        <div>
+          <span class="hero-tag">🏭 始于 1997 · 专注复印机鼓芯 27 年</span>
+          <h1>复印机感光鼓芯<em>品质稳定 · 寿命长 · 性价比高</em></h1>
+          <p>Green Rich（金瑞治）专注复印机感光鼓芯研发二十余载，凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。</p>
+          <div class="hero-btns">
+            <a href="#products" class="btn">浏览产品目录 →</a>
+            <a href="#contact" class="btn btn-white">下载完整价目表</a>
+          </div>
+          <div class="hero-badges">
+            <span class="hero-badge">✅ 100% 出货全检</span>
+            <span class="hero-badge">🌍 出口 50+ 国家</span>
+            <span class="hero-badge">⚡ 48h 极速发货</span>
+          </div>
         </div>
-    </section>
-
-    <section class="gauto-find-area mt-20">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="find-box">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="find-text">
-                                    <h3>常见机型</h3>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="find-form">
-                                    <div class="row">
-                                        {{ widget("685d49e6eb5993a4fc81ef3d") }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="hero-visual">
+          <div class="hero-card">
+            <div class="drum-icon">🖨️</div>
+            <h3>高品质感光鼓芯</h3>
+            <p>覆盖 8 大品牌 · 上千种型号一站式采购</p>
+            <div class="spec">
+              <div class="spec-item"><b>8万+</b><span>超长寿命(页)</span></div>
+              <div class="spec-item"><b>&lt;0.1%</b><span>不良率</span></div>
+              <div class="spec-item"><b>27年</b><span>行业经验</span></div>
             </div>
+          </div>
         </div>
-    </section>
-
-    <div class="latest-items section-padding fix">
-        <div class="container">
-            <div class="row justify-content-between">
-                <div class="col-xl-12">
-                    <div class="nav-button">
-                        <nav>
-                            <div class="nav-tittle">
-                                <h3>最新上架</h3>
-                            </div>
-                            <div class="nav nav-tabs" id="nav-tab" role="tablist">
-<!--                                <a class="nav-link active" role="tab">综合</a>-->
-<!--                                <a class="nav-link">芯片</a>-->
-<!--                                <a class="nav-link">碳粉</a>-->
-<!--                                <a  class="nav-link">墨盒与粉盒</a>-->
-
-                            </div>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="container">
-            <div class="tab-content" id="nav-tabContent">
-                <div class="tab-pane fade show active" id="nav-one" role="tabpanel" aria-labelledby="nav-one-tab">
-                    <div class="latest-items-active">
-                         {{ widget("685d4bddeb5993a4fc81ef54") }}
-                    </div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <section class="home-blog">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="cl-xl-7 col-lg-8 col-md-10">
-                    <!-- Section Tittle -->
-                    <div class="section-tittle text-center mb-40">
-                        <h2><a href="/c105p1.html">行业资讯</a></h2>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                 {{ widget("685d4f7beb5993a4fc81ef7c") }}
-            </div>
+    <!-- Slide 2: 品牌故事（整合原独立区块内容） -->
+    <div class="hero-slide">
+      <div class="container hero-grid">
+        <div>
+          <span class="hero-tag">🏭 品牌故事 · 始于 1997</span>
+          <h1>印迹不凡，始于 1997<em>专注复印机感光鼓芯研发二十余载</em></h1>
+          <p>Green Rich（金瑞治）凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。持续创新，只为每一次清晰、稳定的复印输出表现。</p>
+          <div class="hero-btns">
+            <a href="#contact" class="btn">了解更多 →</a>
+            <a href="#products" class="btn btn-white">浏览产品</a>
+          </div>
+          <div class="hero-badges">
+            <span class="hero-badge">🏭 源头工厂</span>
+            <span class="hero-badge">🔬 自主研发</span>
+            <span class="hero-badge">⚙️ 智能制造</span>
+          </div>
         </div>
-    </section>
-    <section class="gauto-about-area section_70">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="about-left">
-                        <h3>关于我们</h3>
-                        <p>
-                            &nbsp;&nbsp;&nbsp;&nbsp;{{ widget("66efd16d10df7056e43b9c4e") }}
-                            &nbsp;&nbsp;<a style="color:#000" href="/c108p1.html"> 了解更多>> </a>
-
-                        </p>
-                        <div class="about-list">
-                            <ul>
-                                <li><i class="fa fa-check"></i>三家直销</li>
-                                <li><i class="fa fa-check"></i>全球配送</li>
-                                <li><i class="fa fa-check"></i>诚信保障</li>
-                                <li><i class="fa fa-check"></i>无忧售后</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="about-right">
-                        <img src="images/about.png" />
-                    </div>
-                </div>
+        <div class="hero-visual">
+          <!-- 四个要点卡片：替代原来的独立品牌故事视觉区 -->
+          <div class="hero-brand-visual">
+            <div class="hero-brand-item">
+              <div class="vi-icon">🏭</div>
+              <h4>源头工厂</h4>
+              <p>20余年自主研发制造</p>
             </div>
-        </div>
-    </section>
-    <div class="categories-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-cat mb-50 wow fadeInUp text-center" data-wow-duration="1s" data-wow-delay=".2s">
-                        <div class="cat-icon">
-                            <img src="images/icon/services1.svg" alt="">
-                        </div>
-                        <div class="cat-cap">
-                            <h5>快速物流全球配送</h5>
-                            <p>支持国内、国外物流及快递配送</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-cat mb-50 wow fadeInUp text-center" data-wow-duration="1s" data-wow-delay=".2s">
-                        <div class="cat-icon">
-                            <img src="images/icon/services2.svg" alt="">
-                        </div>
-                        <div class="cat-cap">
-                            <h5>安全支付</h5>
-                            <p>采用微信支付，支付宝，PayPal安全可靠</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-cat mb-50 wow fadeInUp text-center" data-wow-duration="1s" data-wow-delay=".4s">
-                        <div class="cat-icon">
-                            <img src="images/icon/services3.svg" alt="">
-                        </div>
-                        <div class="cat-cap">
-                            <h5>退款保证</h5>
-                            <p>7天无条件退货退款</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <div class="single-cat mb-50 wow fadeInUp text-center" data-wow-duration="1s" data-wow-delay=".5s">
-                        <div class="cat-icon">
-                            <img src="images/icon/services4.svg" alt="">
-                        </div>
-                        <div class="cat-cap">
-                            <h5>售后支付</h5>
-                            <p>24小时客服全天在线</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="hero-brand-item">
+              <div class="vi-icon">🔬</div>
+              <h4>自主研发</h4>
+              <p>绿色鼓芯涂层技术</p>
             </div>
+            <div class="hero-brand-item">
+              <div class="vi-icon">🌍</div>
+              <h4>全球布局</h4>
+              <p>出口50+国家</p>
+            </div>
+            <div class="hero-brand-item">
+              <div class="vi-icon">⚙️</div>
+              <h4>智能制造</h4>
+              <p>全自动产线投产</p>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
 
-</main>
-<div class="container mt-20 a-white f-link">
-    友情连接:
-    <a target=_blank href="http://www.ebsite.net">ebsite</a>
+  </div>
 
+  <!-- 轮播指示器 -->
+  <div class="hero-indicators">
+    <button class="hero-indicator active" data-index="0" aria-label="Slide 1"></button>
+    <button class="hero-indicator" data-index="1" aria-label="Slide 2"></button>
+  </div>
+</section>
+
+<!-- ===== 信任条 ===== -->
+<div class="trust-bar">
+  <div class="container trust-grid">
+    <div class="trust-item"><i>🏭</i> 源头工厂直供</div>
+    <div class="trust-item"><i>✅</i> 100% 出货全检</div>
+    <div class="trust-item"><i>🌍</i> 出口 50+ 国家</div>
+    <div class="trust-item"><i>🛡️</i> 12 个月质保</div>
+  </div>
 </div>
-<footer>
-    <div class="footer-wrapper gray-bg">
 
-        <div class="footer-area footer-padding">
+<!-- ===== 适用品牌型号（只展示中文） ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="sec-header">
+      <h2>适用<span>品牌型号</span></h2>
+      <p>兼容全球主流复印机品牌，上千种型号一站式采购</p>
+    </div>
+    <div class="brand-grid">
+      <div class="brand">佳能</div>
+      <div class="brand">东芝</div>
+      <div class="brand">柯尼卡</div>
+      <div class="brand">京瓷</div>
+      <div class="brand">施乐</div>
+      <div class="brand">夏普</div>
+      <div class="brand">理光</div>
+    </div>
+    <!-- 更多引导按钮 -->
+    <div class="brand-more">
+      <a href="#" class="btn btn-outline">查看全部品牌型号 →</a>
+    </div>
+  </div>
+</section>
 
-            <div class="container">
-                <div class="row justify-content-between">
-                    <div class="col-xl-3 col-lg-3 col-md-6 col-sm-8">
-                        <div class="single-footer-caption mb-20">
-                            <div class="single-footer-caption ">
-                                <!-- logo -->
-                                <div class="footer-logo ">
-                                    <a href="/"><img src="/images/logo/logo2_footer.png" alt=""></a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+<!-- ===== 最新上架 ===== -->
+<section id="products" class="section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>热销<span>商品</span></h2>
+      <p>工厂直供 · 高性价比之选</p>
+    </div>
+    <div class="prod-grid">
 
-                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6">
-                        <div class="single-footer-caption mb-50">
-                            <div class="footer-tittle">
-                                <h4>配件</h4>
-                                <ul>
-
-                                    <li class="text-truncate"><a href="/182a7113b0c.html">加热片 110V</a></li>
-
-                                    <li class="text-truncate"><a href="/178a1280b0c.html">长寿命搓纸轮</a></li>
-
-                                    <li class="text-truncate"><a href="/174a768b0c.html">上分离爪</a></li>
-
-                                    <li class="text-truncate"><a href="/178a512b0c.html">带芯搓纸轮（新）</a></li>
-
-                                    <li class="text-truncate"><a href="/178a2048b0c.html">进纸轮/分纸轮皮套-PU(红色)</a></li>
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6">
-                        <div class="single-footer-caption mb-50">
-                            <div class="footer-tittle">
-                                <h4>感光鼓及套鼓</h4>
-                                <ul>
-
-                                    <li class="text-truncate"><a href="/171a7104b0c.html">日本鼓（10mm） - 150K</a></li>
-
-                                    <li class="text-truncate"><a href="/171a513b0c.html">DU102C/104 套鼓 - 230K</a></li>
-
-                                    <li class="text-truncate"><a href="/171a514b0c.html">DR512K 套鼓（黑色） - 130K</a></li>
-
-                                    <li class="text-truncate"><a href="/171a515b0c.html">DR512 套鼓（彩色） - 90K</a></li>
-
-                                    <li class="text-truncate"><a href="/171a1026b0c.html">单鼓（日本） - 150K</a></li>
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6">
-                        <div class="single-footer-caption mb-50">
-                            <div class="footer-tittle">
-                                <h4>墨盒与粉盒</h4>
-                                <ul>
-
-                                    <li class="text-truncate"><a href="/170a1792b0c.html">CET专利直销机黑色成品粉-化学粉 - 595g/Pc -
-                                            36K</a></li>
-
-                                    <li class="text-truncate"><a href="/170a1024b0c.html">黑色成品粉 - 450g/Pc - 20K</a></li>
-
-                                    <li class="text-truncate"><a href="/170a1025b0c.html">TN911成品粉 - 1740g/Pc - 80K</a>
-                                    </li>
-
-                                    <li class="text-truncate"><a href="/170a1793b0c.html">CET专利黄色成品粉-化学粉 - 340g/Pc -
-                                            21K</a></li>
-
-                                    <li class="text-truncate"><a href="/170a7087b0c.html">成品粉 - 14.1K</a></li>
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-2 col-lg-2 col-md-4 col-sm-6">
-                        <div class="single-footer-caption mb-50">
-                            <div class="footer-tittle">
-                                <h4>芯片</h4>
-                                <ul>
-
-                                    <li class="text-truncate"><a href="/168a7123b0c.html">黄色粉芯片 - 22.5K</a></li>
-
-                                    <li class="text-truncate"><a href="/168a6656b0c.html">黑色粉芯片 - 10K</a></li>
-
-                                    <li class="text-truncate"><a href="/168a4609b0c.html">黑色粉芯片 - 15K</a></li>
-
-                                    <li class="text-truncate"><a href="/168a4608b0c.html">品红粉芯片 - 12K</a></li>
-
-                                    <li class="text-truncate"><a href="/168a2304b0c.html">粉芯片 - 28K</a></li>
-
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
+      <div class="card">
+        <div class="thumb"><span class="badge">热销</span><img src="images/GX-BH287-034/EC3D47551C0CF2F521AF9473C521695E.jpg" alt="佳能 IR1730 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IR1730 鼓芯</h3>
+          <div class="meta"><span class="tag">IR1730</span><span class="tag">原色/绿色</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 50000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥20.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
         </div>
+      </div>
 
+      <div class="card">
+        <div class="thumb"><img src="images/GX-BH283-036/3.jpg" alt="佳能 IR1435 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IR1435 鼓芯</h3>
+          <div class="meta"><span class="tag">IR1435</span><span class="tag">原色/绿色</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 40000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥20.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb"><img src="images/GX-AR158-089/1.jpg" alt="佳能 IR2016 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IR2016 鼓芯</h3>
+          <div class="meta"><span class="tag">IR2016</span><span class="tag">原厂</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥23.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb"><img src="images/GX-AR275-092/1.jpg" alt="佳能 IR2270 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IR2270 鼓芯</h3>
+          <div class="meta"><span class="tag">IR2270</span><span class="tag">原厂</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥28.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb"><span class="badge">新品</span><img src="images/GX-BH920-050/1.avif" alt="佳能 IR2525 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IR2525 鼓芯</h3>
+          <div class="meta"><span class="tag">IR2525</span><span class="tag">原厂</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥28.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb"><img src="images/GX-AR355-093/1.jpg" alt="佳能 IR1018 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IR1018 鼓芯</h3>
+          <div class="meta"><span class="tag">IR1018</span><span class="tag">OEM</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 30000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥12.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb"><img src="images/GX-AF1015-112/2.jpg" alt="佳能 IRC5540 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 IRC5540 鼓芯</h3>
+          <div class="meta"><span class="tag">IRC5540</span><span class="tag">新都</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥31.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="thumb"><img src="images/GX-AF1013-115/1.jpg" alt="佳能 iRC5030 鼓芯"></div>
+        <div class="card-body">
+          <h3>佳能 iRC5030 鼓芯</h3>
+          <div class="meta"><span class="tag">iRC5030</span><span class="tag">新都</span></div>
+          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
+          <div class="card-foot">
+            <span class="price">¥31.00 <small>/ 支</small></span>
+            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
+          </div>
+        </div>
+      </div>
 
     </div>
-</footer>
+    <div style="text-align:center;margin-top:44px;">
+      <a href="#" class="btn btn-outline">查看全部产品 →</a>
+    </div>
+  </div>
+</section>
 
-<script type="text/javascript" src="/index.js" defer></script>
+<!-- ===== 为什么选择我们 ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="why">
+      <div class="sec-header">
+        <h2>为什么选择 Green Rich</h2>
+        <p>您值得信赖的复印机耗材合作伙伴</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="icon">🏭</div>
+          <div>
+            <h4>源头工厂</h4>
+            <p>20余年自主研发制造经验，无中间商，价格更具竞争力</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">✅</div>
+          <div>
+            <h4>品质承诺</h4>
+            <p>出货前100%全检，不良率严格控制在0.1%以内</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🌍</div>
+          <div>
+            <h4>广泛兼容</h4>
+            <p>覆盖8大主流品牌，上千种型号一站式采购</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🚀</div>
+          <div>
+            <h4>极速交付</h4>
+            <p>常规型号48小时内发货，支持OEM/ODM定制</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🛒</div>
+          <div>
+            <h4>一站式采购</h4>
+            <p>全系列复印机配件，省时省心</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🛡️</div>
+          <div>
+            <h4>无忧售后</h4>
+            <p>12个月质保，退换货保障</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 品牌信任模块（认证 + 客户 + 工厂） ===== -->
+<section id="trust" class="trust-section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>品牌<span>实力见证</span></h2>
+      <p>认证资质 · 客户信赖 · 工厂实拍，用事实说话</p>
+    </div>
+
+    <div class="trust-tabs">
+      <button class="trust-tab active" data-panel="cert">🏅 资质认证</button>
+      <button class="trust-tab" data-panel="case">🤝 客户案例</button>
+      <button class="trust-tab" data-panel="factory">🏭 工厂实拍</button>
+    </div>
+
+    <div class="trust-panel active" id="panel-cert">
+      <div class="cert-grid">
+        <div class="cert-card"><span class="cert-icon">🏅</span><h4>ISO 9001</h4><p>质量管理体系认证</p></div>
+        <div class="cert-card"><span class="cert-icon">✅</span><h4>CE 认证</h4><p>欧盟市场准入认证</p></div>
+        <div class="cert-card"><span class="cert-icon">🔬</span><h4>RoHS 认证</h4><p>有害物质限制指令</p></div>
+        <div class="cert-card"><span class="cert-icon">🏆</span><h4>实用新型专利</h4><p>鼓芯涂层技术专利</p></div>
+      </div>
+    </div>
+
+    <div class="trust-panel" id="panel-case">
+      <div class="case-grid">
+        <div class="case-card">
+          <p class="quote">"Green Rich 的鼓芯寿命稳定，打印清晰度媲美原装，我们的客户投诉率下降了 40%。"</p>
+          <div class="client">
+            <div class="client-avatar">李</div>
+            <div class="client-info"><h5>李经理</h5><span>深圳某办公设备经销商</span></div>
+          </div>
+        </div>
+        <div class="case-card">
+          <p class="quote">"合作 5 年，从单一型号扩展到全系列采购，品质和交期都让人放心。"</p>
+          <div class="client">
+            <div class="client-avatar">王</div>
+            <div class="client-info"><h5>王总</h5><span>广州某耗材批发商</span></div>
+          </div>
+        </div>
+        <div class="case-card">
+          <p class="quote">"出口东南亚市场，Green Rich 的包装和品质完全符合我们的要求，复购率很高。"</p>
+          <div class="client">
+            <div class="client-avatar">陈</div>
+            <div class="client-info"><h5>陈先生</h5><span>东南亚某贸易公司</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trust-panel" id="panel-factory">
+      <div class="factory-grid">
+        <div class="factory-item">
+          <div class="factory-img">🏭</div>
+          <div class="factory-info"><h4>全自动生产线</h4><p>年产能突破 500 万支，品质稳定可控</p></div>
+        </div>
+        <div class="factory-item">
+          <div class="factory-img">🔬</div>
+          <div class="factory-info"><h4>研发实验室</h4><p>自主研发绿色鼓芯涂层技术</p></div>
+        </div>
+        <div class="factory-item">
+          <div class="factory-img">📦</div>
+          <div class="factory-info"><h4>品质检测中心</h4><p>出货前 100% 全检，不良率 &lt;0.1%</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== 发展历程 ===== -->
+<section id="timeline" class="timeline-section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>品牌<span>发展历程</span></h2>
+      <p>从深圳小厂到全球化耗材供应商，我们始终坚守品质初心</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot">1997</div>
+        <h4>品牌创立</h4>
+        <p>Green Rich 在深圳成立<br>专注 OPC 鼓芯研发</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2005</div>
+        <h4>技术突破</h4>
+        <p>自主研发绿色鼓芯涂层<br>寿命提升 30%</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2015</div>
+        <h4>全球布局</h4>
+        <p>产品出口 50+ 国家<br>建立海外仓储中心</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2024</div>
+        <h4>智能制造</h4>
+        <p>全自动产线投产<br>年产能突破 500 万支</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<script type="text/javascript" src="/ui_js/index.js" defer></script>
 {% endblock %}

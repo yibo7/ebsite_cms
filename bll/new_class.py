@@ -64,6 +64,35 @@ class NewsClass(BllBase[NewsClassModel]):
         datas = self.find_list_by_where("", "order_id", pymongo.ASCENDING)
         return datas
 
+    def get_all_descendant_ids(self, class_id: str) -> list[str]:
+        """
+        递归获取指定分类下的所有子孙分类 ID（无限层级）
+
+        :param class_id: 父分类 ID
+        :return: 所有子孙分类 ID 列表（不包含 class_id 自身）
+        """
+        all_datas = self.get_all_datas()
+        # 构建 parent_id → [child] 映射，加速递归查找
+        children_map: dict[str, list[str]] = {}
+        for item in all_datas:
+            pid = str(item.parent_id) if item.parent_id else ''
+            if pid:
+                children_map.setdefault(pid, []).append(str(item._id))
+
+        result: list[str] = []
+        visited: set[str] = set()
+
+        def _collect(pid: str):
+            if pid in visited:
+                return  # 防止数据异常导致循环引用
+            visited.add(pid)
+            for child_id in children_map.get(pid, []):
+                result.append(child_id)
+                _collect(child_id)
+
+        _collect(class_id)
+        return result
+
     def get_tree_text(self) -> list[NewsClassModel]:
         get_tree = []
         datas = self.get_all_datas()

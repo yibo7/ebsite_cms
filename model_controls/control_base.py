@@ -10,7 +10,7 @@ from entity.widgets_model import WidgetsModel
 
 class ControlBase(ABC):
     def __init__(self):
-        self.id: int = 0 # 指定一个数字ID，注意不能重复
+        self.id: str = ''  # 控件唯一标识，格式：模块名_序号（如 sys_1、aitanqin_1）
         self.name: str = '' # 物件名称
         self.info: str = ''     # 可以用来保存一些数据
 
