@@ -19,6 +19,10 @@ bp_shop_pages = Blueprint('bp_shop_pages', __name__,
                static_url_path='/',
                url_prefix=module_url_prefix)
 
+# 模块扩展API蓝图
+bp_shop_apis = Blueprint('bp_shop_apis', __name__, url_prefix=f"{module_url_prefix}/api/")
+
+
 @bp_shop_pages.context_processor
 def inject_site_name():
     """
@@ -48,6 +52,7 @@ def module_init(app:Flask, model:ModuleInfo):
     model.on_config_changed(refresh_config)
 
     app.register_blueprint(bp_shop_pages)
+    app.register_blueprint(bp_shop_apis)
 
     content_saving.connect(on_content_saving)
     pay_saved_successful.connect(on_pay_saved_successful)
@@ -111,6 +116,7 @@ def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
 
 
 
-from . import pages
+from . import shop_pages
+from . import shop_apis
 from .shop_controls import product_sku
 

@@ -6,6 +6,7 @@ from flask import Flask, current_app
 
 from bll.favorite import Favorite
 from bll.new_content import NewsContent
+from bll.new_special import NewsSpecial
 from bll.subscription import Subscription
 from bll.user import User
 
@@ -15,6 +16,32 @@ class TempDataProvider:
 
     def __init__(self, app: Optional[Flask] = None):
         self._bll = NewsContent(app)
+        self._special_bll = NewsSpecial(app)
+
+    # ── 专题列表（支持按 parent_id 筛选） ───────────────────────
+    def get_specials(self, parent_id: Optional[str] = None, top: int = 0) -> list:
+        """
+        获取专题（NewsSpecial）列表。
+
+        :param parent_id: 父专题 ID。传入指定 ID 则获取其子专题；
+                          不传入（None）则获取一级专题（parent_id 为空）。
+        :param top: 最多返回记录数，0 表示不限制。
+        :return: 专题列表（list[NewsSpecialModel]）
+        """
+        if parent_id is not None:
+            # 获取指定父专题下的子专题
+            datas = self._special_bll.get_by_pid(parent_id)
+        else:
+            # 获取一级专题（parent_id 为空）
+            datas = self._special_bll.find_list_by_where(
+                where={"parent_id": ""},
+                sort_key="order_id",
+                sort_direction=pymongo.ASCENDING,
+            )
+
+        if top > 0:
+            datas = datas[:top]
+        return datas
 
     # ── 推荐数据（is_good = True） ──────────────────────────────
     def getRecDatas(self, top: int) -> list:
@@ -26,14 +53,17 @@ class TempDataProvider:
         return self._bll.get_good_datas(None, top)
 
     # ── 热门数据（按 hits 降序） ────────────────────────────────
-    def getHotDatas(self, top: int) -> list:
+    def getHotDatas(self, top: int, class_id: Optional[str] = None) -> list:
         """
         获取热门数据（按 hits 降序）
-        不限制分类
         :param top: 最多返回记录数
+        :param class_id: 可选，限制只返回指定分类 ID 的数据
         """
+        where = {}
+        if class_id:
+            where["class_id"] = ObjectId(class_id)
         return self._bll.find_list_by_where(
-            where={},
+            where=where,
             sort_key="hits",
             sort_direction=pymongo.DESCENDING,
             limit=top,

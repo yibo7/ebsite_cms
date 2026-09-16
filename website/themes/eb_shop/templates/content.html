@@ -4,46 +4,137 @@
 {% endblock %}
 
 {% block content %}
-<div  class="d-lg-none" style="height:50px;"></div>
- <div class="container mt-3">
-    <div class="title">
-        <div class="title-txt"><span ><a href='/' >{{SiteName}}</a></span> >
-            <span><a href='{{ get_class_link(model.class_n_id) }}' >{{model.class_name}}</a></span> </div>
+
+<!-- 移动端顶部补偿（固定导航遮挡） -->
+<div class="d-lg-none" style="height:50px;"></div>
+
+<!-- ===== 页面 Banner ===== -->
+<section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>/</span>
+      {% if model.class_name %}
+      <a href="{{ get_class_link(model.class_n_id) }}">{{ model.class_name }}</a>
+      <span>/</span>
+      {% endif %}
+      <span>正文</span>
     </div>
-</div>
+    <h1 style="font-size:clamp(20px,3.2vw,32px);">{{ model.title }}</h1>
+    {% if model.add_time %}
+    <p style="font-size:14px;color:#64748b;">📅 {{ model.add_time|to_time_name }}</p>
+    {% endif %}
+  </div>
+</section>
 
- <div style="padding-bottom: 20px;" class="container mt-20 ">
-        <div class="row">
-            <div class="col-lg-9">
-                <div style="background-color: #ffffff" class="eb-box">
-                    <div class="content-title">
-                        <h3>{{model.title}}</h3>
-                    </div>
-                   
-                    <div class="content-qinji text-wrap">
-                         {% if model.tags %}                             
-                            <div class="mb-3"> 
-                                {% for tag_name in model.tags %}                                  
-                                    <a class="badge bg-danger" href="{{ model.get_tag_url(tag_name) }}" >{{tag_name}}</a>                                   
-                                {% endfor %} 
-                            </div>
-                        {% endif %}
-                        <div class="content-text">
-                            {{model.info|safe}}
-                        </div>
-                        
-                    </div> 
-                </div> 
-            </div>
-            <div class="col-lg-3 d-none d-lg-block "> 
-                <div class="eb-box">
-                    <div class="right-width-tt">猜你喜欢</div>
-                    <ul class="rank-list">
-                         {{ widget("683ab7d64b6149cc6b93c78d") }}
-                    </ul>
-                </div>
-            </div>
+<!-- ===== 文章详情 ===== -->
+<section class="section article-page">
+  <div class="container" style="max-width:1160px;">
+    <div class="news-layout">
+
+      <!-- ---------- 左侧：正文 ---------- -->
+      <article class="article-detail">
+
+        <!-- 文章头信息 -->
+        <header class="article-header">
+          {% if model.class_name %}
+          <span class="article-cat">{{ model.class_name }}</span>
+          {% endif %}
+          <h1 style="font-size:clamp(18px,2.5vw,26px);">{{ model.title }}</h1>
+          <div class="article-meta">
+            <span class="meta-date">📅 {% if model.add_time %}{{ model.add_time|to_time_name }}{% elif model.update_time %}{{ model.update_time|to_time_name }}{% endif %}</span>
+            <span class="meta-views">👁️ {{ model.hits or 0 }} 次阅读</span>
+          </div>
+        </header>
+
+        <!-- 标签 -->
+        {% if model.tags %}
+        <div class="article-tags">
+          {% for tag_name in model.tags %}
+          <a class="tag" href="{{ model.get_tag_url(tag_name) }}">{{ tag_name }}</a>
+          {% endfor %}
         </div>
-    </div> 
+        {% endif %}
 
+        <!-- 正文内容 -->
+        <div class="article-body">
+          {{ model.info|safe }}
+        </div>
+
+        <!-- 上下篇导航 -->
+        <nav class="article-nav">
+          <div class="article-nav-prev">
+            {% if prev_article %}
+            <span class="nav-label">← 上一篇</span>
+            <a href="{{ prev_article.get_url() }}">{{ prev_article.title }}</a>
+            {% else %}
+            <span class="nav-label">← 上一篇</span>
+            <span class="nav-empty">没有了</span>
+            {% endif %}
+          </div>
+          <div class="article-nav-next">
+            {% if next_article %}
+            <span class="nav-label">下一篇 →</span>
+            <a href="{{ next_article.get_url() }}">{{ next_article.title }}</a>
+            {% else %}
+            <span class="nav-label">下一篇 →</span>
+            <span class="nav-empty">没有了</span>
+            {% endif %}
+          </div>
+        </nav>
+
+        <!-- 返回列表 -->
+        <div class="article-back">
+          <a href="{{ get_class_link(model.class_n_id) }}" class="btn btn-outline">← 返回列表</a>
+        </div>
+
+      </article>
+
+      <!-- ---------- 右侧：侧边栏 ---------- -->
+      <aside class="news-sidebar">
+
+
+        <!-- 热门文章 -->
+        <div class="sidebar-widget">
+          <h3>🔥 热门文章</h3>
+          <div class="sidebar-hot">
+            {% set hot_articles = temp_data.getHotDatas(6, class_id="6852685a0a8b42f2df14147b") %}
+            {% if hot_articles %}
+            {% for item in hot_articles %}
+            <div class="hot-item">
+              <span class="hot-num">{{ loop.index }}</span>
+              <div class="hot-content">
+                <a href="{{ item.get_url() }}">{{ item.title }}</a>
+                <span class="hot-meta">{{ item.add_time|to_time_name }} · {{ item.hits }} 次阅读</span>
+              </div>
+            </div>
+            {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 猜你喜欢 -->
+        <div class="sidebar-widget">
+          <h3>📌 猜你喜欢</h3>
+          {{ widget("683ab7d64b6149cc6b93c78d") }}
+        </div>
+
+        <!-- 订阅 -->
+        <div class="sidebar-widget sidebar-subscribe">
+          <h3>📬 订阅资讯</h3>
+          <p>第一时间获取 Green Rich 最新产品资讯与行业动态。</p>
+          <div class="subscribe-box">
+            <input type="email" placeholder="输入您的邮箱">
+            <button>订阅</button>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+</section>
+<script>
+    let cid = {{model.class_n_id}};
+</script>
 {% endblock %}

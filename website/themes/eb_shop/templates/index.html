@@ -113,17 +113,21 @@
       <p>兼容全球主流复印机品牌，上千种型号一站式采购</p>
     </div>
     <div class="brand-grid">
-      <div class="brand">佳能</div>
-      <div class="brand">东芝</div>
-      <div class="brand">柯尼卡</div>
-      <div class="brand">京瓷</div>
-      <div class="brand">施乐</div>
-      <div class="brand">夏普</div>
-      <div class="brand">理光</div>
+      {% set brands = index_data.get_specials(parent_id="6852c97a9d0e112569a8cbf9",top=7) %}
+      {% if brands %}
+        {% for item in brands %}
+          <div class="brand">{{ item.name }}</div>
+        {% endfor %}
+      {% else %}
+        <div>
+          no brand
+        </div>
+
+      {% endif %}
     </div>
     <!-- 更多引导按钮 -->
     <div class="brand-more">
-      <a href="#" class="btn btn-outline">查看全部品牌型号 →</a>
+      <a href="/c105p1.html" class="btn btn-outline">查看全部品牌型号 →</a>
     </div>
   </div>
 </section>
@@ -137,113 +141,37 @@
     </div>
     <div class="prod-grid">
 
-      <div class="card">
-        <div class="thumb"><span class="badge">热销</span><img src="images/GX-BH287-034/EC3D47551C0CF2F521AF9473C521695E.jpg" alt="佳能 IR1730 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IR1730 鼓芯</h3>
-          <div class="meta"><span class="tag">IR1730</span><span class="tag">原色/绿色</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 50000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥20.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
+      {% set hot_products = index_data.getHotDatas(8, class_id="6852498a0a8b42f2df14146e") %}
+      {% for item in hot_products %}
+      <a href="{{ item.get_url() }}" class="card">
+        <div class="thumb">
+          {% if loop.first %}<span class="badge">热销</span>{% endif %}
+          <img src="{{ item.small_pic or '/static/images/default_product.jpg' }}" alt="{{ item.title }}">
         </div>
-      </div>
+        <div class="card-body">
+          <h3>{{ item.title }}</h3>
 
-      <div class="card">
-        <div class="thumb"><img src="images/GX-BH283-036/3.jpg" alt="佳能 IR1435 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IR1435 鼓芯</h3>
-          <div class="meta"><span class="tag">IR1435</span><span class="tag">原色/绿色</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 40000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥20.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
-        </div>
-      </div>
+          <div class="product-tags">
+              <span class="tag">{{ item.column_3 }}</span>
+              <span class="tag green">{{ item.column_4 }}</span>
+              {% if item.column_6 %}
+                <span class="tag gray">{{ item.column_6 }}</span>
+              {% endif %}
+            </div>
 
-      <div class="card">
-        <div class="thumb"><img src="images/GX-AR158-089/1.jpg" alt="佳能 IR2016 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IR2016 鼓芯</h3>
-          <div class="meta"><span class="tag">IR2016</span><span class="tag">原厂</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
           <div class="card-foot">
-            <span class="price">¥23.00 <small>/ 支</small></span>
+            {% if item.column_11 %}
+            <span class="price"><span class="ln">¥{{ item.column_11 }}</span> <small>/ 支</small></span>
+            {% endif %}
             <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
           </div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="thumb"><img src="images/GX-AR275-092/1.jpg" alt="佳能 IR2270 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IR2270 鼓芯</h3>
-          <div class="meta"><span class="tag">IR2270</span><span class="tag">原厂</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥28.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="thumb"><span class="badge">新品</span><img src="images/GX-BH920-050/1.avif" alt="佳能 IR2525 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IR2525 鼓芯</h3>
-          <div class="meta"><span class="tag">IR2525</span><span class="tag">原厂</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥28.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="thumb"><img src="images/GX-AR355-093/1.jpg" alt="佳能 IR1018 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IR1018 鼓芯</h3>
-          <div class="meta"><span class="tag">IR1018</span><span class="tag">OEM</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 30000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥12.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="thumb"><img src="images/GX-AF1015-112/2.jpg" alt="佳能 IRC5540 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 IRC5540 鼓芯</h3>
-          <div class="meta"><span class="tag">IRC5540</span><span class="tag">新都</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥31.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="thumb"><img src="images/GX-AF1013-115/1.jpg" alt="佳能 iRC5030 鼓芯"></div>
-        <div class="card-body">
-          <h3>佳能 iRC5030 鼓芯</h3>
-          <div class="meta"><span class="tag">iRC5030</span><span class="tag">新都</span></div>
-          <div class="meta" style="margin-bottom:14px;"><span class="tag">寿命 80000 页</span></div>
-          <div class="card-foot">
-            <span class="price">¥31.00 <small>/ 支</small></span>
-            <button class="add-btn" onclick="this.textContent='已加入 ✓'">加入询价篮</button>
-          </div>
-        </div>
-      </div>
+      </a>
+      {% endfor %}
 
     </div>
     <div style="text-align:center;margin-top:44px;">
-      <a href="#" class="btn btn-outline">查看全部产品 →</a>
+      <a href="/c105p1.html" class="btn btn-outline">查看全部产品 →</a>
     </div>
   </div>
 </section>

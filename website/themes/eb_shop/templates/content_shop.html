@@ -4,99 +4,133 @@
 {% endblock %}
 
 {% block content %}
- <div class="container">
-    <nav class="nav-page">
-        {{ SiteName }}-{{ model.class_name }}
-    </nav>
-</div>
- <main id="vue_app">
-    <div class="services-area2 pt-50">
-        <div class="container">
-            <div class="row">
-                <div class="col-xl-12">
-                    <div class="row">
-                        <div class="col-xl-12">
-                            <div class="single-services d-flex  mb-0">
-                                <div class="features-img">
-                                    <div class="product-img-big">
-                                        <img :src="SelProduct ? SelProduct.image : '{{ model.small_pic }}'" alt="">
-                                    </div>
 
-                                </div>
-                                <div class="features-caption flex-grow-1">
-                                    <h2>{{ model.title }}</h2>
-                                     <div><b>商品品牌:</b>金瑞治(Green Rich)</div>
-                                    <div><b>商品货号:</b>[[SelProduct ? SelProduct.sku : '---']] </div>
-                                    <div><b>OEM: </b>{{ model.column_6 }}</div>
-                                    <div class="mb-10"><b>适用:</b>{{ model.column_3 }} {{ model.column_5 }}</div>
-                                    <div>
-                                        <div class="price product-price-title px-2">
-                                            <span>价格：&yen; [[SelProduct ? SelProduct.marketPrice : '{{ model.column_11 }}']]</span>
-                                        </div>
-                                         <div class="product-cu-xiao px-2">
-                                             提交后即可查看价格，也可【<a href="/c109p1.html">点击这里</a>】让我们建立合作关系。
-                                         </div>
-                                   </div>
-                                   <div class="product-prams">
-                                        <div class="mt-15" >
-                                            <div class="row">
-                                                <label class="col-sm-2 col-form-label">规格：</label>
-                                                <div class="col-10" >
-                                                    <input :class="['mb-2', { ggcurrent: SelProduct.productId  === product.productId }]" v-for="product in Products" :key="product.productId" type="button" v-on:click="on_gg_click(product)" :value="product.name"  />
-                                                </div>
-                                            </div> 
-                                            
-                                        </div>
-                                    </div>
-                                    <div class="mb-3 row mt-10">
-                                        <label class="col-sm-2 col-form-label">数量</label>
-                                        <div class="col-sm-10">
-                                            <input type="number" class="tb-text form-control" style="width:100px;"  v-model="Quantity"   maxlength="8"/>
-                                        </div>
-                                    </div> 
-                                    <div class="mt-20">
-                                        <a style="background:#f74040;color:white" v-on:click="go_to_car" class="white-btn mr-10"><i class="fa fa-cart-plus" aria-hidden="true" /></i> 加入购物车</a>
-                                        <a onclick="fav_content('{{ model._id }}')" class="white-btn mr-10 favorit-btn"><i class="fa fa-star" aria-hidden="true" /></i> 收藏</a>
-                                    </div>
+<!-- 移动端顶部补偿 -->
+<div class="d-lg-none" style="height:50px;"></div>
 
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- ===== 页面 Banner ===== -->
+<section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>/</span>
+      <span>产品中心</span>
+      <span>/</span>
+      <span>{{ model.class_name }}</span>
     </div>
-    <section class="our-client section-padding best-selling">
-        <div class="container">
-            <div class="row">
-                <div class="nav-button f-left">
-                    <nav>
-                        <div class="nav nav-tabs " id="nav-tab" role="tablist">
-                            <a class="nav-link active" id="nav-one-tab" data-bs-toggle="tab" href="#nav-one" role="tab" aria-controls="nav-one" aria-selected="true">详情</a>
-                        </div>
-                    </nav>
-                </div>
-            </div>
+    <h1 style="font-size:clamp(18px,2.8vw,30px);">{{ model.title }}</h1>
+  </div>
+</section>
+
+<!-- ===== 商品详情主体 ===== -->
+<main id="vue_app" class="product-page-main">
+
+  <section class="section product-detail-section">
+    <div class="container">
+      <div class="detail-layout">
+
+        <!-- ===== 左侧：商品图片 ===== -->
+        <div class="detail-gallery">
+          <div class="detail-main-img">
+            <img :src="SelProduct ? SelProduct.image : '{{ model.small_pic }}'" alt="{{ model.title }}">
+          </div>
         </div>
-        <div class="container">
 
-            <div class="tab-content" id="nav-tabContent">
-                <div class="tab-pane fade show active product-info" id="nav-one" role="tabpanel" aria-labelledby="nav-one-tab">
+        <!-- ===== 右侧：商品信息 ===== -->
+        <div class="detail-info">
+          <h1 class="detail-title">{{ model.title }}</h1>
 
-                   {{ model.info }}
-
-                </div>
-
+          <div class="detail-meta">
+            <div class="meta-row">
+              <span class="meta-label">商品品牌</span>
+              <span class="meta-value">金瑞治 (Green Rich)</span>
             </div>
+            <div class="meta-row">
+              <span class="meta-label">商品货号</span>
+              <span class="meta-value">[[SelProduct ? SelProduct.sku : '---']]</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">OEM</span>
+              <span class="meta-value">{{ model.column_6 }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">适用机型</span>
+              <span class="meta-value">{{ model.column_3 }} {{ model.column_5 }}</span>
+            </div>
+          </div>
+
+          <!-- 价格 -->
+          <div class="detail-price">
+            <span class="price-current">¥ [[SelProduct ? SelProduct.marketPrice : '{{ model.column_11 }}']]</span>
+            <span class="price-note">提交后即可查看价格，也可 <a href="/c109p1.html">点击这里</a> 建立合作关系</span>
+          </div>
+
+          <!-- 规格选择 -->
+          <div class="detail-spec" v-if="Products && Products.length > 0">
+            <span class="spec-label">规格</span>
+            <div class="spec-btns">
+              <input
+                :class="['spec-btn', { active: SelProduct.productId === product.productId }]"
+                v-for="product in Products"
+                :key="product.productId"
+                type="button"
+                v-on:click="on_gg_click(product)"
+                :value="product.name"
+              />
+            </div>
+          </div>
+
+          <!-- 数量 -->
+          <div class="detail-qty">
+            <span class="qty-label">数量</span>
+            <div class="qty-control">
+              <button type="button" v-on:click="Quantity = Math.max(1, Quantity - 1)">−</button>
+              <input type="number" v-model="Quantity" min="1" max="9999" />
+              <button type="button" v-on:click="Quantity = Math.min(9999, Quantity + 1)">+</button>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="detail-actions">
+            <button class="btn btn-accent" v-on:click="go_to_car">
+              🛒 加入购物车
+            </button>
+            <button class="btn btn-outline favorit-btn" onclick="fav_content('{{ model._id }}')">
+              ☆ 收藏
+            </button>
+          </div>
+
         </div>
-    </section>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 商品详情 Tab ===== -->
+  <section class="section product-tab-section">
+    <div class="container">
+      <div class="tab-header">
+        <span class="tab-item active">详情</span>
+      </div>
+      <div class="tab-content product-desc">
+        {% if model.info %}
+        {{ model.info }}
+        {% else %}
+        <div class="tab-empty">
+          <div class="tab-empty-icon">📄</div>
+          <p>暂无详情数据</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
 
 </main>
+
 <script>
+    let cid = {{model.class_n_id}};
     const ContentId = "{{ model._id }}";
     const products = {{model.column_10|safe }};
-    
 </script>
 <script type="text/javascript" src="/shop/js/content.js" defer></script>
 {% endblock %}

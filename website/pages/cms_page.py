@@ -28,10 +28,13 @@ def list(id: int, p: int):
         sort_key = [("order_id", pymongo.DESCENDING), ("_id", pymongo.DESCENDING)]
 
         # 列表页只返回模板需要的字段，大幅减少 MongoDB 网络传输
-        list_projection = {
-            'title': 1, 'column_1': 1, 'column_2': 1, 'column_3': 1,
-            'column_4': 1, 'column_13': 1, 'hits': 1, 'id': 1
-        }
+        # list_projection = {
+        #     'title': 1, 'small_pic': 1, 'column_1': 1, 'column_2': 1,
+        #     'column_3': 1, 'column_4': 1, 'column_11': 1, 'column_13': 1,
+        #     'hits': 1, 'id': 1
+        # }
+
+        list_projection = None
 
         # 缓存键：版本号 + 分类 + 页码 + 语言，内容更新时自动失效
         ver_key = f"list_ver:{id}"
@@ -52,10 +55,13 @@ def list(id: int, p: int):
                 eb_cache.set_data((data_list, pager), ex_second=300, key=cache_key)
 
         temp_model = Templates(1).find_one_by_id(model.class_temp_id)
+
         if temp_model.temp_model == 1:
-            return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager)
+            return render_template_string(temp_model.temp_code, model=model, data_list=data_list, pager=pager,
+                                           temp_data=TempDataProvider())
         else:
-            return render_template(temp_model.file_path, model=model, data_list=data_list, pager=pager)
+            return render_template(temp_model.file_path, model=model, data_list=data_list, pager=pager,
+                                   temp_data=TempDataProvider())
     abort(404)
 
 

@@ -1,0 +1,105 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.class_name}}
+{% endblock %}
+
+{% block content %}
+    <div style="background-color:#060606" class="container-full">
+         <div class="container">
+            <img style="width:100%" src="/images/comp.png">
+         </div>
+    </div>
+    <div class="container">
+         <section class="gauto-about-area section_70">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="about-left">
+                            <h3>关于我们</h3>
+                            <p>
+                                &nbsp;&nbsp;&nbsp;&nbsp;{{ widget("66efd16d10df7056e43b9c4e") }}
+
+                            </p>
+                            <div class="about-list">
+                                <ul>
+                                    <li><i class="fa fa-check"></i>三家直销</li>
+                                    <li><i class="fa fa-check"></i>全球配送</li>
+                                    <li><i class="fa fa-check"></i>诚信保障</li>
+                                    <li><i class="fa fa-check"></i>无忧售后</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="about-right">
+                            <img src="/images/about.png" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="container mt-3 mb-3">
+        <div class="row">
+            <div class="col-lg-9">
+                      <div class="card-body">
+                        <h4 class="card-title mb-4 ">联系我们</h4>
+                           <form id="f_68527c940a8b42f2df1414a3" onsubmit="return on_custom_form(this)" method="post" >
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <div class="mb-3">
+                                          <label>姓名</label>
+                                          <input name="UserName" minlength="1"  maxlength="50" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <div class="mb-3">
+                                          <label>联系方式</label>
+                                          <input name="ContectInfo" minlength="1" type="url" class="form-control" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                  <label>备注</label>
+                                  <textarea name="Info" rows="2" cols="20" class="form-control" placeholder="请填写你希望合作的愿望或商品类型" vglp="savedata" isnull="0"></textarea>
+                                </div>
+                                <div class="row">
+                                   <label class="form-label" >验证码</label>
+                                   <div class="btn-group safe_code_img">
+                                       <input type="text" name="safe_code"  style="max-width:100px" class="form-control" title="验证码为4个字符" pattern=".{4}" required/>
+                                       <img onClick="this.src+=Math.random()" src="/imgcode?" />
+                                   </div>
+                                </div>
+                                <button class="btn btn-primary mb-3 mt-3" type="submit">   提交   </button>
+                            </form>
+                        </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="media contact-info mt-5">
+                    <span class="contact-info__icon"><i class="fa fa-home" aria-hidden="true" /></i>
+</span>
+                    <div class="media-body">
+                        <h3>Buttonwood, California.</h3>
+                        <p>Rosemead, CA 91770</p>
+                    </div>
+                </div>
+                <div class="media contact-info">
+                    <span class="contact-info__icon"><i class="fa fa-volume-control-phone" aria-hidden="true" /></i>
+</span>
+                    <div class="media-body">
+                        <h3>+1 253 565 2365</h3>
+                        <p>Mon to Fri 9am to 6pm</p>
+                    </div>
+                </div>
+                <div class="media contact-info">
+                    <span class="contact-info__icon"><i class="fa fa-envelope-o" aria-hidden="true" /></i>
+</span>
+                    <div class="media-body">
+                        <h3>cqs263@163.com</h3>
+                        <p>Send us your query anytime!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
