@@ -3,6 +3,7 @@ Custom filters, such as the "to_str" function, can be called in templates using 
 {% if item.get("_id")|to_str == model.reg_group_id %}
 """
 from datetime import datetime
+from functools import lru_cache
 
 from bll.user_group import UserGroup 
 
@@ -15,6 +16,7 @@ def reg_temp_expand_filter(app):
         return str(value)
 
     @app.template_filter()
+    @lru_cache(maxsize=256)
     def to_user_group_name(gid):
         model = UserGroup().find_one_by_id(gid)
         if model:
@@ -36,8 +38,8 @@ def reg_temp_expand_filter(app):
             return '不正常'
 
     @app.template_filter()
+    @lru_cache(maxsize=256)
     def widget_type_name(data_id):
-
         t = WidgetBll().get_type_by_id(data_id)
         if t:
             return t.name

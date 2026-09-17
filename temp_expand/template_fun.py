@@ -2,6 +2,8 @@
 Custom global functions can be called in templates using the following method：
 {{say_hello('cqs')}}
 """
+from functools import lru_cache
+
 from bson import ObjectId
 from markupsafe import Markup
 
@@ -54,15 +56,17 @@ def reg_temp_expand_fun(app):
         return Markup(''.join(select_html))
 
     @app.template_global()
+    @lru_cache(maxsize=256)
     def widget(data_id: str):
         return WidgetBll().get_content(data_id)
 
     @app.template_global()
+    @lru_cache(maxsize=128)
     def get_sub_class(pid: str):
         return NewsClass().get_by_pid(pid)
 
     @app.template_global()
+    @lru_cache(maxsize=128)
     def get_sub_content(class_id: int):
         datas = NewsContent().get_by_sub_class_id(class_id)
-        # print(f"{class_id}:{len(datas)}")
         return datas

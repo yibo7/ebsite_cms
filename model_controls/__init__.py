@@ -9,3 +9,5 @@ from . import number_input
 
 from . import simple_input
 from . import simple_input_optional
+
+# from . import wangeditor_input
