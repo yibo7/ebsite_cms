@@ -1,3 +1,4 @@
+"""随机查询内容部件 (sys_12)"""
 import ast
 import random
 
@@ -10,16 +11,12 @@ from entity.widgets_model import WidgetsModel
 from widgets.widget_base import WidgetBase
 
 
-class ContentWidgetRandomModel(WidgetBase):
+class ContentWidgetRandom(WidgetBase):
+    id = 'sys_12'
+    name = '随机查询内容'
+    info = '随机查询内容数据'
 
-    def __init__(self):
-        super().__init__()
-        self.id: int = 12
-        self.name: str = '随机查询内容'
-        # self.temp: str = 'widget_list_save_where.html'
-        self.info: str = '随机查询内容数据'
-
-    def temp_hanndler(self, model:WidgetsModel):
+    def temp_handler(self, model: WidgetsModel):
         s_where = {}
         if model.where_query:
             try:
@@ -33,12 +30,10 @@ class ContentWidgetRandomModel(WidgetBase):
         desc_asc = pymongo.DESCENDING if model.order_by_desc == 'DESC' else pymongo.ASCENDING
         int_limit = model.limit
 
-        bll = self.bll_hanndler()  # get_type_by_id(model.temp_type).get('bll')
-
+        bll = self.bll_handler()
         data = bll.find_list_by_where(s_where, order_by, desc_asc, int_limit)
 
         return Markup(render_template_string(model.temp_code, data=data))
 
-
-    def bll_hanndler(self):
+    def bll_handler(self):
         return NewsContent()

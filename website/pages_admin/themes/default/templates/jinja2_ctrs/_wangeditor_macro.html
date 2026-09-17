@@ -1,0 +1,175 @@
+{# templates/_wangeditor_macro.html #}
+
+{#
+    宏文件 — wangEditor-next v6 富文本编辑器
+
+    用法：
+        1. 在页面 <head> 区域调用 {{ wangeditor_assets() }}（整页只需一次）
+        2. 在需要编辑器的地方调用 {{ wangeditor_editor('field_name', content, height, placeholder) }}
+
+    图片上传：
+        - 工具栏点击图片按钮 → 弹出文件选择 → POST /api/upfile?t=img
+        - 粘贴图片 → 自动捕获 → 上传 → 插入 URL（无 base64 副本）
+        - 上传接口复用本项目已有的 apis_file.py
+#}
+
+
+{# 宏一：引入 wangEditor-next 所需的样式与脚本，整页只调用一次 #}
+{% macro wangeditor_assets() %}
+{% if not g.get('_wangeditor_assets_rendered', False) %}
+<link href="https://unpkg.com/@wangeditor-next/editor@latest/dist/css/style.css" rel="stylesheet">
+<script src="https://unpkg.com/@wangeditor-next/editor@latest/dist/index.js"></script>
+{% set _ = g.setdefault('_wangeditor_assets_rendered', True) %}
+{% endif %}
+{% endmacro %}
+
+
+{# 宏二：渲染一个 wangEditor-next 实例，可在同一页面多次调用 #}
+{% macro wangeditor_editor(name, content='', height='500px', placeholder='请输入内容...') %}
+<div class="wangeditor-wrapper" style="margin-bottom: 10px;">
+    {# 工具栏容器（wangEditor 要求 toolbar 和 editor 是两个独立的 DOM 节点） #}
+    <div id="{{ name }}_toolbar"
+         style="border: 1px solid #dcdfe6; border-bottom: none; border-radius: 5px 5px 0 0;"></div>
+    {# 编辑器容器 #}
+    <div id="{{ name }}_editor"
+         style="height: {{ height }}; border: 1px solid #dcdfe6; border-top: none; border-radius: 0 0 5px 5px; overflow-y: auto;"></div>
+    {# 隐藏字段，表单提交时同步内容 #}
+    <input type="hidden" name="{{ name }}" id="{{ name }}_input">
+</div>
+
+{# 内联样式：修复全局 admin 样式对编辑器内容的干扰 #}
+<style>
+    /* ── 编辑器内容区样式隔离（修复全局 CSS 的影响） ── */
+    #{{ name }}_editor .w-e-text-container ul,
+    #{{ name }}_editor .w-e-text-container ol {
+        padding: revert;
+        margin: revert;
+    }
+    #{{ name }}_editor .w-e-text-container li {
+        list-style: revert;
+    }
+    #{{ name }}_editor .w-e-text-container td {
+        font-size: revert;
+        padding: revert;
+        vertical-align: revert;
+    }
+    #{{ name }}_editor .w-e-text-container a:link,
+    #{{ name }}_editor .w-e-text-container a:visited {
+        color: revert;
+    }
+    #{{ name }}_editor .w-e-text-container img {
+        max-width: 100%;
+    }
+    #{{ name }}_editor .w-e-text-container p,
+    #{{ name }}_editor .w-e-text-container h1,
+    #{{ name }}_editor .w-e-text-container h2,
+    #{{ name }}_editor .w-e-text-container h3,
+    #{{ name }}_editor .w-e-text-container h4,
+    #{{ name }}_editor .w-e-text-container h5,
+    #{{ name }}_editor .w-e-text-container h6,
+    #{{ name }}_editor .w-e-text-container li,
+    #{{ name }}_editor .w-e-text-container td,
+    #{{ name }}_editor .w-e-text-container th,
+    #{{ name }}_editor .w-e-text-container blockquote,
+    #{{ name }}_editor .w-e-text-container pre {
+        font-family: revert;
+        line-height: revert;
+    }
+</style>
+
+<script>
+(function() {
+    window.__wangeditorInstances = window.__wangeditorInstances || {};
+
+    var E = window.wangEditor;
+    if (!E) {
+        console.error('wangEditor-next 未加载，请在页面中先调用 wangeditor_assets() 宏');
+        return;
+    }
+
+    var editorConfig = {
+        placeholder: {{ placeholder | tojson }},
+
+        MENU_CONF: {
+            // ── 图片上传配置 ──
+            uploadImage: {
+                server: '/api/upfile?t=img',
+                fieldName: 'file',
+                maxFileSize: 5 * 1024 * 1024,       // 5MB
+                allowedFileTypes: ['image/*'],
+                metaWithUrl: false,                   // 不拼接额外参数到 URL
+                withCredentials: true,                // 带上 Cookie（管理后台需登录验证）
+
+                // 服务器返回格式: { state: "SUCCESS", url: "/api/file/<id>.ext" }
+                customInsert: function(res, insertFn) {
+                    if (res.state === 'SUCCESS' && res.url) {
+                        insertFn(res.url, '', '');
+                    } else if (res.data && res.data.url) {
+                        insertFn(res.data.url, '', '');
+                    } else {
+                        console.error('图片上传响应格式异常:', res);
+                    }
+                },
+
+                onFailed: function(file, res) {
+                    console.error('图片上传失败:', res && res.state);
+                },
+
+                onError: function(err) {
+                    console.error('图片上传异常:', err);
+                }
+            },
+
+            // ── 视频上传配置（复用同一接口，仅做预留） ──
+            uploadVideo: {
+                server: '/api/upfile?t=file',
+                fieldName: 'file',
+                maxFileSize: 50 * 1024 * 1024,      // 50MB
+                allowedFileTypes: ['video/*'],
+                withCredentials: true,
+
+                customInsert: function(res, insertFn) {
+                    if (res.state === 'SUCCESS' && res.url) {
+                        insertFn(res.url, '');
+                    } else if (res.data && res.data.url) {
+                        insertFn(res.data.url, '');
+                    }
+                },
+
+                onFailed: function(file, res) {
+                    console.error('视频上传失败:', res && res.state);
+                }
+            }
+        }
+    };
+
+    // ── 创建编辑器 ──
+    var editor = E.createEditor({
+        selector: '#{{ name }}_editor',
+        html: {{ content | tojson }},
+        config: editorConfig,
+        mode: 'default'  // 'default' | 'simple'
+    });
+
+    // ── 创建工具栏 ──
+    var toolbar = E.createToolbar({
+        editor: editor,
+        selector: '#{{ name }}_toolbar',
+        config: {},
+        mode: 'default'
+    });
+
+    // ── 表单提交前同步内容到隐藏字段 ──
+    var hiddenInput = document.getElementById('{{ name }}_input');
+    var form = hiddenInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            hiddenInput.value = editor.getHtml();
+        });
+    }
+
+    // ── 存实例，方便外部访问 ──
+    window.__wangeditorInstances[{{ name | tojson }}] = editor;
+})();
+</script>
+{% endmacro %}

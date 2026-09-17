@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, g
+from flask import render_template, render_template_string, request, redirect, g
 
 from bll.widget_bll import WidgetBll
 from entity.widgets_model import WidgetsModel
@@ -36,10 +36,7 @@ def widget_sel_type():
 @admin_blue.route('widget_list_save', methods=['GET', 'POST'])
 def widgets_list_save():
     g_id = http_helper.get_prams('_id')
-    # temp_type = http_helper.get_prams_int('t')
-    temp_type = request.args.get('t', 0)
-    temp_type = int(temp_type)
-    # print("temp_type:"+str(temp_type))
+    temp_type = request.args.get('t', '')  # 字符串 ID，如 'sys_1'
 
     model = WidgetsModel()
     model.temp_type = temp_type
@@ -48,7 +45,18 @@ def widgets_list_save():
         model = bll.find_one_by_id(g_id)
     err = ''
 
-    temp_bll = bll.get_type_by_id(model.temp_type)
+    # 获取部件实例，用于读取 admin.html 和调用钩子
+    widget_inst = None
+    if model.temp_type:
+        try:
+            widget_inst = bll.get_type_by_id(model.temp_type)
+        except ValueError:
+            err = f'未知部件类型: {model.temp_type}'
+    
+    # 如果没有指定部件类型，引导用户选择
+    if not widget_inst:
+        return render_template(WebPaths.get_admin_path("widgets/widget_sel_type.html"),
+                               data_list=bll.get_types())
 
     if request.method == 'POST':
         dic_prams = http_helper.get_prams_dict()
@@ -56,19 +64,24 @@ def widgets_list_save():
             del dic_prams['file']  # 在上传图片时会生成一个file表单
         model.dict_to_model(dic_prams)
         model.user_id = g.uid
-        temp_bll.saving(model)
+        if widget_inst:
+            widget_inst.saving(model)
         bll.save(model)
         # return redirect('widget_list')
 
     all_fields = ''
 
-    bll_hanndler = temp_bll.bll_hanndler()
-    if bll_hanndler:
-        all_fields = get_all_fields(bll_hanndler.new_instance())
-    temp_file = temp_bll.temp # get('temp')
+    if widget_inst:
+        bll_handler = widget_inst.bll_handler()
+        if bll_handler:
+            all_fields = get_all_fields(bll_handler.new_instance())
+
+    # 使用部件自带的 admin.html 作为配置界面
+    admin_html = widget_inst.get_admin_html() if widget_inst else ''
     desc_asc = bll.get_desc_asc()
 
-    return render_template(f"widgets/{temp_file}",all_fields=all_fields, desc_asc=desc_asc, model=model, err=err)
+    return render_template_string(admin_html, all_fields=all_fields, desc_asc=desc_asc,
+                                  model=model, err=err)
 
 
 @admin_blue.route('widget_list_del', methods=['GET', 'POST'])

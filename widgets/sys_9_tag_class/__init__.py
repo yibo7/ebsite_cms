@@ -1,3 +1,4 @@
+"""查询分类标签部件 (sys_9)"""
 from flask import request, render_template_string
 from markupsafe import Markup
 
@@ -9,46 +10,42 @@ from entity.widgets_model import WidgetsModel
 from widgets.widget_base import WidgetBase
 
 
-class TagByClassWidgetModel(WidgetBase):
-
-    def __init__(self):
-        super().__init__()
-        self.id: int = 9
-        self.name: str = '查询分类标签'
-        self.temp: str = 'widget_list_save_tag_class.html'
-        self.info: str = '查询指定分类ID下的所有标签'
+class TagByClassWidget(WidgetBase):
+    id = 'sys_9'
+    name = '查询分类标签'
+    info = '查询指定分类ID下的所有标签'
 
     def saving(self, model: WidgetsModel):
         class_ids = http_helper.get_prams("class_ids")
         model.other = {
-            "class_ids":class_ids
+            "class_ids": class_ids
         }
 
-    def temp_hanndler(self, model:WidgetsModel):
+    def temp_handler(self, model: WidgetsModel):
         class_id_str = model.other.get("class_ids", "0")
         if not class_id_str or class_id_str in ("0", "None"):
-            class_id_str = str(request.view_args.get('id', '0')) # 自动适应ID
+            class_id_str = str(request.view_args.get('id', '0'))
 
-        class_ids = [int(cid.strip()) for cid in class_id_str.split(",") if cid.strip() and cid.strip() not in ("None", "")]
+        class_ids = [int(cid.strip()) for cid in class_id_str.split(",")
+                     if cid.strip() and cid.strip() not in ("None", "")]
         class_ids.sort()
 
         limit = model.limit
         order_by = model.order_by
         order_type = -1 if model.order_by_desc == 'DESC' else 1
 
-        # ---------- 缓存聚合结果（即使 widget.cache_time=0 也兜底缓存 300秒）----------
         cache_key = f"tag_agg_cache:{model._id}:{class_id_str}:{limit}:{order_by}:{order_type}"
         tag_list = eb_cache.get(cache_key)
         if tag_list is not None:
             return Markup(render_template_string(model.temp_code, data=tag_list))
 
-        bll = self.bll_hanndler()
+        bll = self.bll_handler()
         pipeline = [
             {"$match": {"class_n_id": {"$in": class_ids}}},
             {"$unwind": "$tags"},
             {"$group": {"_id": "$tags"}},
-            {"$sort": {order_by: order_type}},  # 按标签名称升序排序
-            {"$limit": limit},  # 只取前 10 条
+            {"$sort": {order_by: order_type}},
+            {"$limit": limit},
             {"$project": {"_id": 0, "tag": "$_id"}}
         ]
 
@@ -61,14 +58,10 @@ class TagByClassWidgetModel(WidgetBase):
             for doc in cursor
         ]
 
-        # 缓存聚合结果 300 秒
         eb_cache.set_data(tag_list, ex_second=300, key=cache_key)
 
         rendered = render_template_string(model.temp_code, data=tag_list)
         return Markup(rendered)
 
-    def bll_hanndler(self):
-        return NewsContent()
-
-    def bll_hanndler(self):
+    def bll_handler(self):
         return NewsContent()

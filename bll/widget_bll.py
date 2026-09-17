@@ -6,6 +6,7 @@ from bson import ObjectId
 
 import eb_cache
 from bll.bll_base import BllBase
+from bll.widget_discover import get_widget, get_all_widgets
 from eb_utils.configs import SiteConstant
 from eb_utils.mvc_pager import pager_html_admin
 from entity.list_item import ListItem
@@ -32,13 +33,13 @@ class WidgetBll(BllBase[WidgetsModel]):
 
                 if not temp_code:
                     widget_type_model = self.get_type_by_id(model.temp_type)
-                    temp_code = widget_type_model.temp_hanndler(model)
+                    temp_code = widget_type_model.temp_handler(model)
                     eb_cache.set_data(temp_code, model.cache_time, data_key)
 
             else:
 
                 widget_type_model = self.get_type_by_id(model.temp_type)
-                temp_code = widget_type_model.temp_hanndler(model)
+                temp_code = widget_type_model.temp_handler(model)
 
             return temp_code or ''
 
@@ -47,34 +48,23 @@ class WidgetBll(BllBase[WidgetsModel]):
 
     def get_types(self):
         """
-        获取所有部件类型，采用反射比较占用性能，如果前端经常调用考虑缓存，不过目前调用频率不高
+        获取所有部件类型，通过注册表获取，无需反射。
         :return:
         """
-        # 通过反射获取获取直接子类，应该采用缓存
-        subclasses = WidgetBase.__subclasses__()
-
-        # 创建一个列表来存储所有子类的实例
-        instances = []
-        # 遍历所有子类，并为每个子类创建一个实例
-        for subclass in subclasses:
-            instance = subclass()
-            instances.append(instance)
-        return instances
+        return get_all_widgets()
 
 
-    def get_type_by_id(self, data_id: int) -> WidgetBase:
+    def get_type_by_id(self, data_id: int | str) -> WidgetBase:
         """
-        调用某个部件类型，前端调用频率高，所以采用缓存，减少对get_types的调用
-        :param data_id:
+        调用某个部件类型，前端调用频率高，所以采用缓存，减少重复查找。
+        :param data_id: 部件 ID（字符串格式 sys_1 或旧 int 格式 1）
         :return:
         """
         data_key = f'get_type_by_id_{data_id}'
         record = eb_cache.get(data_key)
         if not record:
-            wg_types = self.get_types()
-            record = next((item for item in wg_types if item.id == data_id), None)
-            eb_cache.set_data(record,0,data_key)  # 永久缓存
-            # print(f'永久缓存：{data_key}')
+            record = get_widget(data_id)
+            eb_cache.set_data(record, 0, data_key)  # 永久缓存
         return record
 
 

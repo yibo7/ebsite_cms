@@ -1,3 +1,4 @@
+"""查询所有标签部件 (sys_11)"""
 from flask import render_template_string
 from markupsafe import Markup
 
@@ -7,22 +8,17 @@ from entity.widgets_model import WidgetsModel
 from widgets.widget_base import WidgetBase
 
 
-class TagByAllWidgetModel(WidgetBase):
+class TagByAllWidget(WidgetBase):
+    id = 'sys_11'
+    name = '查询所有标签'
+    info = '查询标签库所有的数据，但可指定查询条数'
 
-    def __init__(self):
-        super().__init__()
-        self.id: int = 11
-        self.name: str = '查询所有标签'
-        self.temp: str = 'widget_list_save_tag_all.html'
-        self.info: str = '查询标签库所有的数据，但可指定查询条数'
-
-
-    def temp_hanndler(self, model: WidgetsModel):
-        bll = self.bll_hanndler()
+    def temp_handler(self, model: WidgetsModel):
+        bll = self.bll_handler()
         limit = model.limit
         order_by = model.order_by
         order_type = -1 if model.order_by_desc == 'DESC' else 1
-        query_filter = {"article_count": {"$gt": 0}} # 查询文章数大于0的标签
+        query_filter = {"article_count": {"$gt": 0}}
         cursor = bll.table.find(query_filter).sort(order_by, order_type).limit(limit)
 
         tag_list = [
@@ -36,5 +32,5 @@ class TagByAllWidgetModel(WidgetBase):
 
         return Markup(render_template_string(model.temp_code, data=tag_list))
 
-    def bll_hanndler(self):
+    def bll_handler(self):
         return ContentTags()

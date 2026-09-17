@@ -1,0 +1,24 @@
+<link href="{{admin_path}}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploader.min.js"></script>
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploaderpic.js"></script>
+
+<div class="mb-3">
+    <label>上传图片</label>
+    <input type="hidden" name="info" id="info" value="{{model.info}}" />
+    <div class='bduploader'>
+        <div><div id='imglisttbuUploadImg' class='uploader-imglist'></div></div>
+        <div id='filedatatbuUploadImg'>选择图片</div>
+    </div>
+    <script>InitImgUpload('filedatatbuUploadImg','imglisttbuUploadImg','info',80,80,true);</script>
+</div>
+<div class="mb-3">
+    <label>数据绑定模板(flask模板语法)</label>
+    <div style="width:100%;min-height:300px;" id="temp_code_div">{{model.temp_code}}</div>
+    <textarea style="display:none" id="temp_code" name="temp_code" class="form-control" rows="10" cols="100" required>{{model.temp_code}}</textarea>
+</div>
+
+<script>
+    $(function(){
+        init_ace("temp_code_div","temp_code");
+    });
+</script>

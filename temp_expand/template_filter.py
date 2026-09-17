@@ -36,9 +36,9 @@ def reg_temp_expand_filter(app):
             return '不正常'
 
     @app.template_filter()
-    def widget_type_name(data_id: int):
+    def widget_type_name(data_id):
 
-        t = WidgetBll().get_type_by_id(int(data_id))
+        t = WidgetBll().get_type_by_id(data_id)
         if t:
             return t.name
         return 'can`t find type'

@@ -1,0 +1,8 @@
+
+{% from "jinja2_ctrs/_wangeditor_macro.html" import wangeditor_assets, wangeditor_editor %}
+{{ wangeditor_assets() }}
+
+<div class="mb-3">
+<label>富文本内容</label>
+{{ wangeditor_editor('temp_code', model.temp_code, '500px', '请输入富文本内容...') }}
+</div>

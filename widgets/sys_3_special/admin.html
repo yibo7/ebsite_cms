@@ -1,0 +1,57 @@
+<div class="mb-3">
+    <label>数据绑定模板（Flask 模板语法）</label>
+    <div style="width:100%;min-height:300px;" id="temp_code_div">{{model.temp_code}}</div>
+    <textarea id="temp_code" style="display:none" name="temp_code" class="form-control" rows="10" cols="100" required>{{model.temp_code}}</textarea>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h6 class="card-title mb-3" style="color:var(--bs-gray-700)">查询参数</h6>
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="mb-2">
+                    <label class="form-label">MongoDB 查询条件</label>
+                    <textarea name="where_query" class="form-control font-monospace" rows="4" placeholder='如 {"order_id": {"$gte": 1}}'>{{model.where_query}}</textarea>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="mb-2">
+                    <label class="form-label">排序字段</label>
+                    <input name="order_by" value="{{model.order_by}}" class="form-control font-monospace">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">排序方式</label>
+                    <select name="order_by_desc" class="form-control">
+                        {{build_sel_item(desc_asc, 'value','name',model.order_by_desc)}}
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">查询记录数</label>
+                    <input type="number" name="limit" value="{{model.limit}}" class="form-control">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header py-2 px-3" role="button" data-bs-toggle="collapse" data-bs-target="#helpFields" style="cursor:pointer;">
+        <small class="text-muted">📖 可用字段与语法参考</small>
+    </div>
+    <div id="helpFields" class="collapse">
+        <div class="card-body">
+            <div class="mb-2">
+                <strong>可查询的字段：</strong>
+                <code>{{all_fields}}</code>
+            </div>
+            <div>
+                <strong>查询语法示例：</strong>
+                <pre class="bg-light p-2 mt-1 rounded" style="font-size:.875rem;">{ 'special_name': { '$regex': '专题' } } 或 {'order_id': {'$gte': 1}}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function(){ init_ace("temp_code_div","temp_code"); });
+</script>

@@ -11,7 +11,9 @@ class WidgetsModel(ModelBase):
         self.where_query: str = ""
         self.temp_code: str = ""
         self.info: str = ""
-        self.temp_type: int = 0  # 1.class_data 2.content_data 3.special_data 4.user_data 5.text 6.html
+        # 部件类型标识：字符串格式 模块名_序号（如 sys_1、shop_1）
+        # 兼容旧数据中的 int 格式（如 1、2），运行时由 resolve_widget_id 转换
+        self.temp_type: str = ""
         self.user_id: str = ""
         self.cache_time:int = 0 # 是否将渲染结果缓存，这里时间单位是秒，0表示不缓存
         self.other = {}  # 其他参数

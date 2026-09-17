@@ -49,6 +49,9 @@ from . import site_model
 
 from . import apis
 
+# 触发部件自动发现（导入 widgets 包，其 __init__.py 会扫描所有部件文件夹）
+import widgets as _widgets_pkg
+
 # region 后台请求前的处理
 
 @admin_blue.before_request

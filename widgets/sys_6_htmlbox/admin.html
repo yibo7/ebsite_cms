@@ -1,0 +1,11 @@
+<div class="mb-3">
+    <label>HTML内容</label>
+    <div style="width:100%;min-height:300px;" id="temp_code_div">{{model.temp_code}}</div>
+    <textarea style="display:none" id="temp_code" name="temp_code" class="form-control" rows="10" cols="100" required>{{model.temp_code}}</textarea>
+</div>
+
+<script>
+    $(function(){
+        init_ace("temp_code_div","temp_code");
+    });
+</script>

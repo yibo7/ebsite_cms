@@ -1,0 +1,198 @@
+{# templates/_quill_macro.html #}
+
+{#
+    三档工具栏配置（JavaScript 数组字面量，嵌入到 <script> 中使用）
+
+    🟢 simple   — 评论/短描述/备注：粗体、斜体、下划线、列表、链接、清除
+    🔵 standard — 文章/CMS 正文：在 simple 基础上加删除线、引用、代码块、图片、标题、颜色
+    🟣 powerful — 长文档/精细排版：几乎全开，含视频、公式、待办、上标/下标、缩进、方向、字号等
+#}
+{% set _quill_toolbar_simple %}
+    ['bold', 'italic', 'underline'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['link'],
+    ['clean']
+{% endset %}
+{% set _quill_toolbar_standard %}
+    ['bold', 'italic', 'underline', 'strike'],
+    ['blockquote', 'code-block'],
+    ['link', 'image'],
+    [{ 'header': [1, 2, 3, false] }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'color': [] }, { 'background': [] }],
+    ['clean']
+{% endset %}
+{% set _quill_toolbar_powerful %}
+    ['bold', 'italic', 'underline', 'strike'],
+    ['blockquote', 'code-block'],
+    ['link', 'image', 'video', 'formula'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+    [{ 'script': 'sub' }, { 'script': 'super' }],
+    [{ 'indent': '-1' }, { 'indent': '+1' }],
+    [{ 'size': ['small', false, 'large', 'huge'] }],
+    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'font': [] }],
+    [{ 'align': [] }],
+    ['clean']
+{% endset %}
+
+
+{# 宏一：引入 Quill 所需的样式与脚本，放在 <head> 里，整页只调用一次 #}
+{% macro quill_assets() %}
+{% if not g.get('_quill_assets_rendered', False) %}
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<script>
+// 全局图片上传 — 工具栏按钮触发
+window.__quillUploadImage = async function(quill) {
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async function() {
+        var file = input.files[0];
+        if (!file) return;
+
+        var formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            var resp = await fetch('/api/upfile?t=img', { method: 'POST', body: formData });
+            var data = await resp.json();
+            if (data.state === 'SUCCESS') {
+                var range = quill.getSelection(true);
+                quill.insertEmbed(range.index, 'image', data.url);
+            } else {
+                console.error('图片上传失败:', data.state);
+            }
+        } catch (err) {
+            console.error('图片上传异常:', err);
+        }
+    };
+    input.click();
+};
+
+// 全局粘贴图片拦截上传
+window.__quillPasteImage = function(quill, e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (var i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+            e.preventDefault();
+            var file = items[i].getAsFile();
+            if (!file) return;
+
+            var formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/upfile?t=img', { method: 'POST', body: formData })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.state === 'SUCCESS') {
+                        var range = quill.getSelection(true);
+                        quill.insertEmbed(range.index, 'image', data.url);
+                    }
+                })
+                .catch(function(err) { console.error('粘贴图片上传失败:', err); });
+
+            break;
+        }
+    }
+};
+</script>
+{% set _ = g.setdefault('_quill_assets_rendered', True) %}
+{% endif %}
+{% endmacro %}
+
+
+{# 宏二：渲染一个富文本编辑器实例，可以在同一页面多次调用。
+   参数 mode 可选 'simple' / 'standard'（默认） / 'powerful'
+   参数 enableImageUpload 是否启用图片上传（默认 True，仅当工具栏含 image 时有效） #}
+{% macro quill_editor(name, content='', height='300px', placeholder='请输入内容...', mode='standard', enableImageUpload=true) %}
+<div class="quill-wrapper">
+    <div id="{{ name }}_editor" style="height: {{ height }};"></div>
+    <input type="hidden" name="{{ name }}" id="{{ name }}_input">
+</div>
+
+<script>
+(function() {
+    window.__quillInstances = window.__quillInstances || {};
+
+    var quill = new Quill('#{{ name }}_editor', {
+        theme: 'snow',
+        placeholder: {{ placeholder | tojson }},
+        modules: {
+            toolbar: {
+                container: [
+                    {% if mode == 'simple' %}
+                        {{ _quill_toolbar_simple | trim | indent(20) }}
+                    {% elif mode == 'powerful' %}
+                        {{ _quill_toolbar_powerful | trim | indent(20) }}
+                    {% else %}
+                        {{ _quill_toolbar_standard | trim | indent(20) }}
+                    {% endif %}
+                ],
+                handlers: {
+                    {% if mode != 'simple' and enableImageUpload %}
+                    image: function() {
+                        window.__quillUploadImage(quill);
+                    }
+                    {% endif %}
+                }
+            }
+        }
+    });
+
+    // 回显初始内容（编辑已有文章时）
+    var initialContent = {{ content | tojson }};
+    if (initialContent) {
+        quill.clipboard.dangerouslyPasteHTML(initialContent);
+    }
+
+    // 粘贴图片上传 — 在捕获阶段拦截，不让 Quill 先处理成 base64
+    {% if mode != 'simple' and enableImageUpload %}
+    (function() {
+        var wrapper = document.getElementById('{{ name }}_editor').parentElement;
+        wrapper.addEventListener('paste', function(e) {
+            var items = e.clipboardData && e.clipboardData.items;
+            if (!items) return;
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type.startsWith('image/')) {
+                    e.preventDefault();
+                    e.stopPropagation(); // 阻止事件到达 Quill 的 root 监听器
+                    var file = items[i].getAsFile();
+                    if (!file) return;
+
+                    var formData = new FormData();
+                    formData.append('file', file);
+
+                    fetch('/api/upfile?t=img', { method: 'POST', body: formData })
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
+                            if (data.state === 'SUCCESS') {
+                                var range = quill.getSelection(true);
+                                quill.insertEmbed(range.index, 'image', data.url);
+                            }
+                        })
+                        .catch(function(err) { console.error('粘贴图片上传失败:', err); });
+                    break;
+                }
+            }
+        }, true); // capture phase — 先于目标阶段触发
+    })();
+    {% endif %}
+
+    // 表单提交前，把编辑器内容同步到隐藏字段
+    var hiddenInput = document.getElementById('{{ name }}_input');
+    var form = hiddenInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            hiddenInput.value = quill.root.innerHTML;
+        });
+    }
+
+    // 存实例，方便外部访问
+    window.__quillInstances[{{ name | tojson }}] = quill;
+})();
+</script>
+{% endmacro %}
