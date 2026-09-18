@@ -70,8 +70,8 @@ def get_provider() -> AiProviderBase:
     抛出：ValueError（不支持的供应商）
     """
     # 避免循环导入：在函数内延迟引用
-    from eb_modules.eb_shop import bp_shop_apis
-    config = bp_shop_apis.config
+    from .. import bp_quote_apis
+    config = bp_quote_apis.config or {}
 
     provider_name = config.get('ai_provider', 'deepseek')
     api_key = config.get('ai_key', '')

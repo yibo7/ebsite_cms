@@ -90,7 +90,7 @@ def my_orders(user_token:UserToken):
 @bp_shop_pages.route('/sel_payment', methods=['GET', 'POST'])
 @check_user_login
 def sel_payment(user_token:UserToken):
-
+    
     order_id = http_helper.get_prams("orderid")
     if not order_id:
         raise Exception("输入的参数不正确!")
@@ -110,6 +110,7 @@ def sel_payment(user_token:UserToken):
     order_name = f"订单号:{order_id} 时间:{model_order.add_time} 下单人:{model_order.address.get('user_name')}"
     pay_key = eb_utils.md5(f"{order_id}-{total_price}-{current_app.config['RandomKey']}'")
     return render_template("sel_payment.html",pay_key=pay_key,order_name=order_name,total_price = total_price,order_id=order_id, payments=payments)
+
 
 # region 管理后台页面
 @bp_shop_pages.route('/shop_orders', methods=['GET'])
@@ -207,4 +208,7 @@ def del_order(admin_token:UserToken):
 def level_price(admin_token:UserToken):
 
     return render_template("shop_admin/level_price.html")
+
+
+
 # endregion

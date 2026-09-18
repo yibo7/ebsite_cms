@@ -1,0 +1,256 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.class_name}}
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== 页面 Banner ===== -->
+<section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>/</span>
+      <span>关于我们</span>
+    </div>
+    <h1>关于<span>Green Rich 金瑞治</span></h1>
+    <p>始于 1997 年，专注复印机感光鼓芯研发制造，全球 50+ 国家信赖之选。</p>
+  </div>
+</section>
+
+<!-- ===== 关于我们 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="about-grid">
+
+      <!-- 左侧文字 -->
+      <div class="about-text">
+        <h2>关于<span>我们</span></h2>
+        {{ widget("6aab5f5b7b19c0e12d922c9c") }}
+        <div class="about-highlights">
+          <div class="about-highlight"><span class="check">✓</span> 厂家直销</div>
+          <div class="about-highlight"><span class="check">✓</span> 诚信保障</div>
+          <div class="about-highlight"><span class="check">✓</span> 全球配送</div>
+          <div class="about-highlight"><span class="check">✓</span> 无忧售后</div>
+        </div>
+      </div>
+
+      <!-- 右侧工厂图片（CSS 绘制的工厂外观示意） -->
+      <div class="about-image">
+        <div class="factory-img">
+          <div class="ground"></div>
+          <div class="building"></div>
+          <div class="brand-sign">Green Rich<small>金瑞治 · 复印机鼓芯专家</small></div>
+          <div class="car c1"></div>
+          <div class="car c2"></div>
+          <div class="car c3"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== 核心数据 ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="sec-header">
+      <h2>用<span>数据</span>说话</h2>
+      <p>20 余年行业沉淀，全球客户共同见证</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🏭</div>
+        <b>1997</b>
+        <span>品牌创立年份</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <b>1000+</b>
+        <span>在售鼓芯型号</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🌍</div>
+        <b>50+</b>
+        <span>产品出口国家</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <b>&lt;0.1%</b>
+        <span>出厂不良率</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 为什么选择我们 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>为什么选择 <span>Green Rich</span></h2>
+      <p>您值得信赖的复印机耗材合作伙伴</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="icon">🏭</div>
+        <div>
+          <h4>源头工厂</h4>
+          <p>20 余年自主研发制造经验，无中间商，价格更具竞争力</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="icon">✅</div>
+        <div>
+          <h4>品质承诺</h4>
+          <p>出货前 100% 全检，不良率严格控制在 0.1% 以内</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="icon">🌍</div>
+        <div>
+          <h4>广泛兼容</h4>
+          <p>覆盖 8 大主流品牌，上千种型号一站式采购</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="icon">🚀</div>
+        <div>
+          <h4>极速交付</h4>
+          <p>常规型号 48 小时内发货，支持 OEM/ODM 定制</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="icon">🔬</div>
+        <div>
+          <h4>自主研发</h4>
+          <p>绿色鼓芯涂层技术，寿命提升 30%</p>
+        </div>
+      </div>
+      <div class="feat">
+        <div class="icon">🛡️</div>
+        <div>
+          <h4>无忧售后</h4>
+          <p>12 个月质保，退换货保障</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 发展历程 ===== -->
+<section class="timeline-section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>品牌<span>发展历程</span></h2>
+      <p>从深圳小厂到全球化耗材供应商，我们始终坚守品质初心</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot">1997</div>
+        <h4>品牌创立</h4>
+        <p>Green Rich 在深圳成立<br>专注 OPC 鼓芯研发</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2005</div>
+        <h4>技术突破</h4>
+        <p>自主研发绿色鼓芯涂层<br>寿命提升 30%</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2015</div>
+        <h4>全球布局</h4>
+        <p>产品出口 50+ 国家<br>建立海外仓储中心</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2024</div>
+        <h4>智能制造</h4>
+        <p>全自动产线投产<br>年产能突破 500 万支</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 联系我们 ===== -->
+<section id="contact" class="section section-alt">
+  <div class="container">
+    <div class="contact-grid">
+
+      <!-- 左侧表单 -->
+      <div class="contact-form">
+        <h2>联系<span>我们</span></h2>
+        <p>填写以下信息，我们的销售工程师将在 30 分钟内与您联系，提供一对一选型建议与批发报价。</p>
+
+        <form id="f_68527c940a8b42f2df1414a3" onsubmit="return on_custom_form(this)" method="post">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="UserName">姓名 <span class="req">*</span></label>
+              <input type="text" id="UserName" name="UserName" minlength="1" maxlength="50" placeholder="请输入您的姓名" required>
+            </div>
+            <div class="form-group">
+              <label for="ContectInfo">联系方式 <span class="req">*</span></label>
+              <input type="text" id="ContectInfo" name="ContectInfo" minlength="1" placeholder="手机号 / 微信 / 邮箱" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full">
+              <label for="Info">备注</label>
+              <textarea id="Info" name="Info" rows="2" cols="20" placeholder="请填写你希望合作的愿望或商品类型" vglp="savedata" isnull="0"></textarea>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group full">
+              <label for="safe_code">验证码 <span class="req">*</span></label>
+              <div class="captcha-row">
+                <input type="text" name="safe_code" id="safe_code" style="max-width:100px" class="form-control" title="验证码为4个字符" pattern=".{4}" required>
+                <img onClick="this.src+=Math.random()" src="/imgcode?" title="点击刷新" />
+              </div>
+              <span class="hint">看不清？点击验证码刷新</span>
+            </div>
+          </div>
+
+          <div class="form-submit">
+            <button type="submit" class="btn btn-accent">提交</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 右侧联系方式 -->
+      <div class="contact-info">
+        <h3><span class="dot"></span>联系方式</h3>
+
+        <div class="contact-item">
+          <div class="ci-icon">📍</div>
+          <div class="ci-body">
+            <h4>公司地址</h4>
+            <p>广东省深圳市xx区xx工业园A栋</p>
+            <p class="sub">广东省深圳市 · Green Rich 金瑞治</p>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="ci-icon">📱</div>
+          <div class="ci-body">
+            <h4>WhatsApp联系</h4>
+            <p><a href="https://wa.me/8613800138000">WhatsApp</a></p>
+            <p class="sub">周一至周六 9:00 - 18:00</p>
+          </div>
+        </div>
+
+        <div class="contact-item">
+          <div class="ci-icon">💬</div>
+          <div class="ci-body">
+            <h4>商务合作</h4>
+            <p><a href="mailto:business@greenrich.com">business@greenrich.com</a></p>
+            <p class="sub">OEM / ODM 定制请联系</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+<script>
+    let cid = {{model.id}};
+</script>
+{% endblock %}

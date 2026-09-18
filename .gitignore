@@ -163,3 +163,8 @@ cython_debug/
 
 # 本地开发配置（含敏感字段占位符，各开发者自行填写）
 conf/setting.json
+/website/themes/eb_shop/static/products
+/website/themes/eb_shop_quote/static/products
+/website/themes/aitanqin/static/aplayer
+/website/themes/eb_shop_quote/数据处理
+website/uploads

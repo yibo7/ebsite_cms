@@ -1,0 +1,199 @@
+{% extends 'base_admin.html' %}
+{% block content %}
+<link rel="stylesheet" href="/eb_quote/css/admin_orders.css">
+
+<div style="padding:10px;">
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link" href="shop_orders">订单管理</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" aria-current="page" href="shop_quotes">报价单管理</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="level_price">价格级别管理</a>
+    </li>
+  </ul>
+  <br>
+
+  <div class="eb-box">
+    <div class="btn-toolbar px-2">
+      <form method="get">
+        <div class="btn-group">
+          <input class="form-control" style="width:320px" placeholder="报价单号 / 账号 / 联系人 / 电话" name="k" type="text" value="{{ request.args.get('k', '') }}"/>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" type="submit">搜索</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if items %}
+  {% for item in items %}
+  <div class="order-card mt-3">
+    <div class="order-card-header" onclick="toggleDetail(this)">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span class="order-id">报价单：{{ item.record_id }}</span>
+        <span class="order-recipient">账号：{{ item.user_account }}</span>
+        <span class="order-recipient">联系人：{{ item.contact.name or '-' }}</span>
+        <span class="order-time">创建：{{ item.add_time_str }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="status-badge {{ item.status_class }}">{{ item.status_name }}</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+    </div>
+
+    <div class="order-card-detail">
+      <div class="order-card-body">
+        <div class="order-info-grid">
+          <div class="order-info-item">
+            <label>客户账号</label>
+            <div class="value">{{ item.user_account or '-' }}</div>
+          </div>
+          <div class="order-info-item">
+            <label>报价单号</label>
+            <div class="value">{{ item.record_id }}</div>
+          </div>
+          <div class="order-info-item">
+            <label>联系人</label>
+            <div class="value">{{ item.contact.name or '-' }}</div>
+          </div>
+          <div class="order-info-item">
+            <label>联系电话</label>
+            <div class="value">{{ item.contact.phone or '-' }}</div>
+          </div>
+          {% if item.contact.email %}
+          <div class="order-info-item">
+            <label>邮箱</label>
+            <div class="value small">{{ item.contact.email }}</div>
+          </div>
+          {% endif %}
+          {% if item.contact.company %}
+          <div class="order-info-item">
+            <label>公司</label>
+            <div class="value small">{{ item.contact.company }}</div>
+          </div>
+          {% endif %}
+          {% if item.contact.address %}
+          <div class="order-info-item" style="grid-column: span 2;">
+            <label>收货地址</label>
+            <div class="value small">{{ item.contact.address }}</div>
+          </div>
+          {% endif %}
+          {% if item.contact.remark %}
+          <div class="order-info-item" style="grid-column: span 2;">
+            <label>备注</label>
+            <div class="value small">{{ item.contact.remark }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if item.product_list %}
+        <div class="order-products">
+          <div class="order-products-header">
+            <span>产品</span>
+            <span style="text-align:right;">单价</span>
+            <span style="text-align:right;">数量</span>
+            <span style="text-align:right;">小计</span>
+          </div>
+          {% for p in item.product_list %}
+          <div class="order-product-row">
+            <div>
+              <div>{{ p.title }}</div>
+              {% if p.spec %}<div class="p-spec">{{ p.spec }}</div>{% endif %}
+            </div>
+            <div class="p-price">¥{{ "%.2f"|format(p.unit_price) }}</div>
+            <div class="p-qty">{{ p.qty }}</div>
+            <div class="p-price">¥{{ "%.2f"|format(p.subtotal) }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div>
+          <div class="order-fin-row">
+            <span>原价合计</span>
+            <span>¥{{ "%.2f"|format(item.total_original) }}</span>
+          </div>
+          <div class="order-fin-row">
+            <span>折扣（{{ item.discount_percent }}%）</span>
+            <span style="color:#16a34a;">-¥{{ "%.2f"|format(item.total_discount) }}</span>
+          </div>
+          <div class="order-fin-row total">
+            <span>报价合计</span>
+            <span>¥{{ "%.2f"|format(item.total_final) }}</span>
+          </div>
+        </div>
+
+        {% if item.fail_reason %}
+        <div class="order-info-item" style="grid-column: span 2;margin-top:8px;">
+          <label style="color:#dc2626;">失败原因</label>
+          <div class="value small" style="color:#dc2626;">{{ item.fail_reason }}</div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <div class="order-card-actions" style="display:flex;flex-wrap:wrap;gap:8px;">
+        <a class="btn btn-sm btn-outline-primary" href="/eb_quote/quote/{{ item.record_id }}" target="_blank">🔗 查看报价单</a>
+
+        {% if item.status == 'pending_review' %}
+        <button class="btn btn-sm btn-success" onclick="updateStatus('{{ item.record_id }}','approved','')">✅ 审核通过</button>
+        <button class="btn btn-sm btn-danger" onclick="promptFail('{{ item.record_id }}')">❌ 审核失败</button>
+        {% endif %}
+
+        {% if item.status == 'approved' %}
+        <button class="btn btn-sm btn-primary" onclick="updateStatus('{{ item.record_id }}','paid','')">💳 标记已支付</button>
+        {% endif %}
+
+        {% if item.status == 'paid' %}
+        <button class="btn btn-sm btn-primary" onclick="updateStatus('{{ item.record_id }}','completed','')">🎉 交易完成</button>
+        {% endif %}
+
+        {% if item.status == 'pending_review' or item.status == 'approved' %}
+        <button class="btn btn-sm btn-warning" onclick="promptFail('{{ item.record_id }}')">🗑 交易失败</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% else %}
+  <div class="order-empty">
+    <div class="icon">📭</div>
+    <div class="text">暂无报价单数据</div>
+  </div>
+  {% endif %}
+
+  <nav class="mt-2 px-2">
+    {{ pager|safe }}
+  </nav>
+</div>
+
+<script>
+function toggleDetail(el){
+  var detail = el.parentNode.querySelector('.order-card-detail');
+  var icon = el.querySelector('.toggle-icon');
+  if(!detail) return;
+  detail.classList.toggle('open');
+  if(icon) icon.classList.toggle('open');
+}
+
+function updateStatus(recordId, status, reason){
+  var url = '/eb_quote/shop_quote_update_status?record_id=' + recordId + '&status=' + status;
+  if(reason) url += '&reason=' + encodeURIComponent(reason);
+  if(confirm('确认要更新此报价单状态吗？')){
+    window.location.href = url;
+  }
+}
+
+function promptFail(recordId){
+  var reason = prompt('请输入交易失败的原因：');
+  if(reason && reason.trim()){
+    updateStatus(recordId, 'failed', reason.trim());
+  }
+}
+</script>
+{% endblock %}

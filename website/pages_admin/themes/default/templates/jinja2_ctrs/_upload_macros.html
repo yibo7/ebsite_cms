@@ -1,0 +1,75 @@
+{% macro upload_assets() %}
+<link href="{{admin_path}}js/webuploader/webuploader.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploader.min.js"></script>
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploaderpic.js"></script>
+<script type="text/javascript" src="{{admin_path}}js/webuploader/webuploaderfile.js"></script>
+{% endmacro %}
+
+
+{% macro img_upload(name, value='', show_name='', width=80, height=80) %}
+{% set label = show_name or '上传图片' %}
+<div class="mb-3">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}" />
+    <div class="bduploader">
+        <div><div id="imglist_{{ name }}" class="uploader-imglist"></div></div>
+        <div id="btn_img_{{ name }}">选择图片</div>
+    </div>
+    <script>InitImgUpload('btn_img_{{ name }}','imglist_{{ name }}','{{ name }}',{{ width }},{{ height }},false);</script>
+</div>
+{% endmacro %}
+
+
+{% macro img_upload_multi(name, value='', show_name='', width=80, height=80) %}
+{% set label = show_name or '上传多图' %}
+<div class="mb-3">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}" />
+    <div class="bduploader">
+        <div><div id="imglist_{{ name }}" class="uploader-imglist"></div></div>
+        <div id="btn_img_{{ name }}">选择图片</div>
+    </div>
+    <script>InitImgUpload('btn_img_{{ name }}','imglist_{{ name }}','{{ name }}',{{ width }},{{ height }},true);</script>
+</div>
+{% endmacro %}
+
+
+{% macro img_upload_path(name, value='', show_name='') %}
+{% set label = show_name or '上传图片（显示路径）' %}
+<div class="mb-3">
+    <label>{{ label }}</label>
+    <div class="input-group mb-3">
+        <input name="{{ name }}" id="{{ name }}" value="{{ value }}" style="max-width:300px" class="form-control">
+        <button style="background-color:#00B7EE" class="btn btn-outline-secondary bduploader" type="button" id="btn_img_{{ name }}">选择图片</button>
+    </div>
+    <script>InitImgUpload('btn_img_{{ name }}','','{{ name }}',0,0,false);</script>
+</div>
+{% endmacro %}
+
+
+{% macro file_upload(name, value='', show_name='') %}
+{% set label = show_name or '上传文件' %}
+<div class="mb-3">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}" />
+    <div class="bduploader">
+        <div id="div_files_{{ name }}" class="uploader-filelist"></div>
+        <div id="btn_file_{{ name }}">选择文件</div>
+    </div>
+    <script>InitFileUpload('btn_file_{{ name }}','div_files_{{ name }}','{{ name }}',false);</script>
+</div>
+{% endmacro %}
+
+
+{% macro file_upload_multi(name, value='', show_name='') %}
+{% set label = show_name or '上传多文件' %}
+<div class="mb-3">
+    <label>{{ label }}</label>
+    <input type="hidden" name="{{ name }}" id="{{ name }}" value="{{ value }}" />
+    <div class="bduploader">
+        <div id="div_files_{{ name }}" class="uploader-filelist"></div>
+        <div id="btn_file_{{ name }}">选择文件</div>
+    </div>
+    <script>InitFileUpload('btn_file_{{ name }}','div_files_{{ name }}','{{ name }}',true);</script>
+</div>
+{% endmacro %}

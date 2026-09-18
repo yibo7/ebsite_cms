@@ -1,0 +1,53 @@
+<!-- ===== 用户中心侧边栏 ===== -->
+<link rel="stylesheet" href="/css/user.css">
+<div class="col-lg-3">
+<div class="uc-sidebar">
+  {% set _s = temp_data.get_user_content_stats() %}
+  {% if user is defined %}
+  <!-- 用户信息卡片 -->
+  <div class="uc-profile">
+    <div class="uc-avatar">{{ (user.ni_name or user.name or '?')[0] }}</div>
+    <div class="uc-name">{{ user.ni_name or user.name or '用户' }}</div>
+    <div class="uc-username">@{{ user.name or 'unknown' }}</div>
+    <div class="uc-stats">
+      <div>
+        <span class="uc-stat-num">{{ _s.total }}</span>
+        <span class="uc-stat-label">商品</span>
+      </div>
+      <div>
+        <span class="uc-stat-num">{{ _s.favorites }}</span>
+        <span class="uc-stat-label">收藏</span>
+      </div>
+      <div>
+        <span class="uc-stat-num">{{ _s.total_hits }}</span>
+        <span class="uc-stat-label">人气</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- 导航菜单 -->
+  <div class="uc-nav">
+    <a href="/user/index" class="uc-nav-item{{ ' active' if active_nav == 'index' else '' }}">
+      <span class="uc-nav-icon">🏠</span>
+      控制面板
+    </a>
+    <a href="/user/favorite" class="uc-nav-item{{ ' active' if active_nav == 'favorite' else '' }}">
+      <span class="uc-nav-icon">❤️</span>
+      我的收藏
+    </a>
+    <a href="/shop/my_orders" class="uc-nav-item{{ ' active' if active_nav == 'orders' else '' }}">
+      <span class="uc-nav-icon">📦</span>
+      我的订单
+    </a>
+    <a href="/my_quotes" class="uc-nav-item{{ ' active' if active_nav == 'quotes' else '' }}">
+      <span class="uc-nav-icon">📄</span>
+      我的报价单
+    </a>
+    <a href="/user/log_out" class="uc-nav-item exit" onclick="return confirm('确定要退出登录吗？')">
+      <span class="uc-nav-icon">🚪</span>
+      退出登录
+    </a>
+  </div>
+</div>
+</div>

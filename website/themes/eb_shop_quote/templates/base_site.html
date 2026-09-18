@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" data-bs-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% block title %}{% endblock %}-{{SiteName}}</title>
+  <link rel="icon" href="/favicon.svg" />
+  <meta name="keywords" content="鼓芯，复印机鼓芯" />
+  <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
+  <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
+  <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
+  <script src="/js/comm.js" defer></script>
+  <script src="/extensions.js" defer></script>
+  <style>
+    .btn-quote{position:relative;background:#d32f2f;color:#fff;padding:9px 20px;border-radius:999px;font-weight:600;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;text-decoration:none;}
+    .btn-quote:hover{background:#b71c1c;color:#fff;}
+    .cart-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(239,68,68,.6);line-height:1;}
+    .cart-badge.hidden{display:none;}
+  </style>
+</head>
+
+<body>
+ <header>
+  <div class="container nav">
+    <a class="logo" href="/">
+      <span class="dot">G</span>Green Rich <small>金瑞治</small>
+    </a>
+    <nav class="nav-links">
+      <a href="/" >首页</a>
+      <a cid="105" href="{{ LANG_PREFIX }}/c105p1.html">产品中心</a>
+      <a cid="106" href="{{ LANG_PREFIX }}/c106p1.html">行业资讯</a>
+      <a cid="108" href="{{ LANG_PREFIX }}/c108p1.html">关于我们</a>
+      <a cid="109" href="{{ LANG_PREFIX }}/c109p1.html">加盟合作</a>
+    </nav>
+    <div class="header-actions">
+      <a href="javascript:void(0)" id="search-toggle" class="search-toggle" title="搜索" style="font-size:20px;">
+        &#128270;
+      </a>
+      <span class="lang">中文 ▾</span>
+      <a href="/user/index" class="nav-link" style="color:inherit;text-decoration:none;">👤 个人中心</a>
+      <a href="/quote/index.html" class="btn-quote">🛒 询价篮 <span class="cart-badge hidden" id="quoteBadge">0</span></a>
+      <button class="mobile-toggle">☰</button>
+    </div>
+    <!-- 搜索框弹出层 -->
+    <div id="search-input-box">
+      <form onsubmit="return ChkSo(this);" method="get" action="/search.html"
+            class="d-flex justify-content-between align-items-center">
+        <input type="text" class="form-control" id="k" name="k" placeholder="搜索型号 / 品牌 / 关键词...">
+        <button type="submit" class="btn-search-go" aria-label="搜索">&#128270;</button>
+        <a href="javascript:void(0)" id="search-close" class="search-close" aria-label="关闭">&#10005;</a>
+      </form>
+    </div>
+  </div>
+</header>
+
+
+  {% block content %}{% endblock %}
+
+
+<!-- ===== CTA ===== -->
+<section id="contact" class="cta-section">
+  <div class="cta-content">
+    <h2>获取专属报价方案</h2>
+    <p>留下您的需求，我们的销售工程师将在 30 分钟内与您联系，提供一对一选型建议与批发报价。</p>
+    <div class="cta-btns">
+      <a href="https://wa.me/8613800138000" class="btn btn-accent">💬 WhatsApp</a>
+      <a href="mailto:cqs263@163.com" class="btn btn-white">✉️ cqs263@163.com</a>
+    </div>
+  </div>
+</section>
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <h4 style="color:#93c5fd;font-size:18px;">🟢 Green Rich 金瑞治</h4>
+        <p>始于1997年，深圳市金瑞治科技有限公司是一家专业从事复印机感光鼓芯研发、生产和销售的高新技术企业。我们致力于为全球客户提供高品质、高性价比的打印耗材解决方案。</p>
+      </div>
+      <div>
+        <h4>快速链接</h4>
+        <a href="/" >首页</a>
+        <a href="{{ LANG_PREFIX }}/c105p1.html">产品中心</a>
+        <a href="{{ LANG_PREFIX }}/c106p1.html">行业资讯</a>
+        <a href="{{ LANG_PREFIX }}/c108p1.html">关于我们</a>
+        <a href="{{ LANG_PREFIX }}/c109p1.html">加盟合作</a>
+
+      </div>
+      <div>
+<!--        <h4>适用品牌型号</h4>-->
+      </div>
+      <div class="foot-contact">
+        <h4>联系我们</h4>
+        <a href="https://wa.me/8613800138000" >💬 WhatsApp</a>
+        <a href="mailto:cqs263@163.com" >✉️ cqs263@163.com</a>
+        <a href="#">📍 中国北京市朝阳区高科工业园A栋</a>
+        <a href="#">🕐 周一至周六 9:00 - 18:00</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 1997–2026 金瑞治科技有限公司 版权所有 </span>
+      <span><a href="#">隐私政策</a><a href="#">使用条款</a></span>
+    </div>
+  </div>
+</footer>
+
+
+<!-- Toast 提示消息容器（供 comm.js 的 toast() 函数使用） -->
+<div id="toast-message" class="toast" role="alert">
+  <span id="toast-text">提示内容</span>
+</div>
+
+<script>
+function updateQuoteBadge() {
+  var badge = document.getElementById('quoteBadge');
+  if (!badge) return;
+  try {
+    var saved = localStorage.getItem('eb_quote_items');
+    if (saved) {
+      var items = JSON.parse(saved);
+      var count = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+      if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    } else {
+      badge.classList.add('hidden');
+    }
+  } catch(e) {
+    badge.classList.add('hidden');
+  }
+}
+updateQuoteBadge();
+</script>
+
+</body>
+
+</html>

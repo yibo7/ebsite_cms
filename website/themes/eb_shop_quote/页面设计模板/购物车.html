@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>询价篮 | Green Rich 金瑞治 - 复印机感光鼓芯</title>
+<meta name="description" content="Green Rich金瑞治询价篮，查看您已选中的复印机感光鼓芯产品，一键提交询价，48小时内获取批发报价。">
+<meta name="keywords" content="询价篮,购物车,复印机鼓芯,Green Rich,金瑞治">
+<link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header>
+  <div class="container nav">
+    <a class="logo" href="index.html">
+      <span class="dot">G</span>Green Rich <small>金瑞治</small>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="products.html">产品中心</a>
+      <a href="about.html">关于我们</a>
+      <a href="join.html">加盟合作</a>
+      <a href="#contact">联系我们</a>
+    </nav>
+    <div class="header-actions">
+      <div class="search-box">
+        <input type="text" placeholder="搜索型号 / 品牌...">
+        <button>🔍</button>
+      </div>
+      <span class="lang">中文 ▾</span>
+      <a href="#contact" class="btn-quote">获取报价单</a>
+      <button class="mobile-toggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 页面 Banner ===== -->
+<section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>/</span>
+      <a href="products.html">产品中心</a>
+      <span>/</span>
+      <span>询价篮</span>
+    </div>
+    <h1>我的<span>询价篮</span></h1>
+    <p>确认您选中的鼓芯型号与数量，一键提交询价，我们的销售工程师将在 30 分钟内与您联系并提供批发报价。</p>
+  </div>
+</section>
+
+<!-- ===== 询价篮主体（上下排版） ===== -->
+<div class="container">
+  <div class="cart-page">
+
+    <!-- ---------- 上：商品列表 ---------- -->
+    <div class="cart-main">
+      <div class="cart-head">
+        <div class="cart-head-left">
+          <label class="select-all">
+            <input type="checkbox" id="selectAll" checked>
+            全选
+          </label>
+          <h2>商品列表</h2>
+          <span class="count">已选 <b id="selectedCount">4</b> / <span id="totalCount">4</span> 款</span>
+        </div>
+        <div class="cart-tools">
+          <button class="tool-link" onclick="removeSelected()">删除选中</button>
+          <span class="tool-divider"></span>
+          <button class="tool-link" onclick="clearCart()">清空询价篮</button>
+        </div>
+      </div>
+
+      <!-- 表头（桌面端显示） -->
+      <div class="cart-table-head">
+        <div></div>
+        <div>商品信息</div>
+        <div class="t-center">单价</div>
+        <div class="t-center">数量</div>
+        <div class="t-center">小计</div>
+        <div></div>
+      </div>
+
+      <!-- 商品列表容器 -->
+      <div id="cartItems">
+
+        <!-- 商品 1 -->
+        <div class="cart-item selected" data-price="20" data-id="1">
+          <div class="item-check">
+            <input type="checkbox" class="item-select" checked>
+          </div>
+          <div class="item-info">
+            <div class="item-thumb">🖨️</div>
+            <div class="item-detail">
+              <div class="item-brand">佳能 Canon</div>
+              <h3>佳能 IR1730 鼓芯</h3>
+              <div class="item-tags">
+                <span class="tag">IR1730</span>
+                <span class="tag green">原色/绿色</span>
+                <span class="tag gray">寿命 5 万页</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-price"><b>¥20.00</b></div>
+          <div class="qty-control">
+            <button class="qty-minus" onclick="changeQty(this, -1)">−</button>
+            <input type="number" class="qty-input" value="10" min="1" max="9999" onchange="updateQty(this)">
+            <button class="qty-plus" onclick="changeQty(this, 1)">+</button>
+          </div>
+          <div class="item-subtotal">¥200.00 <small>10 支</small></div>
+          <div class="item-remove">
+            <button onclick="removeItem(this)" title="删除">🗑️</button>
+          </div>
+        </div>
+
+        <!-- 商品 2 -->
+        <div class="cart-item selected" data-price="23" data-id="2">
+          <div class="item-check">
+            <input type="checkbox" class="item-select" checked>
+          </div>
+          <div class="item-info">
+            <div class="item-thumb">🖨️</div>
+            <div class="item-detail">
+              <div class="item-brand">佳能 Canon</div>
+              <h3>佳能 IR2016 鼓芯</h3>
+              <div class="item-tags">
+                <span class="tag">IR2016</span>
+                <span class="tag">原厂</span>
+                <span class="tag gray">寿命 8 万页</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-price"><b>¥23.00</b></div>
+          <div class="qty-control">
+            <button class="qty-minus" onclick="changeQty(this, -1)">−</button>
+            <input type="number" class="qty-input" value="20" min="1" max="9999" onchange="updateQty(this)">
+            <button class="qty-plus" onclick="changeQty(this, 1)">+</button>
+          </div>
+          <div class="item-subtotal">¥460.00 <small>20 支</small></div>
+          <div class="item-remove">
+            <button onclick="removeItem(this)" title="删除">🗑️</button>
+          </div>
+        </div>
+
+        <!-- 商品 3 -->
+        <div class="cart-item selected" data-price="28" data-id="3">
+          <div class="item-check">
+            <input type="checkbox" class="item-select" checked>
+          </div>
+          <div class="item-info">
+            <div class="item-thumb">🖨️</div>
+            <div class="item-detail">
+              <div class="item-brand">佳能 Canon</div>
+              <h3>佳能 IR2525 鼓芯</h3>
+              <div class="item-tags">
+                <span class="tag">IR2525</span>
+                <span class="tag">原厂</span>
+                <span class="tag gray">寿命 8 万页</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-price"><b>¥28.00</b></div>
+          <div class="qty-control">
+            <button class="qty-minus" onclick="changeQty(this, -1)">−</button>
+            <input type="number" class="qty-input" value="15" min="1" max="9999" onchange="updateQty(this)">
+            <button class="qty-plus" onclick="changeQty(this, 1)">+</button>
+          </div>
+          <div class="item-subtotal">¥420.00 <small>15 支</small></div>
+          <div class="item-remove">
+            <button onclick="removeItem(this)" title="删除">🗑️</button>
+          </div>
+        </div>
+
+        <!-- 商品 4 -->
+        <div class="cart-item selected" data-price="31" data-id="4">
+          <div class="item-check">
+            <input type="checkbox" class="item-select" checked>
+          </div>
+          <div class="item-info">
+            <div class="item-thumb">🖨️</div>
+            <div class="item-detail">
+              <div class="item-brand">佳能 Canon</div>
+              <h3>佳能 IRC5540 鼓芯</h3>
+              <div class="item-tags">
+                <span class="tag">IRC5540</span>
+                <span class="tag">新都</span>
+                <span class="tag gray">寿命 8 万页</span>
+              </div>
+            </div>
+          </div>
+          <div class="item-price"><b>¥31.00</b></div>
+          <div class="qty-control">
+            <button class="qty-minus" onclick="changeQty(this, -1)">−</button>
+            <input type="number" class="qty-input" value="8" min="1" max="9999" onchange="updateQty(this)">
+            <button class="qty-plus" onclick="changeQty(this, 1)">+</button>
+          </div>
+          <div class="item-subtotal">¥248.00 <small>8 支</small></div>
+          <div class="item-remove">
+            <button onclick="removeItem(this)" title="删除">🗑️</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 空状态（默认隐藏） -->
+      <div class="cart-empty" id="cartEmpty" style="display:none;">
+        <div class="empty-icon">🛒</div>
+        <h3>询价篮还是空的</h3>
+        <p>去产品中心挑选您需要的鼓芯型号，加入询价篮后即可一键提交。</p>
+        <a href="products.html" class="btn">浏览产品中心 →</a>
+      </div>
+
+      <!-- 底部继续购物 -->
+      <div class="cart-foot-bar" id="cartFootBar">
+        <a href="products.html" class="continue-link">← 继续浏览产品</a>
+        <span class="foot-note">支持批量询价 · OEM/ODM 定制 · 48h 极速发货</span>
+      </div>
+    </div>
+
+    <!-- ---------- 下：询价摘要 ---------- -->
+    <aside class="cart-summary" id="cartSummary">
+      <div class="summary-head">
+        <h3><span class="dot"></span>询价摘要</h3>
+      </div>
+      <div class="summary-body">
+
+        <div class="summary-grid">
+
+          <!-- 左：金额明细 -->
+          <div class="summary-amounts">
+            <div class="summary-row">
+              <span>已选商品</span>
+              <b><span id="summaryCount">4</span> 款</b>
+            </div>
+            <div class="summary-row">
+              <span>商品总数量</span>
+              <b><span id="summaryQty">53</span> 支</b>
+            </div>
+            <div class="summary-row">
+              <span>商品总额</span>
+              <b>¥<span id="summarySubtotal">1,328.00</span></b>
+            </div>
+            <div class="summary-row">
+              <span>预估运费</span>
+              <b class="free">待确认</b>
+            </div>
+            <div class="summary-row total">
+              <span>预估合计</span>
+              <b>¥<span id="summaryTotal">1,328.00</span></b>
+            </div>
+          </div>
+
+          <!-- 右：优惠码 + 备注 -->
+          <div class="summary-form">
+            <label class="form-label" for="couponInput">优惠码</label>
+            <div class="coupon-box">
+              <input type="text" id="couponInput" placeholder="输入优惠码（选填）">
+              <button onclick="applyCoupon()">应用</button>
+            </div>
+            <p class="coupon-tip" id="couponTip">批量采购可联系销售获取专属折扣</p>
+
+            <label class="form-label" for="orderNote">询价备注</label>
+            <div class="summary-note">
+              <textarea id="orderNote" placeholder="如有特殊要求（型号、包装、交期等），请在此说明"></textarea>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="summary-actions">
+          <button class="btn btn-accent" onclick="submitInquiry()">📩 提交询价</button>
+          <a href="products.html" class="btn btn-outline">继续添加产品</a>
+        </div>
+
+        <!-- 信任小条 -->
+        <div class="summary-trust">
+          <div class="trust-row"><span class="ti">✅</span> 出货前 100% 全检，不良率 &lt;0.1%</div>
+          <div class="trust-row"><span class="ti">🚀</span> 常规型号 48 小时内发货</div>
+          <div class="trust-row"><span class="ti">🛡️</span> 12 个月质保，退换货保障</div>
+          <div class="trust-row"><span class="ti">🌍</span> 出口 50+ 国家，全球配送</div>
+        </div>
+
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+  <div class="cta-content">
+    <h2>需要批量采购或定制？</h2>
+    <p>我们支持 OEM/ODM 定制，提供一对一选型建议与批发报价。留下需求，30 分钟内响应。</p>
+    <div class="cta-btns">
+      <a href="tel:+8615910983264" class="btn btn-accent">📞 +86 159 1098 3264</a>
+      <a href="mailto:cqs263@163.com" class="btn btn-white">✉️ cqs263@163.com</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div>
+        <h4 style="color:#93c5fd;font-size:18px;">🟢 Green Rich 金瑞治</h4>
+        <p>始于1997年，深圳市金瑞治科技有限公司是一家专业从事复印机感光鼓芯研发、生产和销售的高新技术企业。我们致力于为全球客户提供高品质、高性价比的打印耗材解决方案。</p>
+      </div>
+      <div>
+        <h4>快速链接</h4>
+        <a href="index.html">首页</a>
+        <a href="products.html">产品中心</a>
+        <a href="about.html">关于我们</a>
+        <a href="join.html">加盟合作</a>
+        <a href="#contact">联系我们</a>
+      </div>
+      <div>
+        <h4>适用品牌型号</h4>
+        <a href="#">佳能</a>
+        <a href="#">东芝</a>
+        <a href="#">柯尼卡</a>
+        <a href="#">京瓷</a>
+        <a href="#">施乐</a>
+        <a href="#">查看全部 →</a>
+      </div>
+      <div class="foot-contact">
+        <h4>联系我们</h4>
+        <a href="tel:+8615910983264" class="highlight">📞 +86 159 1098 3264</a>
+        <a href="mailto:cqs263@163.com">✉️ cqs263@163.com</a>
+        <a href="#">💬 微信：GreenRich-Sales</a>
+        <a href="https://wa.me/8615910983264" target="_blank" rel="noopener">📱 WhatsApp: +86 159 1098 3264</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 1997–2026 深圳市金瑞治科技有限公司 版权所有 | 粤ICP备xxxxxxxx号-1 | 网站地图</span>
+      <span><a href="#">隐私政策</a><a href="#">使用条款</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast">✅ 操作成功</div>
+
+<script src="js/common.js"></script>
+<script src="js/cart.js"></script>
+
+</body>
+</html>

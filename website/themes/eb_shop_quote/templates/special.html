@@ -1,0 +1,64 @@
+{% extends 'base_site.html' %}
+{% block title %}
+    {{model.name}}
+{% endblock %}
+
+{% block content %}
+    <style>
+    .list-group-item:first-child {
+          border-top: none;
+        }
+    .list-group-item {
+  border-radius: 0 !important;
+}
+
+    </style>
+<div  class="d-lg-none" style="height:50px;"></div>
+<div class="listing-area pt-50 pb-50">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-3 col-lg-4 col-md-4">
+                        <div class="category-listing mb-50 taglist">
+                            {{ widget("6852ca7e9d0e112569a8cc00") }}
+                        </div>
+                    </div>
+                    <!-- Right content -->
+                    <div class="col-xl-9 col-lg-8 col-md-8">
+                        <div class="latest-items latest-items2">
+                            <div class="row">
+                                {%  if data_list %}
+                                <div  class="list-group">
+                                    {% for item in data_list%}
+
+                                        <div class="col-xl-4 col-lg-6 col-md-6 col-sm-6">
+                                            <div class="properties pb-30">
+                                                <div class="properties-card">
+                                                    <div class="properties-img">
+                                                        <a href="{{item.get_url()}}"><img src="{{ item.small_pic }}" alt=""></a>
+
+                                                    </div>
+                                                    <div class="properties-caption properties-caption2">
+                                                        <h3><a href="{{item.get_url()}}">{{item.title}}</a></h3>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    {% endfor %}
+                                </div>
+
+                                {% else %}
+                                    <div class="p-5 text-center">暂无数据</div>
+                                {% endif %}
+
+                                {% include 'loading_more.html' %}
+                                {{pager}}
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}

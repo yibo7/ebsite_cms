@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 智能询价 | Green Rich 金瑞治 - 复印机感光鼓芯</title>
+<meta name="description" content="Green Rich金瑞治AI智能询价系统，对话式咨询复印机感光鼓芯，实时报价，一键生成报价单。">
+<meta name="keywords" content="AI询价,智能报价,复印机鼓芯,Green Rich,金瑞治">
+<style>
+  :root{
+    --primary:#1e4b8a;
+    --primary-dark:#0b2b5c;
+    --primary-light:#3b82f6;
+    --accent:#d32f2f;
+    --accent-dark:#b71c1c;
+    --purple:#8b5cf6;
+    --purple-dark:#6d28d9;
+    --bg:#f6f9fc;
+    --text:#1e293b;
+    --muted:#64748b;
+    --border:#e5edf5;
+    --radius:14px;
+    --shadow:0 6px 24px rgba(30,75,138,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+  a{text-decoration:none;color:inherit;transition:all .25s ease;}
+  ul{list-style:none;}
+  img{max-width:100%;display:block;}
+  button{font-family:inherit;}
+  .container{max-width:1400px;margin:0 auto;padding:0 20px;width:100%;}
+
+  /* ===== 通用按钮 ===== */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 30px;border-radius:999px;background:var(--primary);color:#fff;font-weight:600;font-size:15px;border:none;cursor:pointer;transition:all .25s;box-shadow:0 8px 20px -8px rgba(30,75,138,.4);}
+  .btn:hover{background:var(--primary-dark);transform:translateY(-2px);box-shadow:0 14px 26px -10px rgba(30,75,138,.5);color:#fff;}
+  .btn-accent{background:var(--accent);box-shadow:0 8px 20px -8px rgba(211,47,47,.4);}
+  .btn-accent:hover{background:var(--accent-dark);box-shadow:0 14px 26px -10px rgba(211,47,47,.5);}
+  .btn-outline{background:transparent;border:2px solid var(--primary);color:var(--primary);box-shadow:none;}
+  .btn-outline:hover{background:var(--primary);color:#fff;}
+
+  /* ===== Header ===== */
+  header{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);flex-shrink:0;z-index:100;}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:64px;gap:20px;}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;color:var(--primary);flex-shrink:0;}
+  .logo .dot{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,var(--accent),var(--accent-dark));display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:800;box-shadow:0 6px 14px -4px rgba(211,47,47,.4);}
+  .logo small{font-weight:400;color:var(--muted);font-size:12px;margin-left:2px;}
+  .nav-links{display:flex;gap:24px;font-size:14px;}
+  .nav-links a{color:var(--muted);padding:6px 0;position:relative;font-weight:500;}
+  .nav-links a:hover,.nav-links a.active{color:var(--primary);}
+  .nav-links a.active::after{content:"";position:absolute;left:0;bottom:-2px;width:100%;height:2px;background:var(--accent);border-radius:2px;}
+  .header-actions{display:flex;gap:12px;align-items:center;}
+
+  /* 桌面端询价篮按钮 */
+  .btn-quote{position:relative;background:var(--accent);color:#fff;padding:9px 20px;border-radius:999px;font-weight:600;font-size:13px;white-space:nowrap;box-shadow:0 6px 16px -6px rgba(211,47,47,.5);display:inline-flex;align-items:center;gap:6px;}
+  .btn-quote:hover{background:var(--accent-dark);color:#fff;}
+
+  /* 红点角标 */
+  .cart-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(239,68,68,.6);line-height:1;animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+  .cart-badge.hidden{display:none;}
+
+  .mobile-toggle{display:none;background:none;border:none;font-size:22px;color:var(--primary);cursor:pointer;}
+
+  /* ===================================================================
+     ===== 智能询价主布局 =====
+     =================================================================== */
+  .ai-wrapper{flex:1;display:grid;grid-template-columns:1fr 380px;gap:20px;padding:20px;max-width:1400px;margin:0 auto;width:100%;min-height:0;}
+
+  /* ---------- 左：聊天区 ---------- */
+  .chat-panel{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+
+  .chat-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(135deg,#f8fbff,#eef4fc);flex-shrink:0;}
+  .chat-header-left{display:flex;align-items:center;gap:14px;min-width:0;}
+  .ai-avatar{position:relative;width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;box-shadow:0 6px 16px -6px rgba(30,75,138,.5);}
+  .ai-avatar::after{content:"";position:absolute;bottom:0;right:0;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid #fff;}
+  .chat-header-info{min-width:0;}
+  .chat-header-info h2{font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .chat-header-info h2 .ai-badge{background:linear-gradient(135deg,var(--purple),var(--purple-dark));color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;letter-spacing:.5px;flex-shrink:0;}
+  .chat-header-info p{font-size:12px;color:var(--muted);}
+
+  .chat-header-right{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+
+  /* 移动端询价单按钮（显示在聊天头部最右端） */
+  .mobile-quote-btn{position:relative;display:none;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:10px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 6px 16px -6px rgba(211,47,47,.5);transition:.2s;white-space:nowrap;flex-shrink:0;}
+  .mobile-quote-btn:hover{background:var(--accent-dark);}
+  .mobile-quote-btn .mq-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(239,68,68,.6);line-height:1;animation:pulse 1.8s infinite;}
+  .mobile-quote-btn .mq-badge.hidden{display:none;}
+
+  .chat-body{flex:1;overflow-y:auto;padding:24px 22px;display:flex;flex-direction:column;gap:18px;background:#fafcfe;scroll-behavior:smooth;}
+  .chat-body::-webkit-scrollbar{width:8px;}
+  .chat-body::-webkit-scrollbar-track{background:transparent;}
+  .chat-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px;}
+  .chat-body::-webkit-scrollbar-thumb:hover{background:#94a3b8;}
+
+  .msg{display:flex;gap:12px;max-width:82%;animation:msgIn .35s ease;}
+  @keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .msg-avatar{width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;color:#fff;font-weight:700;}
+  .msg.ai .msg-avatar{background:linear-gradient(145deg,var(--primary),var(--primary-light));}
+  .msg.user{align-self:flex-end;flex-direction:row-reverse;}
+  .msg.user .msg-avatar{background:linear-gradient(145deg,#f59e0b,#b45309);}
+  .msg-bubble{background:#fff;border-radius:14px;padding:12px 16px;font-size:14px;line-height:1.65;color:var(--text);border:1px solid var(--border);box-shadow:0 2px 8px rgba(30,75,138,.04);}
+  .msg.ai .msg-bubble{border-top-left-radius:4px;}
+  .msg.user .msg-bubble{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:#fff;border:none;border-top-right-radius:4px;box-shadow:0 6px 16px -6px rgba(30,75,138,.4);}
+  .msg-time{font-size:11px;color:#94a3b8;margin-top:6px;display:block;}
+  .msg.user .msg-time{color:rgba(255,255,255,.75);text-align:right;}
+
+  .quick-replies{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .quick-reply{background:#eef4fb;color:var(--primary);border:1px solid #c9dff5;border-radius:999px;padding:6px 14px;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;}
+  .quick-reply:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+  .chat-products{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
+  .chat-product{display:flex;gap:12px;background:#f8fbff;border:1px solid var(--border);border-radius:12px;padding:12px;align-items:center;transition:.2s;}
+  .chat-product:hover{border-color:#c9dff5;box-shadow:0 4px 12px rgba(30,75,138,.06);}
+  .chat-product .cp-thumb{width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,#f0f6fd,#e4eefa);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;border:1px solid var(--border);}
+  .chat-product .cp-info{flex:1;min-width:0;}
+  .chat-product .cp-info h4{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:3px;line-height:1.3;}
+  .chat-product .cp-info .cp-meta{font-size:11.5px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;}
+  .chat-product .cp-meta .tag{background:#e8f1fc;color:var(--primary);font-size:10.5px;padding:1px 7px;border-radius:4px;}
+  .chat-product .cp-price{text-align:right;flex-shrink:0;}
+  .chat-product .cp-price b{display:block;font-size:15px;font-weight:800;color:var(--accent);line-height:1.2;}
+  .chat-product .cp-price small{font-size:10.5px;color:var(--muted);text-decoration:line-through;}
+  .chat-product .cp-price .save{font-size:10.5px;color:#15803d;font-weight:600;}
+  .chat-product .cp-action{flex-shrink:0;}
+  .cp-add-btn{width:32px;height:32px;border-radius:9px;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:.2s;box-shadow:0 4px 10px -4px rgba(30,75,138,.5);}
+  .cp-add-btn:hover{background:var(--primary-dark);transform:scale(1.08);}
+  .cp-add-btn.added{background:#22c55e;cursor:default;}
+
+  .typing{display:flex;gap:4px;padding:6px 0;}
+  .typing span{width:7px;height:7px;border-radius:50%;background:#94a3b8;animation:typing 1.4s infinite;}
+  .typing span:nth-child(2){animation-delay:.2s;}
+  .typing span:nth-child(3){animation-delay:.4s;}
+  @keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-6px);opacity:1;}}
+
+  .chat-input-area{padding:14px 18px;border-top:1px solid var(--border);background:#fff;flex-shrink:0;}
+  .chat-input-box{display:flex;align-items:flex-end;gap:10px;background:#f8fafc;border:1px solid var(--border);border-radius:14px;padding:8px 8px 8px 16px;transition:border .2s;}
+  .chat-input-box:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,75,138,.08);}
+  .chat-input-box textarea{flex:1;border:none;background:transparent;outline:none;resize:none;font-size:14px;line-height:1.5;max-height:100px;min-height:24px;padding:6px 0;font-family:inherit;color:var(--text);}
+  .chat-input-box textarea::placeholder{color:#94a3b8;}
+  .send-btn{width:40px;height:40px;border-radius:10px;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0;box-shadow:0 4px 12px -4px rgba(30,75,138,.5);}
+  .send-btn:hover{background:var(--primary-dark);transform:scale(1.05);}
+
+  /* ---------- 右：实时询价单（桌面端） ---------- */
+  .quote-panel{background:#fff;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+
+  .quote-header{padding:16px 22px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#f8fbff,#eef4fc);flex-shrink:0;}
+  .quote-header h3{font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+  .quote-header h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+  .quote-header .sub-info{margin-top:6px;font-size:12px;color:var(--muted);}
+
+  .quote-body{flex:1;overflow-y:auto;padding:16px 20px;min-height:0;}
+  .quote-body::-webkit-scrollbar{width:8px;}
+  .quote-body::-webkit-scrollbar-track{background:transparent;}
+  .quote-body::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px;}
+
+  .quote-empty{text-align:center;padding:50px 16px;color:var(--muted);}
+  .quote-empty .qe-icon{font-size:48px;opacity:.35;margin-bottom:14px;}
+  .quote-empty p{font-size:13.5px;line-height:1.6;}
+
+  .quote-item{display:flex;gap:10px;padding:12px 0;border-bottom:1px dashed #e5edf5;animation:msgIn .3s ease;}
+  .quote-item:last-child{border-bottom:none;}
+  .qi-thumb{width:44px;height:44px;border-radius:9px;background:linear-gradient(135deg,#f0f6fd,#e4eefa);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;border:1px solid var(--border);}
+  .qi-info{flex:1;min-width:0;}
+  .qi-info h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;line-height:1.3;}
+  .qi-info .qi-meta{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .qi-info .qi-meta .qi-original{text-decoration:line-through;color:#94a3b8;}
+  .qi-info .qi-meta .qi-level-price{color:var(--accent);font-weight:700;}
+  .qi-qty{display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .qi-qty button{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:#f8fafc;color:var(--primary);font-size:14px;font-weight:700;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;}
+  .qi-qty button:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+  .qi-qty input{width:42px;height:24px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:12.5px;font-weight:700;outline:none;color:var(--text);}
+  .qi-qty input:focus{border-color:var(--primary);}
+  .qi-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;}
+  .qi-subtotal{font-size:14px;font-weight:800;color:var(--accent);line-height:1.2;}
+  .qi-subtotal small{display:block;font-size:10.5px;color:var(--muted);font-weight:400;}
+  .qi-remove{background:none;border:none;color:#94a3b8;cursor:pointer;font-size:13px;padding:2px;transition:.2s;margin-top:6px;}
+  .qi-remove:hover{color:var(--accent);}
+
+  .quote-footer{padding:16px 20px;border-top:1px solid var(--border);background:#f8fafc;flex-shrink:0;}
+  .qf-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);padding:5px 0;}
+  .qf-row b{color:var(--text);font-weight:700;font-size:14px;}
+  .qf-row.discount b{color:#15803d;}
+  .qf-row.total{border-top:2px dashed var(--border);margin-top:8px;padding-top:12px;font-size:14px;}
+  .qf-row.total b{color:var(--accent);font-size:22px;font-weight:900;}
+  .qf-actions{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+  .qf-actions .btn{width:100%;justify-content:center;padding:13px 20px;font-size:14px;}
+  .qf-actions .btn-outline{padding:11px 20px;font-size:13px;}
+
+  /* ===================================================================
+     ===== 原生 Offcanvas（无 Bootstrap） =====
+     =================================================================== */
+  .offcanvas-backdrop{position:fixed;inset:0;background:rgba(11,27,51,.55);backdrop-filter:blur(3px);z-index:1400;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;}
+  .offcanvas-backdrop.show{opacity:1;visibility:visible;}
+
+  .offcanvas{position:fixed;top:0;right:0;bottom:0;width:380px;max-width:92vw;background:#fff;z-index:1500;display:flex;flex-direction:column;box-shadow:-4px 0 30px rgba(11,27,51,.15);transform:translateX(105%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+  .offcanvas.show{transform:translateX(0);}
+
+  .offcanvas-header{padding:16px 22px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#f8fbff,#eef4fc);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0;}
+  .offcanvas-title{font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+  .offcanvas-title .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+  .offcanvas-close{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:#fff;color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;line-height:1;}
+  .offcanvas-close:hover{background:#fee2e2;color:var(--accent);border-color:#fecaca;}
+
+  .offcanvas-body{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-height:0;}
+  .offcanvas .quote-body{flex:1;overflow-y:auto;padding:16px 20px;}
+  .offcanvas .quote-footer{padding:14px 20px;}
+
+  /* ===== Toast ===== */
+  .toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--primary-dark);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;box-shadow:0 12px 30px -8px rgba(11,27,51,.5);opacity:0;visibility:hidden;transition:all .3s;z-index:3000;display:flex;align-items:center;gap:8px;pointer-events:none;}
+  .toast.show{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+
+  /* ===== 报价链接弹窗 ===== */
+  .modal-overlay{position:fixed;inset:0;background:rgba(11,27,51,.6);backdrop-filter:blur(4px);z-index:2500;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.show{display:flex;animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .modal-box{background:#fff;border-radius:18px;max-width:460px;width:100%;padding:36px 32px;text-align:center;box-shadow:0 30px 60px -12px rgba(11,27,51,.4);animation:modalIn .3s ease;}
+  @keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+  .modal-box .modal-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(145deg,#22c55e,#15803d);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 20px;box-shadow:0 12px 30px -8px rgba(34,197,94,.5);}
+  .modal-box h3{font-size:22px;font-weight:800;color:var(--text);margin-bottom:10px;}
+  .modal-box p{font-size:14px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+  .modal-link{display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:20px;text-align:left;}
+  .modal-link input{flex:1;border:none;background:transparent;outline:none;font-size:12.5px;color:var(--primary);font-family:monospace;min-width:0;}
+  .modal-link button{padding:7px 14px;border-radius:8px;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:12.5px;font-weight:600;transition:.2s;white-space:nowrap;}
+  .modal-link button:hover{background:var(--primary-dark);}
+  .modal-actions{display:flex;gap:12px;flex-direction:column;}
+  .modal-actions .btn{width:100%;justify-content:center;padding:14px 20px;font-size:15px;}
+
+  /* ===================================================================
+     ===== 响应式 =====
+     =================================================================== */
+
+  @media (max-width: 1024px) {
+    .nav-links { gap: 16px; font-size: 13px; }
+    .ai-wrapper { grid-template-columns: 1fr 320px; gap: 16px; padding: 16px; }
+    .msg { max-width: 88%; }
+  }
+
+  /* ---------- 手机 / 小平板 (<= 820px) ---------- */
+  @media (max-width: 820px) {
+    body { height: auto; overflow: auto; }
+    .nav-links { display: none; }
+    .mobile-toggle { display: block; }
+    .nav { height: 60px; }
+
+    .quote-panel { display: none; }
+    .mobile-quote-btn { display: inline-flex; }
+    .btn-quote { display: none; }
+
+    .ai-wrapper {
+      grid-template-columns: 1fr;
+      gap: 16px;
+      padding: 12px;
+      height: auto;
+    }
+
+    .chat-panel { height: calc(100vh - 120px); min-height: 460px; }
+
+    .chat-header { padding: 12px 14px; gap: 10px; }
+    .chat-header-left { gap: 10px; }
+    .ai-avatar { width: 40px; height: 40px; font-size: 19px; }
+    .chat-header-info h2 { font-size: 14px; }
+    .chat-header-info p { font-size: 11px; }
+
+    .mobile-quote-btn { padding: 7px 11px; font-size: 12px; }
+
+    .chat-body { padding: 18px 14px; gap: 16px; }
+    .msg { max-width: 92%; }
+    .msg-avatar { width: 34px; height: 34px; font-size: 15px; }
+    .msg-bubble { font-size: 13.5px; padding: 10px 14px; }
+
+    .chat-input-area { padding: 12px 14px; }
+    .chat-input-box { padding: 6px 6px 6px 14px; }
+    .send-btn { width: 38px; height: 38px; font-size: 16px; }
+  }
+
+  /* ---------- 小屏手机 (<= 480px) ---------- */
+  @media (max-width: 480px) {
+    .ai-wrapper { padding: 10px; gap: 12px; }
+    .chat-panel { height: calc(100vh - 110px); min-height: 420px; }
+    .chat-header { padding: 10px 12px; gap: 8px; }
+    .chat-header-info h2 { font-size: 13px; }
+    .ai-avatar { width: 36px; height: 36px; font-size: 17px; }
+    .chat-header-left { gap: 8px; }
+
+    .mobile-quote-btn { padding: 6px 10px; font-size: 11.5px; }
+
+    .chat-body { padding: 14px 12px; gap: 14px; }
+    .msg { max-width: 95%; gap: 8px; }
+    .msg-avatar { width: 30px; height: 30px; font-size: 14px; }
+    .msg-bubble { font-size: 13px; padding: 9px 12px; }
+
+    .chat-product { padding: 10px; gap: 10px; }
+    .chat-product .cp-thumb { width: 44px; height: 44px; font-size: 20px; }
+    .chat-product .cp-info h4 { font-size: 12.5px; }
+    .chat-product .cp-price b { font-size: 14px; }
+
+    .modal-box { padding: 28px 22px; }
+    .modal-box h3 { font-size: 19px; }
+
+    .offcanvas { width: 92vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Header ===== -->
+<header>
+  <div class="container nav">
+    <a class="logo" href="index.html">
+      <span class="dot">G</span>Green Rich <small>金瑞治</small>
+    </a>
+    <nav class="nav-links">
+      <a href="index.html">首页</a>
+      <a href="products.html">产品中心</a>
+      <a href="about.html">关于我们</a>
+      <a href="join.html">加盟合作</a>
+      <a href="ai-quote.html" class="active">AI 智能询价</a>
+    </nav>
+    <div class="header-actions">
+      <a href="cart.html" class="btn-quote">
+        🛒 询价篮
+        <span class="cart-badge hidden" id="headerCartBadge">0</span>
+      </a>
+      <button class="mobile-toggle" onclick="document.querySelector('.nav-links').style.display=document.querySelector('.nav-links').style.display==='flex'?'none':'flex'">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================================================================
+     ===== 智能询价主区域 =====
+     =================================================================== -->
+<div class="ai-wrapper">
+
+  <!-- ========== 左：聊天区 ========== -->
+  <div class="chat-panel">
+
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="ai-avatar">🤖</div>
+        <div class="chat-header-info">
+          <h2>Green Rich 智能询价助手 <span class="ai-badge">AI</span></h2>
+          <p>在线 · 随时为您报价</p>
+        </div>
+      </div>
+      <div class="chat-header-right">
+        <!-- 移动端询价单按钮 -->
+        <button class="mobile-quote-btn" type="button" onclick="openQuote()">
+          🛒 询价单
+          <span class="mq-badge hidden" id="mobileQuoteBadge">0</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-body" id="chatBody"></div>
+
+    <div class="chat-input-area">
+      <div class="chat-input-box">
+        <textarea id="chatInput" rows="1" placeholder="输入品牌、型号或设备机型，例如：佳能 IR1730…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== 右：实时询价单（桌面端） ========== -->
+  <div class="quote-panel">
+
+    <div class="quote-header">
+      <h3><span class="dot"></span>实时询价单</h3>
+      <div class="sub-info">已享 <strong style="color:#15803d;">10% 优惠折扣</strong></div>
+    </div>
+
+    <div class="quote-body" id="quoteBodyDesktop"></div>
+
+    <div class="quote-footer" id="quoteFooterDesktop" style="display:none;">
+      <div class="qf-row"><span>商品款数</span><b><span id="qfCountDesktop">0</span> 款</b></div>
+      <div class="qf-row"><span>总数量</span><b><span id="qfQtyDesktop">0</span> 支</b></div>
+      <div class="qf-row"><span>原价合计</span><b>¥<span id="qfOriginalDesktop">0.00</span></b></div>
+      <div class="qf-row discount"><span>优惠折扣</span><b id="qfDiscountDesktop">-¥0.00</b></div>
+      <div class="qf-row total"><span>报价合计</span><b>¥<span id="qfTotalDesktop">0.00</span></b></div>
+      <div class="qf-actions">
+        <button class="btn btn-accent" onclick="submitToCart()">🛒 提交到购物车</button>
+        <button class="btn btn-outline" onclick="generateQuoteLink()">🔗 生成报价链接</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ===================================================================
+     ===== 原生 Offcanvas：移动端实时询价单 =====
+     =================================================================== -->
+<div class="offcanvas-backdrop" id="offcanvasBackdrop" onclick="closeQuote()"></div>
+
+<div class="offcanvas" id="quoteOffcanvas" role="dialog" aria-modal="true" aria-labelledby="offcanvasTitle">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasTitle">
+      <span class="dot"></span>实时询价单
+    </h5>
+    <button type="button" class="offcanvas-close" onclick="closeQuote()" aria-label="关闭">✕</button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="sub-info" style="padding:12px 20px 0;font-size:12px;color:var(--muted);">
+      已享 <strong style="color:#15803d;">10% 优惠折扣</strong>
+    </div>
+    <div class="quote-body" id="quoteBodyMobile"></div>
+    <div class="quote-footer" id="quoteFooterMobile" style="display:none;">
+      <div class="qf-row"><span>商品款数</span><b><span id="qfCountMobile">0</span> 款</b></div>
+      <div class="qf-row"><span>总数量</span><b><span id="qfQtyMobile">0</span> 支</b></div>
+      <div class="qf-row"><span>原价合计</span><b>¥<span id="qfOriginalMobile">0.00</span></b></div>
+      <div class="qf-row discount"><span>优惠折扣</span><b id="qfDiscountMobile">-¥0.00</b></div>
+      <div class="qf-row total"><span>报价合计</span><b>¥<span id="qfTotalMobile">0.00</span></b></div>
+      <div class="qf-actions">
+        <button class="btn btn-accent" onclick="submitToCart()">🛒 提交到购物车</button>
+        <button class="btn btn-outline" onclick="generateQuoteLink()">🔗 生成报价链接</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">✅ 操作成功</div>
+
+<!-- 报价链接弹窗 -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-icon">✅</div>
+    <h3>报价链接已生成</h3>
+    <p>点击下方链接，即可打开您的专属询价篮页面，查看本次咨询的所有产品与报价。</p>
+    <div class="modal-link">
+      <input type="text" id="quoteLink" readonly value="">
+      <button onclick="copyLink()">复制</button>
+    </div>
+    <div class="modal-actions">
+      <a href="cart.html" class="btn btn-accent">🛒 打开询价篮</a>
+      <button class="btn btn-outline" onclick="closeModal()">继续咨询</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ===================================================================
+     ===== 固定折扣 =====
+     =================================================================== */
+  const FIXED_DISCOUNT = 0.10;
+
+  /* ===================================================================
+     ===== 产品库 =====
+     =================================================================== */
+  const PRODUCT_DB = [
+    { id: 'IR1730', brand: '佳能', name: '佳能 IR1730 鼓芯', price: 20, life: '5万页', type: '原色/绿色', icon: '🖨️' },
+    { id: 'IR1435', brand: '佳能', name: '佳能 IR1435 鼓芯', price: 20, life: '4万页', type: '原色/绿色', icon: '🖨️' },
+    { id: 'IR2016', brand: '佳能', name: '佳能 IR2016 鼓芯', price: 23, life: '8万页', type: '原厂', icon: '🖨️' },
+    { id: 'IR2270', brand: '佳能', name: '佳能 IR2270 鼓芯', price: 28, life: '8万页', type: '原厂', icon: '🖨️' },
+    { id: 'IR2525', brand: '佳能', name: '佳能 IR2525 鼓芯', price: 28, life: '8万页', type: '原厂', icon: '🖨️' },
+    { id: 'IR1018', brand: '佳能', name: '佳能 IR1018 鼓芯', price: 12, life: '3万页', type: 'OEM', icon: '🖨️' },
+    { id: 'IRC5540', brand: '佳能', name: '佳能 IRC5540 鼓芯', price: 31, life: '8万页', type: '新都', icon: '🖨️' },
+    { id: 'TOSHIBA-2505', brand: '东芝', name: '东芝 2505 鼓芯', price: 26, life: '6万页', type: '原厂', icon: '🖨️' },
+    { id: 'TOSHIBA-3005', brand: '东芝', name: '东芝 3005 鼓芯', price: 32, life: '8万页', type: '原厂', icon: '🖨️' },
+    { id: 'KONICA-C224', brand: '柯尼卡', name: '柯尼卡 C224 鼓芯', price: 45, life: '10万页', type: '原厂', icon: '🖨️' },
+    { id: 'KYOCERA-TK', brand: '京瓷', name: '京瓷 TK 鼓芯', price: 38, life: '10万页', type: '原厂', icon: '🖨️' },
+    { id: 'XEROX-3370', brand: '施乐', name: '施乐 3370 鼓芯', price: 42, life: '8万页', type: '原厂', icon: '🖨️' },
+    { id: 'SHARP-2608', brand: '夏普', name: '夏普 2608 鼓芯', price: 35, life: '8万页', type: '原厂', icon: '🖨️' },
+    { id: 'RICOH-MP2014', brand: '理光', name: '理光 MP2014 鼓芯', price: 30, life: '6万页', type: '原厂', icon: '🖨️' },
+    { id: 'SAMSUNG-K2200', brand: '三星', name: '三星 K2200 鼓芯', price: 25, life: '5万页', type: 'OEM', icon: '🖨️' }
+  ];
+
+  /* ===================================================================
+     ===== 询价单状态 =====
+     =================================================================== */
+  let quoteItems = [
+    { id: 'IR1730', name: '佳能 IR1730 鼓芯', price: 20, qty: 10, life: '5万页', type: '原色/绿色', icon: '🖨️', brand: '佳能' },
+    { id: 'IR2016', name: '佳能 IR2016 鼓芯', price: 23, qty: 20, life: '8万页', type: '原厂', icon: '🖨️', brand: '佳能' },
+    { id: 'TOSHIBA-2505', name: '东芝 2505 鼓芯', price: 26, qty: 15, life: '6万页', type: '原厂', icon: '🖨️', brand: '东芝' }
+  ];
+
+  /* ===================================================================
+     ===== DOM 引用 =====
+     =================================================================== */
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const quoteBodyDesktop = document.getElementById('quoteBodyDesktop');
+  const quoteBodyMobile = document.getElementById('quoteBodyMobile');
+  const quoteFooterDesktop = document.getElementById('quoteFooterDesktop');
+  const quoteFooterMobile = document.getElementById('quoteFooterMobile');
+
+  /* ===================================================================
+     ===== 原生 Offcanvas 控制 =====
+     =================================================================== */
+  const quoteOffcanvas = document.getElementById('quoteOffcanvas');
+  const offcanvasBackdrop = document.getElementById('offcanvasBackdrop');
+
+  function openQuote() {
+    quoteOffcanvas.classList.add('show');
+    offcanvasBackdrop.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    renderQuote();
+  }
+
+  function closeQuote() {
+    quoteOffcanvas.classList.remove('show');
+    offcanvasBackdrop.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  // ESC 键关闭
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && quoteOffcanvas.classList.contains('show')) {
+      closeQuote();
+    }
+  });
+
+  /* ===================================================================
+     ===== 聊天功能 =====
+     =================================================================== */
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  }
+
+  function sendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+    addMessage('user', text);
+    chatInput.value = '';
+    chatInput.style.height = 'auto';
+    const typingEl = addTyping();
+    setTimeout(() => {
+      typingEl.remove();
+      const reply = generateAIReply(text);
+      addMessage('ai', reply.html, reply.products);
+    }, 800 + Math.random() * 600);
+  }
+
+  function appendMessage(role, html, products, timeStr) {
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+    const avatar = role === 'ai' ? '🤖' : '👤';
+    const time = timeStr || getCurrentTime();
+
+    let productsHtml = '';
+    if (products && products.length > 0) {
+      productsHtml = '<div class="chat-products">';
+      products.forEach(p => {
+        const dp = calcDiscountPrice(p.price);
+        const saved = p.price - dp;
+        productsHtml += `
+          <div class="chat-product">
+            <div class="cp-thumb">${p.icon}</div>
+            <div class="cp-info">
+              <h4>${p.name}</h4>
+              <div class="cp-meta">
+                <span class="tag">${p.id}</span>
+                <span class="tag">${p.life}</span>
+              </div>
+            </div>
+            <div class="cp-price">
+              <b>¥${dp.toFixed(2)}</b>
+              ${saved > 0 ? `<small>¥${p.price.toFixed(2)}</small><span class="save">省¥${saved.toFixed(2)}</span>` : ''}
+            </div>
+            <div class="cp-action">
+              <button class="cp-add-btn" onclick="addToQuote('${p.id}', this)" title="加入询价单">+</button>
+            </div>
+          </div>
+        `;
+      });
+      productsHtml += '</div>';
+    }
+
+    msg.innerHTML = `
+      <div class="msg-avatar">${avatar}</div>
+      <div>
+        <div class="msg-bubble">${html}${productsHtml}</div>
+        <span class="msg-time">${time}</span>
+      </div>
+    `;
+    chatBody.appendChild(msg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return msg;
+  }
+
+  function addMessage(role, content, products) {
+    return appendMessage(role, content, products);
+  }
+
+  function addTyping() {
+    const msg = document.createElement('div');
+    msg.className = 'msg ai';
+    msg.innerHTML = `
+      <div class="msg-avatar">🤖</div>
+      <div>
+        <div class="msg-bubble">
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    `;
+    chatBody.appendChild(msg);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return msg;
+  }
+
+  function getCurrentTime() {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  }
+
+  /* ===================================================================
+     ===== 预设聊天记录 =====
+     =================================================================== */
+  function initChatHistory() {
+    appendMessage('ai', `您好！我是 <strong>Green Rich 金瑞治</strong> 的 AI 询价助手 👋<br><br>
+      我可以为您实时报价复印机感光鼓芯。请告诉我您需要的<strong>品牌、型号</strong>或<strong>设备机型</strong>，我会立即为您查询。`, null, '09:12');
+
+    appendMessage('user', '你好，我需要采购一批佳能复印机的鼓芯，型号是 IR1730，请报价。', null, '09:13');
+
+    appendMessage('ai', `您好！<strong>佳能 IR1730 鼓芯</strong> 是我们热销型号之一。<br><br>
+      已为您申请到 <strong>10% 优惠折扣</strong>，价格如下 👇<br><br>
+      点击右侧 <strong>+</strong> 即可加入询价单：`, [
+      PRODUCT_DB.find(p => p.id === 'IR1730')
+    ], '09:13');
+
+    appendMessage('user', '好的，先加 10 支。另外 IR2016 也帮我看看。', null, '09:14');
+
+    appendMessage('ai', `已为您加入 <strong>佳能 IR1730 鼓芯 × 10 支</strong> ✅<br><br>
+      以下是 <strong>佳能 IR2016 鼓芯</strong> 的报价，寿命 8 万页，原厂品质：`, [
+      PRODUCT_DB.find(p => p.id === 'IR2016')
+    ], '09:14');
+
+    appendMessage('user', 'IR2016 也来 20 支。对了，东芝的鼓芯有推荐吗？', null, '09:15');
+
+    appendMessage('ai', `已为您加入 <strong>佳能 IR2016 鼓芯 × 20 支</strong> ✅<br><br>
+      <strong>东芝</strong> 是我们主营品牌之一，以下是两款热销型号：`, [
+      PRODUCT_DB.find(p => p.id === 'TOSHIBA-2505'),
+      PRODUCT_DB.find(p => p.id === 'TOSHIBA-3005')
+    ], '09:15');
+
+    appendMessage('user', '东芝 2505 来 15 支。如果我再多买一些，有额外折扣吗？', null, '09:16');
+
+    appendMessage('ai', `已为您加入 <strong>东芝 2505 鼓芯 × 15 支</strong> ✅<br><br>
+      目前您的询价单已享受 <strong>10% 优惠折扣</strong>。<br><br>
+      如果单笔订单超过 <strong>5 万元</strong>，可以联系我们的销售工程师申请 <strong>额外大客户优惠</strong>。`, null, '09:16');
+
+    appendMessage('user', '好的，我先看看。支持 OEM 定制吗？', null, '09:17');
+
+    appendMessage('ai', `我们支持 <strong>OEM / ODM 定制</strong>，包括：<br>
+      • 品牌 LOGO 印刷<br>
+      • 包装定制<br>
+      • 特定型号开发<br><br>
+      定制起订量通常为 <strong>500 支 / 型号</strong>。您可以把需要的型号和数量告诉我，我先为您加入询价单。`, null, '09:17');
+
+    appendMessage('user', '明白了，我先提交这批询价看看总价。', null, '09:18');
+
+    appendMessage('ai', `好的！您当前询价单已包含 <strong>3 款产品</strong>：<br>
+      • 佳能 IR1730 × 10 支<br>
+      • 佳能 IR2016 × 20 支<br>
+      • 东芝 2505 × 15 支<br><br>
+      您可以点击右侧的 <strong>"🛒 提交到购物车"</strong> 生成正式报价单，或继续咨询其他型号。`, null, '09:18');
+
+    setTimeout(() => {
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }, 100);
+  }
+
+  /* ===================================================================
+     ===== AI 回复逻辑 =====
+     =================================================================== */
+  function generateAIReply(text) {
+    const t = text.toLowerCase();
+    const matchedProducts = PRODUCT_DB.filter(p =>
+      t.includes(p.id.toLowerCase()) ||
+      t.includes(p.name.toLowerCase()) ||
+      (p.name.toLowerCase().includes(t) && t.length >= 3)
+    );
+    const brands = ['佳能', '东芝', '柯尼卡', '京瓷', '施乐', '夏普', '理光', '三星'];
+    const matchedBrand = brands.find(b => t.includes(b));
+    const isBulk = /多少|100|批量|采购|批发|优惠|折扣/.test(t);
+    const isOEM = /oem|odm|定制|贴牌/.test(t);
+
+    if (isOEM) {
+      return {
+        html: `我们支持 <strong>OEM / ODM 定制</strong>，包括：<br>
+          • 品牌 LOGO 印刷<br>
+          • 包装定制<br>
+          • 特定型号开发<br><br>
+          定制起订量通常为 <strong>500 支 / 型号</strong>。您可以把需要的型号和数量告诉我，我先为您加入询价单。`,
+        products: []
+      };
+    }
+    if (isBulk && matchedProducts.length === 0 && !matchedBrand) {
+      return {
+        html: `批量采购我们提供额外优惠 🎉<br><br>
+          当前询价单已享受 <strong>10% 优惠折扣</strong>。<br><br>
+          请告诉我具体需要的<strong>品牌和型号</strong>，我可以为您精准报价。`,
+        products: []
+      };
+    }
+    if (matchedProducts.length > 0) {
+      return {
+        html: `为您找到 <strong>${matchedProducts.length} 款</strong>匹配的产品，已按 <strong>10% 优惠折扣</strong> 报价 👇<br><br>点击右侧 <strong>+</strong> 即可加入询价单：`,
+        products: matchedProducts
+      };
+    }
+    if (matchedBrand) {
+      const brandProducts = PRODUCT_DB.filter(p => p.brand === matchedBrand).slice(0, 4);
+      return {
+        html: `<strong>${matchedBrand}</strong> 是我们主营品牌之一，以下是部分热销型号（已按优惠折扣报价）👇<br><br>您可以告诉我具体型号，我为您精准查询。`,
+        products: brandProducts
+      };
+    }
+    return {
+      html: `抱歉，我没有完全理解您的需求 😅<br><br>
+        您可以尝试这样问我：<br>
+        • <strong>"佳能 IR1730 多少钱？"</strong><br>
+        • <strong>"东芝鼓芯有哪些型号？"</strong><br>
+        • <strong>"采购 100 支有优惠吗？"</strong><br>
+        • <strong>"支持 OEM 定制吗？"</strong>`,
+      products: []
+    };
+  }
+
+  /* ===================================================================
+     ===== 价格计算 =====
+     =================================================================== */
+  function calcDiscountPrice(originalPrice) {
+    return originalPrice * (1 - FIXED_DISCOUNT);
+  }
+
+  /* ===================================================================
+     ===== 询价单操作 =====
+     =================================================================== */
+  function addToQuote(productId, btn) {
+    const product = PRODUCT_DB.find(p => p.id === productId);
+    if (!product) return;
+    const existing = quoteItems.find(item => item.id === productId);
+    if (existing) {
+      existing.qty += 1;
+      showToast(`已增加数量：${product.name}`);
+    } else {
+      quoteItems.push({
+        id: product.id, name: product.name, price: product.price,
+        qty: 1, life: product.life, type: product.type,
+        icon: product.icon, brand: product.brand
+      });
+      showToast(`已加入询价单：${product.name}`);
+    }
+    if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
+    renderQuote();
+  }
+
+  function renderQuote() {
+    const hasItems = quoteItems.length > 0;
+
+    let itemsHtml = '';
+    if (hasItems) {
+      quoteItems.forEach(item => {
+        const dp = calcDiscountPrice(item.price);
+        const subtotal = dp * item.qty;
+        itemsHtml += `
+          <div class="quote-item">
+            <div class="qi-thumb">${item.icon}</div>
+            <div class="qi-info">
+              <h4>${item.name}</h4>
+              <div class="qi-meta">
+                <span class="qi-original">¥${item.price.toFixed(2)}</span>
+                <span class="qi-level-price">¥${dp.toFixed(2)}</span>
+              </div>
+              <div class="qi-qty">
+                <button onclick="changeQuoteQty('${item.id}', -1)">−</button>
+                <input type="number" value="${item.qty}" min="1" max="9999" onchange="setQuoteQty('${item.id}', this.value)">
+                <button onclick="changeQuoteQty('${item.id}', 1)">+</button>
+              </div>
+            </div>
+            <div class="qi-right">
+              <div class="qi-subtotal">¥${subtotal.toFixed(2)}<small>${item.qty} 支</small></div>
+              <button class="qi-remove" onclick="removeFromQuote('${item.id}')">✕ 移除</button>
+            </div>
+          </div>
+        `;
+      });
+    } else {
+      itemsHtml = `
+        <div class="quote-empty">
+          <div class="qe-icon">📋</div>
+          <p>还没有添加产品<br>在左侧对话中咨询，AI 会自动为您加入询价单</p>
+        </div>
+      `;
+    }
+
+    quoteBodyDesktop.innerHTML = itemsHtml;
+    quoteBodyMobile.innerHTML = itemsHtml;
+
+    let totalCount = quoteItems.length;
+    let totalQty = quoteItems.reduce((s, i) => s + i.qty, 0);
+    let originalTotal = quoteItems.reduce((s, i) => s + i.price * i.qty, 0);
+    let discountTotal = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.price) * i.qty, 0);
+    let discountAmount = originalTotal - discountTotal;
+
+    document.getElementById('qfCountDesktop').textContent = totalCount;
+    document.getElementById('qfQtyDesktop').textContent = totalQty;
+    document.getElementById('qfOriginalDesktop').textContent = formatMoney(originalTotal);
+    document.getElementById('qfDiscountDesktop').textContent = `-¥${formatMoney(discountAmount)}`;
+    document.getElementById('qfTotalDesktop').textContent = formatMoney(discountTotal);
+
+    document.getElementById('qfCountMobile').textContent = totalCount;
+    document.getElementById('qfQtyMobile').textContent = totalQty;
+    document.getElementById('qfOriginalMobile').textContent = formatMoney(originalTotal);
+    document.getElementById('qfDiscountMobile').textContent = `-¥${formatMoney(discountAmount)}`;
+    document.getElementById('qfTotalMobile').textContent = formatMoney(discountTotal);
+
+    quoteFooterDesktop.style.display = hasItems ? 'block' : 'none';
+    quoteFooterMobile.style.display = hasItems ? 'block' : 'none';
+
+    updateBadges(totalQty);
+  }
+
+  function updateBadges(qty) {
+    const headerBadge = document.getElementById('headerCartBadge');
+    const mobileBadge = document.getElementById('mobileQuoteBadge');
+    if (qty > 0) {
+      headerBadge.textContent = qty > 99 ? '99+' : qty;
+      headerBadge.classList.remove('hidden');
+      mobileBadge.textContent = qty > 99 ? '99+' : qty;
+      mobileBadge.classList.remove('hidden');
+    } else {
+      headerBadge.classList.add('hidden');
+      mobileBadge.classList.add('hidden');
+    }
+  }
+
+  function changeQuoteQty(id, delta) {
+    const item = quoteItems.find(i => i.id === id);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty < 1) item.qty = 1;
+    if (item.qty > 9999) item.qty = 9999;
+    renderQuote();
+  }
+
+  function setQuoteQty(id, val) {
+    const item = quoteItems.find(i => i.id === id);
+    if (!item) return;
+    let qty = parseInt(val, 10) || 1;
+    if (qty < 1) qty = 1;
+    if (qty > 9999) qty = 9999;
+    item.qty = qty;
+    renderQuote();
+  }
+
+  function removeFromQuote(id) {
+    quoteItems = quoteItems.filter(i => i.id !== id);
+    renderQuote();
+    showToast('已从询价单移除');
+  }
+
+  /* ===================================================================
+     ===== 提交到购物车 =====
+     =================================================================== */
+  function submitToCart() {
+    if (quoteItems.length === 0) {
+      showToast('询价单为空，请先添加产品');
+      return;
+    }
+    const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+    try {
+      localStorage.setItem('greenrich_cart', JSON.stringify({
+        token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
+      }));
+    } catch (e) { /* 忽略 */ }
+    showToast('正在跳转到购物车…');
+    setTimeout(() => {
+      window.location.href = 'cart.html?from=ai&token=' + token;
+    }, 600);
+  }
+
+  /* ===================================================================
+     ===== 生成报价链接 =====
+     =================================================================== */
+  function generateQuoteLink() {
+    if (quoteItems.length === 0) {
+      showToast('请先添加产品到询价单');
+      return;
+    }
+    const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const baseUrl = window.location.origin + window.location.pathname.replace('ai-quote.html', 'cart.html');
+    const quoteUrl = `${baseUrl}?quote=${token}`;
+    document.getElementById('quoteLink').value = quoteUrl;
+    try {
+      localStorage.setItem('greenrich_quote_' + token, JSON.stringify({
+        token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
+      }));
+    } catch (e) { /* 忽略 */ }
+    document.getElementById('modalOverlay').classList.add('show');
+  }
+
+  function copyLink() {
+    const input = document.getElementById('quoteLink');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    try {
+      navigator.clipboard.writeText(input.value);
+      showToast('链接已复制到剪贴板');
+    } catch (e) {
+      document.execCommand('copy');
+      showToast('链接已复制');
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('show');
+  }
+
+  /* ===================================================================
+     ===== 工具函数 =====
+     =================================================================== */
+  function formatMoney(n) {
+    return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = '✅ ' + msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  /* ===================================================================
+     ===== 初始化 =====
+     =================================================================== */
+  function init() {
+    renderQuote();
+    initChatHistory();
+  }
+  init();
+</script>
+
+</body>
+</html>

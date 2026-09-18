@@ -1,0 +1,182 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{model.title}}
+{% endblock %}
+
+{% block content %}
+
+<!-- 移动端顶部补偿 -->
+<div class="d-lg-none" style="height:50px;"></div>
+
+<!-- ===== 页面 Banner ===== -->
+<section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>/</span>
+      <span>产品中心</span>
+      <span>/</span>
+      <span>{{ model.class_name }}</span>
+    </div>
+    <h1 style="font-size:clamp(18px,2.8vw,30px);">{{ model.title }}</h1>
+  </div>
+</section>
+
+<!-- ===== 商品详情主体 ===== -->
+<main id="vue_app" class="product-page-main">
+
+  <section class="section product-detail-section">
+    <div class="container">
+      <div class="detail-layout">
+
+        <!-- ===== 左侧：商品图片 ===== -->
+        <div class="detail-gallery">
+          <div class="detail-main-img">
+            <img :src="SelProduct ? SelProduct.image : '{{ model.small_pic }}'" alt="{{ model.title }}">
+          </div>
+        </div>
+
+        <!-- ===== 右侧：商品信息 ===== -->
+        <div class="detail-info">
+          <h1 class="detail-title">{{ model.title }}</h1>
+
+          <div class="detail-meta">
+            <div class="meta-row">
+              <span class="meta-label">商品品牌</span>
+              <span class="meta-value">金瑞治 (Green Rich)</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">商品货号</span>
+              <span class="meta-value">[[SelProduct ? SelProduct.sku : '---']]</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">OEM</span>
+              <span class="meta-value">{{ model.column_6 }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">适用机型</span>
+              <span class="meta-value">{{ model.column_3 }} {{ model.column_5 }}</span>
+            </div>
+          </div>
+
+          <!-- 价格 -->
+          <div class="detail-price">
+            <span class="price-current">¥ [[SelProduct ? SelProduct.marketPrice : '{{ model.column_11 }}']]</span>
+            <span class="price-note">提交后即可查看价格，也可 <a href="/c109p1.html">点击这里</a> 建立合作关系</span>
+          </div>
+
+          <!-- 规格选择 -->
+          <div class="detail-spec" v-if="Products && Products.length > 0">
+            <span class="spec-label">规格</span>
+            <div class="spec-btns">
+              <input
+                :class="['spec-btn', { active: SelProduct.productId === product.productId }]"
+                v-for="product in Products"
+                :key="product.productId"
+                type="button"
+                v-on:click="on_gg_click(product)"
+                :value="product.name"
+              />
+            </div>
+          </div>
+
+          <!-- 数量 -->
+          <div class="detail-qty">
+            <span class="qty-label">数量</span>
+            <div class="qty-control">
+              <button type="button" v-on:click="Quantity = Math.max(1, Quantity - 1)">−</button>
+              <input type="number" v-model="Quantity" min="1" max="9999" />
+              <button type="button" v-on:click="Quantity = Math.min(9999, Quantity + 1)">+</button>
+            </div>
+          </div>
+
+          <!-- 操作按钮 -->
+          <div class="detail-actions">
+            <button class="btn btn-accent" onclick="addToQuoteBasket('{{ model._id }}','{{ model.title }}','{{ model.small_pic }}',{{ model.column_11 or 0 }})">
+              🛒 加入询价篮
+            </button>
+            <button id="favorit-btn" class="btn btn-outline favorit-btn" data-faved="false" onclick="fav_content('{{ model._id }}')">
+              ☆ 收藏
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 商品详情 Tab ===== -->
+  <section class="section product-tab-section">
+    <div class="container">
+      <div class="tab-header">
+        <span class="tab-item active">详情</span>
+      </div>
+      <div class="tab-content product-desc">
+        {% if model.info %}
+        {{ model.column_7|safe }}
+        {% else %}
+        <div class="tab-empty">
+          <div class="tab-empty-icon">📄</div>
+          <p>暂无详情数据</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+    let cid = {{model.class_n_id}};
+    const ContentId = "{{ model._id }}";
+    const products = {{model.column_10|safe }};
+</script>
+<script>
+/* ===== 加入询价篮（localStorage） ===== */
+function addToQuoteBasket(id, title, pic, price) {
+  const qtyEl = document.querySelector('.qty-control input[type=number]');
+  const qty = qtyEl ? parseInt(qtyEl.value) || 1 : 1;
+  let items = [];
+  try {
+    const saved = localStorage.getItem('eb_quote_items');
+    if (saved) items = JSON.parse(saved) || [];
+  } catch(e) {}
+  const existing = items.find(i => i.id === id);
+  if (existing) {
+    existing.qty += qty;
+  } else {
+    items.push({ id: id, name: title, price: price, qty: qty, icon: pic || '🖨️', spec: '', brand: '' });
+  }
+  localStorage.setItem('eb_quote_items', JSON.stringify(items));
+
+  // 更新所有页面的询价篮角标
+  function _updateBadge() {
+    var badges = document.querySelectorAll('.cart-badge');
+    var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
+    for (var i = 0; i < badges.length; i++) {
+      if (total > 0) {
+        badges[i].textContent = total;
+        badges[i].classList.remove('hidden');
+      } else {
+        badges[i].classList.add('hidden');
+      }
+    }
+  }
+  _updateBadge();
+
+  // Toast 提示
+  const t = document.getElementById('toast-message');
+  const s = document.getElementById('toast-text');
+  if (t && s) { s.textContent = '已加入询价篮'; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2000); }
+}
+</script>
+<script type="text/javascript" src="/shop/js/content.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof check_fav_status === 'function') {
+      check_fav_status('{{ model._id }}');
+    }
+  });
+</script>
+{% endblock %}

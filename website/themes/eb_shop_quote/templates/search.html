@@ -1,0 +1,98 @@
+{% extends 'base_site.html' %}
+{% block title %}
+{{key_word}}
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== 搜索页 Banner ===== -->
+<section class="page-banner">
+  <div class="container banner-content">
+    <div class="breadcrumb">
+      <a href="/">首页</a>
+      <span>/</span>
+      <span>搜索</span>
+    </div>
+    <h1>搜索：<span>{{ key_word }}</span></h1>
+    <p>为您检索到 <strong>{{ data_list | length if data_list else 0 }}</strong> 条与「{{ key_word }}」相关的结果</p>
+  </div>
+</section>
+
+<!-- ===== 主体：搜索列表 ===== -->
+<div class="container">
+  <div class="shop-layout">
+
+    <!-- 内容区 -->
+    <main class="content-area">
+
+      <!-- 工具栏 -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <span class="result-count">
+            搜索 <b>"{{ key_word }}"</b> 共 <b>{{ data_list | length if data_list else 0 }}</b> 条结果
+          </span>
+        </div>
+      </div>
+
+      <!-- 产品网格 -->
+      <div class="product-grid eb-list-box" id="productGrid">
+
+        {% if data_list %}
+        {% for item in data_list %}
+        <a href="{{ item.get_url() }}" class="product-card eb-list-item">
+          <div class="product-thumb">
+            {% if loop.first %}<span class="badge hot">热销</span>{% endif %}
+            <img src="{{ item.small_pic or '/images/placeholder.png' }}" alt="{{ item.title }}">
+          </div>
+          <div class="product-body">
+            <div class="product-brand">{{ item.column_4 or '' }}</div>
+            <h3>{{ item.title }}</h3>
+            <div class="product-tags">
+              {% if item.column_3 %}
+              <span class="tag">{{ item.column_3 }}</span>
+              {% endif %}
+              {% if item.column_4 %}
+              <span class="tag green">{{ item.column_4 }}</span>
+              {% endif %}
+              {% if item.column_6 %}
+              <span class="tag gray">{{ item.column_6 }}</span>
+              {% endif %}
+            </div>
+            <div class="product-foot">
+              {% if item.column_11 %}
+              <span class="product-price"><span class="ln">¥{{ item.column_11 }}</span> <small>/ 支</small></span>
+              {% endif %}
+              <div class="product-actions">
+                <button class="icon-btn" title="收藏">♡</button>
+                <button class="add-cart-btn" >去询价</button>
+              </div>
+            </div>
+          </div>
+        </a>
+        {% endfor %}
+
+        {% else %}
+        <div class="empty-state" style="grid-column: 1 / -1;">
+          <div class="empty-icon">🔍</div>
+          <h3>找不到与「{{ key_word }}」相关的内容</h3>
+          <p>试试更换关键词，或直接联系我们获取完整产品目录。</p>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- 无限加载 -->
+      {% include 'includes/loading_more.html' %}
+
+      <!-- 分页 -->
+      {% if data_list %}
+      <div class="d-flex justify-content-center mt-4">
+        {{ pager }}
+      </div>
+      {% endif %}
+
+    </main>
+  </div>
+</div>
+
+{% endblock %}

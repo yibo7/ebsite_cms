@@ -1,0 +1,86 @@
+{% extends 'base_site.html' %}
+{% block title %}我的报价单{% endblock %}
+
+{% block content %}
+<div class="uc-page">
+  <div class="container">
+    <div class="row g-4">
+      {% set active_nav = 'quotes' %}
+      {% include 'includes/user_sidebar.html' %}
+
+      <div class="col-lg-9">
+        <div class="uc-panel">
+          <div class="uc-panel-header">
+            <h5>📄 我的报价单</h5>
+            <span class="badge-count">共 {{ items|length if items else 0 }} 条</span>
+          </div>
+          <div class="uc-panel-body">
+            {% if items %}
+              {% for item in items %}
+              {% set sc = 'pending' %}
+              {% if item.status == 'approved' %}{% set sc = 'paid' %}
+              {% elif item.status == 'paid' %}{% set sc = 'shipped' %}
+              {% elif item.status == 'completed' %}{% set sc = 'done' %}
+              {% elif item.status == 'failed' %}{% set sc = 'closed' %}
+              {% endif %}
+
+              <div class="order-card">
+                <div class="order-card-top">
+                  <div class="order-card-top-left">
+                    <span class="order-id">#{{ item.record_id }}</span>
+                    <span class="status-badge {{ sc }}">{{ item.status_name }}</span>
+                  </div>
+                  <span class="order-amount">¥{{ "%.2f"|format(item.total_final) }}</span>
+                </div>
+
+                <div class="order-card-info">
+                  <div class="order-info-item">
+                    <span class="label">创建时间</span>
+                    <span>{{ item.add_time_str }}</span>
+                  </div>
+                  <div class="order-info-item">
+                    <span class="label">商品</span>
+                    <span>{{ item.item_count }} 款 / {{ item.total_qty }} 支</span>
+                  </div>
+                  <div class="order-info-item">
+                    <span class="label">联系人</span>
+                    <span>{{ item.contact.name or '-' }}</span>
+                  </div>
+                  <div class="order-info-item">
+                    <span class="label">联系电话</span>
+                    <span>{{ item.contact.phone or '-' }}</span>
+                  </div>
+                </div>
+
+                {% if item.fail_reason %}
+                <div class="order-card-logistics" style="color:#dc2626;">
+                  <span>❌</span>
+                  <span>{{ item.fail_reason }}</span>
+                </div>
+                {% endif %}
+
+                <div class="order-card-actions">
+                  <a href="/eb_quote/quote/{{ item.record_id }}" class="btn-order btn-order-view">📋 查看详情</a>
+                </div>
+              </div>
+              {% endfor %}
+            {% else %}
+            <div class="uc-empty">
+              <div class="empty-icon">📭</div>
+              <h6>暂无报价单</h6>
+              <p>您还没有生成过任何报价单，去询价看看吧</p>
+              <a href="/eb_quote/index.html" class="btn-outline">去询价 →</a>
+            </div>
+            {% endif %}
+          </div>
+          {% if pager %}
+          <div class="uc-pagination">
+            {{ pager }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,242 @@
+{% extends 'base_site.html' %}
+{% block title %}
+报价单 {{ record_id }}
+{% endblock %}
+
+{% block content %}
+<style>
+  .qr-header{background:linear-gradient(135deg,#1e4b8a,#2563eb);color:#fff;padding:32px 24px;border-radius:16px;margin-bottom:24px;position:relative;overflow:hidden;}
+  .qr-header::after{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;background:rgba(255,255,255,.05);border-radius:50%;}
+  .qr-header h1{font-size:22px;font-weight:800;margin:0 0 6px;position:relative;}
+  .qr-header .qr-meta{font-size:13px;opacity:.9;display:flex;flex-wrap:wrap;gap:12px;position:relative;}
+  .qr-header .qr-meta span{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.1);padding:4px 12px;border-radius:999px;}
+  .qr-section{background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:20px;margin-bottom:20px;box-shadow:0 2px 12px rgba(30,75,138,.05);}
+  .qr-section h3{font-size:16px;font-weight:700;margin:0 0 14px;padding-bottom:10px;border-bottom:2px solid #f1f5f9;display:flex;align-items:center;gap:8px;}
+  .qr-table{width:100%;font-size:14px;border-collapse:separate;border-spacing:0;}
+  .qr-table th{text-align:left;padding:12px 10px;background:#f8fafc;font-weight:700;color:#475569;font-size:12px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e2e8f0;}
+  .qr-table td{padding:14px 10px;border-bottom:1px solid #f1f5f9;vertical-align:middle;}
+  .qr-table tbody tr:hover{background:#f8fafc;}
+  .qr-table tbody tr:last-child td{border-bottom:none;}
+  .qr-prod-info{display:flex;align-items:center;gap:12px;}
+  .qr-prod-thumb{width:52px;height:52px;border-radius:10px;background:#f1f5f9;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;border:1px solid #e2e8f0;}
+  .qr-prod-thumb img{width:100%;height:100%;object-fit:cover;}
+  .qr-prod-thumb .emoji-fallback{font-size:24px;}
+  .qr-prod-name{font-weight:600;color:#1e293b;font-size:14px;line-height:1.3;}
+  .qr-prod-spec{font-size:12px;color:#94a3b8;margin-top:2px;}
+  .qr-summary{background:#f8fafc;border-radius:12px;padding:20px;}
+  .qr-summary .qr-s-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:14px;}
+  .qr-summary .qr-s-row+.qr-s-row{border-top:1px solid #e2e8f0;}
+  .qr-summary .qr-s-row .label{color:#64748b;}
+  .qr-summary .qr-s-row .value{font-weight:600;color:#1e293b;}
+  .qr-summary .qr-s-row.total{border-top:2px solid #dc2626;padding-top:12px;margin-top:4px;}
+  .qr-summary .qr-s-row.total .label{color:#dc2626;font-weight:700;font-size:16px;}
+  .qr-summary .qr-s-row.total .value{color:#dc2626;font-weight:800;font-size:20px;}
+  .qr-sales-card{background:linear-gradient(135deg,#f0f6fd,#e4eefa);border-radius:14px;padding:20px;display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;}
+  .qr-sales-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,#1e4b8a,#2563eb);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;flex-shrink:0;}
+  .qr-sales-info{flex:1;min-width:160px;}
+  .qr-sales-info h4{font-size:15px;font-weight:700;margin:0 0 4px;}
+  .qr-sales-info .qr-sales-title{font-size:12.5px;color:#64748b;margin-bottom:8px;line-height:1.5;}
+  .qr-sales-contact{display:flex;flex-wrap:wrap;gap:10px;}
+  .qr-sales-contact a{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;background:#fff;border:1px solid #e2e8f0;border-radius:999px;font-size:13px;color:#1e293b;text-decoration:none;transition:.2s;font-weight:500;}
+  .qr-sales-contact a:hover{border-color:#2563eb;color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.15);}
+  .qr-sales-qr{display:flex;gap:16px;flex-shrink:0;}
+  .qr-sales-qr .qr-item{text-align:center;background:#fff;border-radius:12px;padding:12px;border:1px solid #e2e8f0;width:110px;}
+  .qr-sales-qr .qr-item .qr-placeholder{width:80px;height:80px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 6px;}
+  .qr-sales-qr .qr-item .qr-label{font-size:11px;color:#64748b;}
+  .qr-contact-form .form-group{margin-bottom:14px;}
+  .qr-contact-form .form-group label{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:4px;display:block;}
+  .qr-contact-form .form-group input,.qr-contact-form .form-group textarea{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;transition:.2s;background:#fff;}
+  .qr-contact-form .form-group input:focus,.qr-contact-form .form-group textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+  .qr-contact-form .form-group textarea{resize:vertical;min-height:60px;}
+  .qr-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 24px;border-radius:999px;font-size:14px;font-weight:700;border:none;cursor:pointer;text-decoration:none;transition:.2s;}
+  .qr-btn-primary{background:linear-gradient(135deg,#1e4b8a,#2563eb);color:#fff;}
+  .qr-btn-primary:hover{box-shadow:0 6px 20px rgba(37,99,235,.3);transform:translateY(-1px);color:#fff;}
+  .qr-btn-secondary{background:linear-gradient(145deg,#6b7280,#9ca3af);color:#fff;}
+  .qr-btn-secondary:hover{box-shadow:0 4px 12px rgba(107,114,128,.3);transform:translateY(-1px);color:#fff;}
+  .btn-submit{display:inline-flex;align-items:center;gap:6px;padding:10px 24px;border-radius:999px;font-size:14px;font-weight:700;border:none;cursor:pointer;text-decoration:none;transition:.2s;background:linear-gradient(135deg,#1e4b8a,#2563eb);color:#fff;}
+  .btn-submit:hover{box-shadow:0 6px 20px rgba(37,99,235,.3);transform:translateY(-1px);color:#fff;}
+  .qr-not-found{text-align:center;padding:80px 20px;}
+  .qr-not-found h2{font-size:28px;margin-bottom:12px;}
+  .qr-not-found p{color:#64748b;}
+  @media(max-width:768px){.qr-header{padding:24px 16px;}.qr-section{padding:16px;}.qr-sales-card{flex-direction:column;}}
+</style>
+
+<div class="container" style="max-width:860px;margin:24px auto;">
+
+  {% if not quote %}
+
+  <div class="qr-not-found">
+    <h2>😅 报价单未找到</h2>
+    <p>该报价单不存在或已过期，请联系我们的销售客服获取新的报价。</p>
+    <a href="/eb_quote/index.html" class="btn-submit" style="display:inline-block;margin-top:12px;text-decoration:none;">返回询价</a>
+  </div>
+
+  {% else %}
+
+  <!-- ===== 头部：报价单号 ===== -->
+  <div class="qr-header">
+    <h1>📄 报价单</h1>
+    <div class="qr-meta">
+      <span>📋 编号：<strong>{{ quote.record_id }}</strong></span>
+      <span>📅 {{ quote.add_time_str }}</span>
+      <span>👤 {{ quote.user_account or "访客" }}</span>
+      <span>📦 {{ quote.item_count }} 款 / {{ quote.total_qty }} 支</span>
+    </div>
+    <div style="margin-top:12px;">
+      <span class="qr-badge" style="font-size:13px;padding:4px 14px;">{{ quote.status_name }}</span>
+    </div>
+  </div>
+
+  <!-- ===== 商品清单 ===== -->
+  <div class="qr-section">
+    <h3>🛒 商品清单</h3>
+    <table class="qr-table">
+      <thead>
+        <tr>
+          <th style="width:45%;">商品名称</th>
+          <th style="width:12%;">数量</th>
+          <th style="width:18%;">单价</th>
+          <th style="width:18%;">小计</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in quote.products %}
+        <tr>
+          <td>
+            <div class="qr-prod-info">
+              <div class="qr-prod-thumb">
+                {% if item.small_pic and (item.small_pic.startswith('http') or item.small_pic.startswith('/')) %}
+                <img src="{{ item.small_pic }}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+                {% else %}
+                <span class="emoji-fallback">{{ item.small_pic or '🖨️' }}</span>
+                {% endif %}
+              </div>
+              <div>
+                <div class="qr-prod-name">{{ item.title }}</div>
+                {% if item.spec %}
+                <div class="qr-prod-spec">{{ item.spec }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td>{{ item.qty }} 支</td>
+          <td class="qr-price">¥{{ "%.2f"|format(item.unit_price) }}</td>
+          <td><strong>¥{{ "%.2f"|format(item.subtotal) }}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 价格汇总 ===== -->
+  <div class="qr-section">
+    <h3>💰 价格汇总</h3>
+    <div class="qr-summary">
+      <div class="qr-s-row">
+        <span class="label">💰 原价合计</span>
+        <span class="value">¥{{ "%.2f"|format(quote.total_original) }}</span>
+      </div>
+      <div class="qr-s-row">
+        <span class="label">🎉 优惠折扣（{{ (quote.discount_rate * 100)|int }}%）</span>
+        <span class="value" style="color:#16a34a;">-¥{{ "%.2f"|format(quote.total_discount) }}</span>
+      </div>
+      <div class="qr-s-row total">
+        <span class="label">🔥 报价合计</span>
+        <span class="value">¥{{ "%.2f"|format(quote.total_final) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 专属销售客服 ===== -->
+  <div class="qr-section">
+    <h3>👤 您的专属销售客服</h3>
+    <div class="qr-sales-card">
+      <div class="qr-sales-avatar">S</div>
+      <div class="qr-sales-info">
+        <h4>销售专员 · 小王</h4>
+        <div class="qr-sales-title">Green Rich 金瑞治 — 您专属的销售顾问，任何产品咨询、报价、订单问题，都可直接联系我。</div>
+        <div class="qr-sales-contact">
+          <a href="https://wa.me/8613800138000" target="_blank">💬 WhatsApp</a>
+          <a href="mailto:cqs263@163.com">✉️ cqs263@163.com</a>
+          <a href="tel:+8613800138000">📞 +86 138 0013 8000</a>
+        </div>
+      </div>
+      <div class="qr-sales-qr">
+        <div class="qr-item">
+          <div class="qr-placeholder">💬</div>
+          <div class="qr-label">微信扫码联系</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 填写联系方式（仅创建人可见） ===== -->
+  {% if is_owner %}
+  <div class="qr-section">
+    <h3>✏️ 留下您的联系方式</h3>
+    <p style="font-size:13px;color:#64748b;margin:-8px 0 16px;">填写后销售专员会第一时间与您联系确认报价。</p>
+    <form class="qr-contact-form" method="post" action="/eb_quote/quote/{{ record_id }}/contact{% if request.args.s %}?s={{ request.args.s }}{% endif %}">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>姓名 *</label>
+            <input type="text" name="name" required placeholder="您的姓名" value="{{ quote.contact.name or '' }}">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>手机号 *</label>
+            <input type="tel" name="phone" required placeholder="您的手机号码" value="{{ quote.contact.phone or '' }}">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" name="email" placeholder="your@email.com" value="{{ quote.contact.email or '' }}">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="form-group">
+            <label>公司名称</label>
+            <input type="text" name="company" placeholder="公司/机构名称" value="{{ quote.contact.company or '' }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label>收货地址</label>
+            <input type="text" name="address" placeholder="省/市/区/详细地址" value="{{ quote.contact.address or '' }}">
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="form-group">
+            <label>备注</label>
+            <textarea name="remark" placeholder="其他需要说明的内容…">{{ quote.contact.remark or '' }}</textarea>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:12px;">
+        <button type="submit" class="btn-submit">
+          {% if contact_submitted %}🔄 更新联系方式{% else %}✅ 提交联系方式{% endif %}
+        </button>
+      </div>
+    </form>
+    {% if contact_submitted %}
+    <div style="margin-top:12px;padding:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;color:#166534;font-size:13px;text-align:center;">
+      ✅ 联系方式已保存，可随时修改后重新提交。
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ===== 底部操作 ===== -->
+  <div style="text-align:center;padding:20px 0 40px;">
+    <button class="btn-submit" onclick="window.print()" style="background:linear-gradient(145deg,#6b7280,#9ca3af);">🖨️ 打印 / 导出 PDF</button>
+    <span style="display:inline-block;width:12px;"></span>
+    <a href="/eb_quote/index.html" class="btn-submit" style="display:inline-block;text-decoration:none;">🔍 继续询价</a>
+    <span style="display:inline-block;width:12px;"></span>
+    <a href="/eb_quote/my_quotes" class="btn-submit" style="display:inline-block;text-decoration:none;background:linear-gradient(145deg,#7c3aed,#a855f7);">📄 我的报价单</a>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}

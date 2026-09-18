@@ -62,6 +62,26 @@ let QUOTE_SESSION = [];
    =================================================================== */
 let quoteItems = [];
 
+function saveQuoteItems() {
+  localStorage.setItem('eb_quote_items', JSON.stringify(quoteItems));
+}
+
+function loadQuoteItems() {
+  try {
+    const saved = localStorage.getItem('eb_quote_items');
+    if (saved) {
+      quoteItems = JSON.parse(saved) || [];
+      // 页面加载后渲染询价单
+      if (typeof renderQuote === 'function') setTimeout(renderQuote, 0);
+    }
+  } catch(e) {
+    quoteItems = [];
+  }
+}
+
+// 页面加载时恢复询价单
+loadQuoteItems();
+
 /* ===================================================================
    ===== DOM 引用 =====
    =================================================================== */
@@ -121,6 +141,7 @@ async function sendMessage() {
   QUOTE_SESSION.push({ role: 'user', content: text });
 
   const typingEl = addTyping();
+  typingEl.querySelector('.typing').textContent = '请稍等，我正在帮您问价......';
 
   try {
     const resp = await fetch('/shop/api/quote/chat', {
@@ -248,7 +269,7 @@ function generateAIReply(text) {
 function appendMessage(role, html, products, timeStr) {
   const msg = document.createElement('div');
   msg.className = `msg ${role}`;
-  const avatar = role === 'ai' ? '🤖' : '👤';
+  const avatar = role === 'ai' ? '🤖' : role === 'system' ? '⚙️' : '👤';
   const time = timeStr || getCurrentTime();
 
   let productsHtml = '';
@@ -321,12 +342,21 @@ function getCurrentTime() {
    ===== 初始化聊天 =====
    =================================================================== */
 function initChatHistory() {
-  // 只显示欢迎语，去掉演示聊天记录
-  appendMessage('ai', `您好！我是 <strong>Green Rich 金瑞治</strong> 的 AI 询价助手 👋<br><br>
-    我可以为您实时报价复印机感光鼓芯。请告诉我您需要的<strong>品牌、型号</strong>或<strong>设备机型</strong>，我会立即为您查询。`, null, getCurrentTime());
+  // 从后端获取可配置的欢迎语
+  fetch('/shop/api/quote/welcome')
+    .then(r => r.json())
+    .then(data => {
+      appendMessage('ai', data.welcome, null, getCurrentTime());
+    })
+    .catch(() => {
+      // 兜底：双语欢迎语
+      appendMessage('ai', `👋 <strong>Welcome / 欢迎</strong><br><br>
+         <strong>English:</strong> I'm the AI quoting assistant for <strong>Green Rich</strong>. Tell me the <strong>brand and model</strong> of the copier drum you need — I'll check availability and price right away.<br><br>
+         <strong>中文:</strong> 我是 <strong>Green Rich 金瑞治</strong> 的 AI 询价助手。请告诉我您需要的复印机鼓芯的<strong>品牌</strong>和<strong>型号</strong>，我会立即为您查询报价。`, null, getCurrentTime());
+    });
 
   QUOTE_SESSION = [
-    { role: 'assistant', content: '您好！我是 Green Rich 金瑞治 的 AI 询价助手...' }
+    { role: 'assistant', content: 'Welcome / 欢迎！我是 Green Rich 金瑞治 的 AI 询价助手。' }
   ];
 
   setTimeout(() => {
@@ -365,6 +395,7 @@ function addToQuote(productId, btn, qty) {
   const addQty = qty || 1;
   if (existing) {
     existing.qty += addQty;
+    saveQuoteItems();
     showToast(`已增加 ${addQty} 支：${product.title}`);
   } else {
     quoteItems.push({
@@ -374,9 +405,10 @@ function addToQuote(productId, btn, qty) {
       qty: addQty,
       life: product.life || '标准',
       type: product.brand || '',
-      icon: '🖨️',
+      icon: product.small_pic || '🖨️',
       brand: product.brand || ''
     });
+    saveQuoteItems();
     showToast(`已加入询价单：${product.title}`);
   }
   if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
@@ -393,7 +425,7 @@ function renderQuote() {
       const subtotal = dp * item.qty;
       itemsHtml += `
         <div class="quote-item">
-          <div class="qi-thumb">${item.icon}</div>
+          <div class="qi-thumb">${item.icon && (item.icon.startsWith('http') || item.icon.startsWith('/')) ? `<img src="${item.icon}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</div>
           <div class="qi-info">
             <h4>${item.name}</h4>
             <div class="qi-meta">
@@ -484,12 +516,13 @@ function setQuoteQty(id, val) {
 
 function removeFromQuote(id) {
   quoteItems = quoteItems.filter(i => i.id !== id);
+  saveQuoteItems();
   renderQuote();
   showToast('已从询价单移除');
 }
 
 /* ===================================================================
-   ===== 提交到购物车（需登录） =====
+   ===== 生成报价单 =====
    =================================================================== */
 async function submitToCart() {
   if (quoteItems.length === 0) {
@@ -497,45 +530,41 @@ async function submitToCart() {
     return;
   }
 
-  // 尝试提交到后端购物车
   const items = quoteItems.map(item => ({
     content_id: item.id,
-    product_id: item.id,  // product_id 与 content_id 相同时，CartManager 会用第一个 SKU
-    qty: item.qty
+    qty: item.qty,
+    title: item.name,
+    price: item.price,
+    spec: item.life || '',
+    small_pic: item.icon || ''
   }));
 
   try {
-    const resp = await fetch('/shop/api/quote/submit_order', {
+    const resp = await fetch('/shop/api/quote/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        userAccount: SESSION_ID,
+        items: items,
+        discount_rate: FIXED_DISCOUNT
+      })
     });
     const result = await resp.json();
 
-    if (result.code === 0) {
-      // 同时保存询价记录
-      saveQuoteRecord();
+    if (result.code === 0 && result.url) {
       // 清除询价单
       quoteItems = [];
+      saveQuoteItems();
       renderQuote();
-      showToast('✅ 已加入购物车，即将跳转…');
-      setTimeout(() => { window.location.href = '/shop/cart'; }, 800);
+      // 重定向到报价单页面
+      window.location.href = result.url;
     } else {
-      showToast(result.msg || '提交失败，请登录后再试');
+      showToast(result.msg || '生成报价单失败，请稍后重试');
     }
   } catch (e) {
-    // 未登录或网络问题，走 localStorage 旧方案
-    const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
-    try {
-      localStorage.setItem('greenrich_cart', JSON.stringify({
-        token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
-      }));
-    } catch (e) { /* ignore */ }
-    saveQuoteRecord();
-    showToast('正在跳转到购物车…');
-    setTimeout(() => {
-      window.location.href = 'cart.html?from=ai&token=' + token;
-    }, 600);
+    console.error('生成报价单异常:', e);
+    showToast('网络异常，请稍后重试');
   }
 }
 

@@ -1,0 +1,109 @@
+{% extends 'base_site.html' %}
+{% block title %}
+个人中心
+{% endblock %}
+
+{% block content %}
+
+{% set stats = temp_data.get_user_content_stats() %}
+{% set favorites = temp_data.get_user_favorites() %}
+
+<div class="uc-page">
+  <div class="container">
+    <div class="row g-4">
+      {% set active_nav = 'index' %}
+      {% include 'includes/user_sidebar.html' %}
+
+      <!-- 主内容区 -->
+      <div class="col-lg-9">
+
+        <!-- 欢迎横幅 -->
+        <div class="uc-welcome">
+          <h3>👋 欢迎回来，{{ user.ni_name or user.name }}</h3>
+          <p>这里是您的个人中心，可以管理收藏、查看订单等</p>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="row g-3 mb-4">
+
+          <div class="col-sm-4 col-6">
+            <div class="uc-stat-card">
+              <div class="uc-stat-icon gold">❤️</div>
+              <div class="uc-stat-info">
+                <div class="num">{{ stats.favorites }}</div>
+                <div class="label">收藏</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-4 col-6">
+            <div class="uc-stat-card">
+              <div class="uc-stat-icon green">👁️</div>
+              <div class="uc-stat-info">
+                <div class="num">{{ stats.total_hits }}</div>
+                <div class="label">人气</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-4 col-6">
+            <div class="uc-stat-card">
+              <div class="uc-stat-icon red">📋</div>
+              <div class="uc-stat-info">
+                <div class="num"><span id="order-count">-</span></div>
+                <div class="label">询价单</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 最近收藏 -->
+        <div class="uc-panel">
+          <div class="uc-panel-header">
+            <h5>❤️ 最近收藏</h5>
+            <span class="badge-count">共 {{ stats.favorites }} 条</span>
+          </div>
+          <div class="uc-panel-body">
+            {% if favorites %}
+              {% for item in favorites[:5] %}
+              <a href="{{ item.get_url() }}" class="uc-fav-item">
+                {% if item.small_pic %}
+                <img class="uc-fav-img" src="{{ item.small_pic }}" alt="{{ item.content_title }}">
+                {% endif %}
+                <div class="uc-fav-info">
+                  <h6>{{ item.content_title }}</h6>
+                  <div class="desc">{{ item.class_name }}</div>
+                  <div class="time">{{ item.add_time|to_time_name }}</div>
+                </div>
+                <div class="uc-fav-arrow">→</div>
+              </a>
+              {% endfor %}
+            {% else %}
+            <div class="uc-panel-empty">
+              <div class="empty-icon">📭</div>
+              <p>还没有收藏任何商品</p>
+              <a href="/" class="btn-outline">去逛逛 →</a>
+            </div>
+            {% endif %}
+          </div>
+          {% if favorites %}
+          <a href="/user/favorite" class="uc-panel-more">查看全部收藏 →</a>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 异步加载订单统计
+fetch('/shop/api/order_count')
+  .then(function(r){ return r.json(); })
+  .then(function(rz){
+    if(rz.code === 0){
+      document.getElementById('order-count').textContent = rz.data.total;
+    }
+  })
+  .catch(function(){});
+</script>
+
+{% endblock %}

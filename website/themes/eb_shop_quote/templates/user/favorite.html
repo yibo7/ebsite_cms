@@ -1,0 +1,66 @@
+{% extends 'base_site.html' %}
+{% block title %}
+我的收藏
+{% endblock %}
+
+{% block content %}
+
+<div class="uc-page">
+  <div class="container">
+    <div class="row g-4">
+      {% set active_nav = 'favorite' %}
+      {% include 'includes/user_sidebar.html' %}
+
+      <!-- 主内容区 -->
+      <div class="col-lg-9">
+
+        <div class="uc-panel">
+          <div class="uc-panel-header">
+            <h5>❤️ 我的收藏</h5>
+            <span class="badge-count">共 {{ data_list|length if data_list else 0 }} 条</span>
+          </div>
+          <div class="uc-panel-body">
+            {% if data_list %}
+            <div class="uc-fav-list">
+              {% for item in data_list %}
+              <a href="{{ item.get_url() }}" class="uc-fav-item">
+                {% if item.small_pic %}
+                <img class="uc-fav-img" src="{{ item.small_pic }}" alt="{{ item.content_title }}">
+                {% else %}
+                <div class="uc-fav-img" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#cbd5e1;">📄</div>
+                {% endif %}
+                <div class="uc-fav-info">
+                  <h6>{{ item.content_title }}</h6>
+                  {% if item.seo_description %}
+                  <div class="desc">{{ item.seo_description }}</div>
+                  {% endif %}
+                  <div class="time">{{ item.add_time|to_time_name }}</div>
+                </div>
+                <div class="uc-fav-arrow">→</div>
+              </a>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="uc-empty">
+              <div class="empty-icon">💔</div>
+              <h6>还没有收藏</h6>
+              <p>去商品页面点击 ❤️ 即可收藏您感兴趣的商品</p>
+              <a href="/" class="btn-outline">去逛逛 →</a>
+            </div>
+            {% endif %}
+          </div>
+          {% if pager %}
+          <div class="uc-pagination">
+            {{ pager }}
+          </div>
+          {% endif %}
+        </div>
+
+        {% include 'includes/loading_more.html' %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

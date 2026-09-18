@@ -1,0 +1,337 @@
+{% extends 'base_site.html' %}
+{% block title %}
+首页
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== Hero 轮播 ===== -->
+<section class="hero">
+  <div class="hero-carousel" id="heroCarousel">
+
+    <!-- Slide 1: 产品卖点 -->
+    <div class="hero-slide active">
+      <div class="container hero-grid">
+        <div>
+          <span class="hero-tag">🏭 始于 1997 · 专注复印机鼓芯 27 年</span>
+          <h1>复印机感光鼓芯<em>品质稳定 · 寿命长 · 性价比高</em></h1>
+          <p>Green Rich（金瑞治）专注复印机感光鼓芯研发二十余载，凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。</p>
+          <div class="hero-btns">
+            <a href="#products" class="btn">浏览产品目录 →</a>
+            <a href="#contact" class="btn btn-white">下载完整价目表</a>
+          </div>
+          <div class="hero-badges">
+            <span class="hero-badge">✅ 100% 出货全检</span>
+            <span class="hero-badge">🌍 出口 50+ 国家</span>
+            <span class="hero-badge">⚡ 48h 极速发货</span>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="hero-card">
+            <div class="drum-icon">🖨️</div>
+            <h3>高品质感光鼓芯</h3>
+            <p>覆盖 8 大品牌 · 上千种型号一站式采购</p>
+            <div class="spec">
+              <div class="spec-item"><b>8万+</b><span>超长寿命(页)</span></div>
+              <div class="spec-item"><b>&lt;0.1%</b><span>不良率</span></div>
+              <div class="spec-item"><b>27年</b><span>行业经验</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: 品牌故事（整合原独立区块内容） -->
+    <div class="hero-slide">
+      <div class="container hero-grid">
+        <div>
+          <span class="hero-tag">🏭 品牌故事 · 始于 1997</span>
+          <h1>印迹不凡，始于 1997<em>专注复印机感光鼓芯研发二十余载</em></h1>
+          <p>Green Rich（金瑞治）凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。持续创新，只为每一次清晰、稳定的复印输出表现。</p>
+          <div class="hero-btns">
+            <a href="#contact" class="btn">了解更多 →</a>
+            <a href="#products" class="btn btn-white">浏览产品</a>
+          </div>
+          <div class="hero-badges">
+            <span class="hero-badge">🏭 源头工厂</span>
+            <span class="hero-badge">🔬 自主研发</span>
+            <span class="hero-badge">⚙️ 智能制造</span>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <!-- 四个要点卡片：替代原来的独立品牌故事视觉区 -->
+          <div class="hero-brand-visual">
+            <div class="hero-brand-item">
+              <div class="vi-icon">🏭</div>
+              <h4>源头工厂</h4>
+              <p>20余年自主研发制造</p>
+            </div>
+            <div class="hero-brand-item">
+              <div class="vi-icon">🔬</div>
+              <h4>自主研发</h4>
+              <p>绿色鼓芯涂层技术</p>
+            </div>
+            <div class="hero-brand-item">
+              <div class="vi-icon">🌍</div>
+              <h4>全球布局</h4>
+              <p>出口50+国家</p>
+            </div>
+            <div class="hero-brand-item">
+              <div class="vi-icon">⚙️</div>
+              <h4>智能制造</h4>
+              <p>全自动产线投产</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 轮播指示器 -->
+  <div class="hero-indicators">
+    <button class="hero-indicator active" data-index="0" aria-label="Slide 1"></button>
+    <button class="hero-indicator" data-index="1" aria-label="Slide 2"></button>
+  </div>
+</section>
+
+<!-- ===== 信任条 ===== -->
+<div class="trust-bar">
+  <div class="container trust-grid">
+    <div class="trust-item"><i>🏭</i> 源头工厂直供</div>
+    <div class="trust-item"><i>✅</i> 100% 出货全检</div>
+    <div class="trust-item"><i>🌍</i> 出口 50+ 国家</div>
+    <div class="trust-item"><i>🛡️</i> 12 个月质保</div>
+  </div>
+</div>
+
+<!-- ===== 适用品牌型号（只展示中文） ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="sec-header">
+      <h2>适用<span>品牌型号</span></h2>
+      <p>兼容全球主流复印机品牌，上千种型号一站式采购</p>
+    </div>
+    <div class="brand-grid">
+      {% set brands = index_data.get_specials(parent_id="6852c97a9d0e112569a8cbf9",top=7) %}
+      {% if brands %}
+        {% for item in brands %}
+          <div class="brand">{{ item.name }}</div>
+        {% endfor %}
+      {% else %}
+        <div>
+          no brand
+        </div>
+
+      {% endif %}
+    </div>
+    <!-- 更多引导按钮 -->
+    <div class="brand-more">
+      <a href="/c105p1.html" class="btn btn-outline">查看全部品牌型号 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 最新上架 ===== -->
+<section id="products" class="section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>热销<span>商品</span></h2>
+      <p>工厂直供 · 高性价比之选</p>
+    </div>
+    <div class="prod-grid">
+
+      {% set hot_products = index_data.getHotDatas(8, class_id="6852498a0a8b42f2df14146e") %}
+      {% for item in hot_products %}
+      <a href="{{ item.get_url() }}" class="card">
+        <div class="thumb">
+          {% if loop.first %}<span class="badge">热销</span>{% endif %}
+          <img src="{{ item.small_pic or '/static/images/default_product.jpg' }}" alt="{{ item.title }}">
+        </div>
+        <div class="card-body">
+          <h3>{{ item.title }}</h3>
+
+          <div class="product-tags">
+              <span class="tag">{{ item.column_3 }}</span>
+              <span class="tag green">{{ item.column_4 }}</span>
+              {% if item.column_6 %}
+                <span class="tag gray">{{ item.column_6 }}</span>
+              {% endif %}
+            </div>
+
+          <div class="card-foot">
+            {% if item.column_11 %}
+            <span class="price"><span class="ln">¥{{ item.column_11 }}</span> <small>/ 支</small></span>
+            {% endif %}
+            <button class="add-btn" >去询价</button>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+
+    </div>
+    <div style="text-align:center;margin-top:44px;">
+      <a href="/c105p1.html" class="btn btn-outline">查看全部产品 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 为什么选择我们 ===== -->
+<section class="section section-alt">
+  <div class="container">
+    <div class="why">
+      <div class="sec-header">
+        <h2>为什么选择 Green Rich</h2>
+        <p>您值得信赖的复印机耗材合作伙伴</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat">
+          <div class="icon">🏭</div>
+          <div>
+            <h4>源头工厂</h4>
+            <p>20余年自主研发制造经验，无中间商，价格更具竞争力</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">✅</div>
+          <div>
+            <h4>品质承诺</h4>
+            <p>出货前100%全检，不良率严格控制在0.1%以内</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🌍</div>
+          <div>
+            <h4>广泛兼容</h4>
+            <p>覆盖8大主流品牌，上千种型号一站式采购</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🚀</div>
+          <div>
+            <h4>极速交付</h4>
+            <p>常规型号48小时内发货，支持OEM/ODM定制</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🛒</div>
+          <div>
+            <h4>一站式采购</h4>
+            <p>全系列复印机配件，省时省心</p>
+          </div>
+        </div>
+        <div class="feat">
+          <div class="icon">🛡️</div>
+          <div>
+            <h4>无忧售后</h4>
+            <p>12个月质保，退换货保障</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 品牌信任模块（认证 + 客户 + 工厂） ===== -->
+<section id="trust" class="trust-section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>品牌<span>实力见证</span></h2>
+      <p>认证资质 · 客户信赖 · 工厂实拍，用事实说话</p>
+    </div>
+
+    <div class="trust-tabs">
+      <button class="trust-tab active" data-panel="cert">🏅 资质认证</button>
+      <button class="trust-tab" data-panel="case">🤝 客户案例</button>
+      <button class="trust-tab" data-panel="factory">🏭 工厂实拍</button>
+    </div>
+
+    <div class="trust-panel active" id="panel-cert">
+      <div class="cert-grid">
+        <div class="cert-card"><span class="cert-icon">🏅</span><h4>ISO 9001</h4><p>质量管理体系认证</p></div>
+        <div class="cert-card"><span class="cert-icon">✅</span><h4>CE 认证</h4><p>欧盟市场准入认证</p></div>
+        <div class="cert-card"><span class="cert-icon">🔬</span><h4>RoHS 认证</h4><p>有害物质限制指令</p></div>
+        <div class="cert-card"><span class="cert-icon">🏆</span><h4>实用新型专利</h4><p>鼓芯涂层技术专利</p></div>
+      </div>
+    </div>
+
+    <div class="trust-panel" id="panel-case">
+      <div class="case-grid">
+        <div class="case-card">
+          <p class="quote">"Green Rich 的鼓芯寿命稳定，打印清晰度媲美原装，我们的客户投诉率下降了 40%。"</p>
+          <div class="client">
+            <div class="client-avatar">李</div>
+            <div class="client-info"><h5>李经理</h5><span>深圳某办公设备经销商</span></div>
+          </div>
+        </div>
+        <div class="case-card">
+          <p class="quote">"合作 5 年，从单一型号扩展到全系列采购，品质和交期都让人放心。"</p>
+          <div class="client">
+            <div class="client-avatar">王</div>
+            <div class="client-info"><h5>王总</h5><span>广州某耗材批发商</span></div>
+          </div>
+        </div>
+        <div class="case-card">
+          <p class="quote">"出口东南亚市场，Green Rich 的包装和品质完全符合我们的要求，复购率很高。"</p>
+          <div class="client">
+            <div class="client-avatar">陈</div>
+            <div class="client-info"><h5>陈先生</h5><span>东南亚某贸易公司</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="trust-panel" id="panel-factory">
+      <div class="factory-grid">
+        <div class="factory-item">
+          <div class="factory-img">🏭</div>
+          <div class="factory-info"><h4>全自动生产线</h4><p>年产能突破 500 万支，品质稳定可控</p></div>
+        </div>
+        <div class="factory-item">
+          <div class="factory-img">🔬</div>
+          <div class="factory-info"><h4>研发实验室</h4><p>自主研发绿色鼓芯涂层技术</p></div>
+        </div>
+        <div class="factory-item">
+          <div class="factory-img">📦</div>
+          <div class="factory-info"><h4>品质检测中心</h4><p>出货前 100% 全检，不良率 &lt;0.1%</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== 发展历程 ===== -->
+<section id="timeline" class="timeline-section">
+  <div class="container">
+    <div class="sec-header">
+      <h2>品牌<span>发展历程</span></h2>
+      <p>从深圳小厂到全球化耗材供应商，我们始终坚守品质初心</p>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot">1997</div>
+        <h4>品牌创立</h4>
+        <p>Green Rich 在深圳成立<br>专注 OPC 鼓芯研发</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2005</div>
+        <h4>技术突破</h4>
+        <p>自主研发绿色鼓芯涂层<br>寿命提升 30%</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2015</div>
+        <h4>全球布局</h4>
+        <p>产品出口 50+ 国家<br>建立海外仓储中心</p>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2024</div>
+        <h4>智能制造</h4>
+        <p>全自动产线投产<br>年产能突破 500 万支</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="text/javascript" src="/ui_js/index.js" defer></script>
+{% endblock %}
