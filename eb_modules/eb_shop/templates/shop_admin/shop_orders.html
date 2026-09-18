@@ -1,33 +1,181 @@
 {% extends 'base_admin.html' %}
 {% block content %}
-    <div style="padding:10px;" >
-        <ul class="nav nav-tabs">
-            <li class="nav-item">
-            <a class="nav-link active"  aria-current="page" href="shop_orders">订单管理</a>
-          </li>
-            <li class="nav-item">
-            <a class="nav-link" href="level_price">价格级别管理</a>
-          </li>
-        </ul>
-        <br>
-        <div class="eb-box">
-            <div class="btn-toolbar px-2">
-                <form method="get">
-                    <div class="btn-group">
-                        <input class="form-control" placeholder="关键字" name="k" type="text" required/>
-                    </div>
-                    <div class="btn-group">
-                        <button class="btn btn-primary" type="submit">   搜索   </button>
-                    </div>
+<link rel="stylesheet" href="/shop/css/admin_orders.css">
 
-                </form>
-            </div>
-            {{table_html}}
+<div style="padding:10px;">
+  <ul class="nav nav-tabs">
+    <li class="nav-item">
+      <a class="nav-link active" aria-current="page" href="shop_orders">订单管理</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="level_price">价格级别管理</a>
+    </li>
+  </ul>
+  <br>
+
+  <div class="eb-box">
+    <div class="btn-toolbar px-2">
+      <form method="get">
+        <div class="btn-group">
+          <input class="form-control" style="width:320px" placeholder="订单号 / 收货人 / 电话 / 邮箱" name="k" type="text" value="{{ request.args.get('k', '') }}"/>
         </div>
-        <nav class="mt-2 px-2">
-            {{pager}}
-        </nav>
+        <div class="btn-group">
+          <button class="btn btn-primary" type="submit">搜索</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
+  {% if items %}
+
+  {% for item in items %}
+  <div class="order-card mt-3">
+    <!-- 头部：始终可见，点击展开/收起详情 -->
+    <div class="order-card-header" onclick="toggleDetail(this)">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span class="order-id">订单号：{{ item.order_id }}</span>
+        <span class="order-recipient">创建：{{ item.user_account }} </span>
+        <span class="order-recipient">收货：{{ item.user_name }} </span>
+        <span class="order-time">时间：{{ item.add_time }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="status-badge
+          {%- if '等待' in item.status_name %}pending
+          {%- elif '发货' in item.status_name %}paid
+          {%- elif '收货' in item.status_name %}shipped
+          {%- elif '完成' in item.status_name %}done
+          {%- else %}cancel{% endif %}">{{ item.status_name }}</span>
+        <span class="toggle-icon">▼</span>
+      </div>
     </div>
 
+    <!-- 详情区域（默认隐藏） -->
+    <div class="order-card-detail">
+      <div class="order-card-body">
+
+        <div class="order-info-grid">
+          <div class="order-info-item">
+            <label>收货人</label>
+            <div class="value">{{ item.user_name }}</div>
+          </div>
+          <div class="order-info-item">
+            <label>联系电话</label>
+            <div class="value">{{ item.phone }}</div>
+          </div>
+          <div class="order-info-item" style="grid-column: span 2;">
+            <label>收货地址</label>
+            <div class="value small">{{ item.address_info }}</div>
+          </div>
+          {% if item.email or item.post_code %}
+          <div class="order-info-item">
+            <label>邮箱</label>
+            <div class="value small">{{ item.email or '-' }}</div>
+          </div>
+          <div class="order-info-item">
+            <label>邮编</label>
+            <div class="value small">{{ item.post_code or '-' }}</div>
+          </div>
+          {% endif %}
+          {% if item.payment_name %}
+          <div class="order-info-item">
+            <label>支付方式</label>
+            <div class="value small">{{ item.payment_name }}</div>
+          </div>
+          {% endif %}
+          {% if item.delivery_name %}
+          <div class="order-info-item">
+            <label>物流</label>
+            <div class="value small">{{ item.delivery_name }} {{ item.delivery_number }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if item.products %}
+        <div class="order-products">
+          <div class="order-products-header">
+            <span>商品</span>
+            <span style="text-align:right;">单价</span>
+            <span style="text-align:right;">数量</span>
+            <span style="text-align:right;">小计</span>
+          </div>
+          {% for p in item.products %}
+          <div class="order-product-row">
+            <div>
+              <div>{{ p.name }}</div>
+              {% if p.spec %}<div class="p-spec">{{ p.spec }}</div>{% endif %}
+            </div>
+            <div class="p-price">¥{{ "%.2f"|format(p.price) }}</div>
+            <div class="p-qty">{{ p.qty }}</div>
+            <div class="p-price">¥{{ "%.2f"|format(p.price * p.qty) }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div>
+          <div class="order-fin-row">
+            <span>商品金额</span>
+            <span>¥{{ "%.2f"|format(item.total_price) }}</span>
+          </div>
+          {% if item.freight > 0 %}
+          <div class="order-fin-row">
+            <span>运费</span>
+            <span>¥{{ "%.2f"|format(item.freight) }}</span>
+          </div>
+          {% else %}
+          <div class="order-fin-row">
+            <span>运费</span>
+            <span style="color:#15803d;">免运费</span>
+          </div>
+          {% endif %}
+          <div class="order-fin-row total">
+            <span>应付总额</span>
+            <span>¥{{ "%.2f"|format(item.total_price + item.freight) }}</span>
+          </div>
+        </div>
+
+        {% if item.remark %}
+        <div class="order-info-item">
+          <label>备注</label>
+          <div class="value small">{{ item.remark }}</div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <div class="order-card-actions">
+        <a class="btn btn-pay" href="/shop/sel_payment?orderid={{ item.order_id }}">💳 支付</a>
+        <a class="btn btn-del" href="javascript:void(0)" onclick="delOrder('{{ item._id }}')">🗑 删除</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+  {% else %}
+  <div class="order-empty">
+    <div class="icon">📭</div>
+    <div class="text">暂无订单数据</div>
+  </div>
+  {% endif %}
+
+  <nav class="mt-2 px-2">
+    {{ pager|safe }}
+  </nav>
+</div>
+
+<script>
+function toggleDetail(el){
+  var detail = el.parentNode.querySelector('.order-card-detail');
+  var icon = el.querySelector('.toggle-icon');
+  if(!detail) return;
+  detail.classList.toggle('open');
+  if(icon) icon.classList.toggle('open');
+}
+
+function delOrder(id){
+  if(confirm("确定要删除此订单吗？此操作不可恢复。")){
+    window.location.href = "/shop/del_order?id=" + id;
+  }
+}
+</script>
 {% endblock %}

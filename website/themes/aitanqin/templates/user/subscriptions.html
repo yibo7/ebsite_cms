@@ -17,7 +17,7 @@
 
       <div class="d-flex align-items-center justify-content-between mb-3">
         <h5 class="mb-0 fw-bold">{{ lang.user_subscriptions or '我的订阅' }}</h5>
-        <span class="text-muted small">{{ lang.list_total or '共' }} {{ sub_count }}{{ lang.subscriptions_count_suffix or ' 位' }}</span>
+        <span class="text-muted small">{{ lang.list_total or '共' }} {{ temp_data.get_user_sub_count() }}{{ lang.subscriptions_count_suffix or ' 位' }}</span>
       </div>
 
       {% if sub_users %}

@@ -1,4 +1,6 @@
 <!-- ===== 侧边栏（用户信息卡片 + 导航菜单） ===== -->
+{% set _s = temp_data.get_user_content_stats() %}
+{% set _sub_cnt = temp_data.get_user_sub_count() %}
 <div class="col-lg-3">
   <!-- 用户信息卡片 -->
   <div class="ucard-profile mb-3">
@@ -11,15 +13,15 @@
     <p class="ucard-meta">@{{ user.name }}</p>
     <div class="ucard-stats-row">
       <div class="ucard-stat">
-        <span class="ucard-stat-num">{{ stats.total }}</span>
+        <span class="ucard-stat-num">{{ _s.total }}</span>
         <span class="ucard-stat-label">{{ lang.content_score or '曲谱' }}</span>
       </div>
       <div class="ucard-stat">
-        <span class="ucard-stat-num">{{ stats.total_hits }}</span>
+        <span class="ucard-stat-num">{{ _s.total_hits }}</span>
         <span class="ucard-stat-label">{{ lang.content_hits or '人气' }}</span>
       </div>
       <div class="ucard-stat">
-        <span class="ucard-stat-num">{{ sub_count }}</span>
+        <span class="ucard-stat-num">{{ _sub_cnt }}</span>
         <span class="ucard-stat-label">{{ lang.nav_subscriptions or '订阅' }}</span>
       </div>
     </div>
@@ -58,7 +60,7 @@
       </svg>
       {{ lang.nav_register or '去发布' }}
     </a>
-    <a href="{{ LANG_PREFIX }}/log_out" class="ucard-nav-item ucard-nav-exit">
+    <a href="/user/log_out" onclick="return confirm('确定要退出登录吗？')" class="ucard-nav-item ucard-nav-exit">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
         <polyline points="16 17 21 12 16 7"/>

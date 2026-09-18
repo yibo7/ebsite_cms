@@ -32,6 +32,68 @@ setActiveNav(typeof cid !== 'undefined' ? cid : '');
    Green Rich 金瑞治 — 公共 JavaScript
    =================================================================== */
 
+// ===== 搜索表单验证 =====
+function ChkSo(ob) {
+    if (ob.k.value == "") {
+        alert("请输入要搜索的关键词");
+        return false;
+    }
+}
+
+// ===== 搜索框切换显示 =====
+(function() {
+  const searchToggle = document.getElementById('search-toggle');
+  const searchBox = document.getElementById('search-input-box');
+  const searchClose = document.getElementById('search-close');
+  const searchInput = searchBox ? searchBox.querySelector('input[name="k"]') : null;
+
+  function openSearch() {
+    if (!searchBox) return;
+    searchBox.classList.add('active');
+    if (searchInput) {
+      setTimeout(function() { searchInput.focus(); }, 100);
+    }
+  }
+
+  function closeSearch() {
+    if (!searchBox) return;
+    searchBox.classList.remove('active');
+  }
+
+  if (searchToggle) {
+    searchToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (searchBox && searchBox.classList.contains('active')) {
+        closeSearch();
+      } else {
+        openSearch();
+      }
+    });
+  }
+
+  if (searchClose) {
+    searchClose.addEventListener('click', function(e) {
+      e.preventDefault();
+      closeSearch();
+    });
+  }
+
+  // 点击搜索框外部关闭
+  document.addEventListener('click', function(e) {
+    if (!searchBox || !searchBox.classList.contains('active')) return;
+    if (!searchBox.contains(e.target) && e.target !== searchToggle && !searchToggle.contains(e.target)) {
+      closeSearch();
+    }
+  });
+
+  // ESC 键关闭
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && searchBox && searchBox.classList.contains('active')) {
+      closeSearch();
+    }
+  });
+})();
+
 // ===== 移动端导航切换 =====
 (function() {
   const mobileToggle = document.querySelector('.mobile-toggle');

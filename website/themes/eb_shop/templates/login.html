@@ -4,46 +4,248 @@
 {% endblock %}
 
 {% block content %}
- <div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow-sm" style="width: 100%; max-width: 400px;">
-      <div class="card-body">
-        <h4 class="card-title mb-4 text-center">用户登录</h4>
-        <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
-                    <div class="mb-3">
-                        <label class="form-label" for="username">Email或手机</label>
-                        <input class="form-control" id="username" name="username" placeholder="Email或手机" required>
-                        <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="pass">密码</label>
-                        <input type="password" class="form-control" id="pass" name="pass" placeholder="密码" required>
-                        <div class="invalid-feedback">密码不能为空</div>
-                    </div>
-                     {%if is_safe_code %}
-                        <div class="mb-3">
-                            <label class="form-label" for="pass">验证码</label>
-                            <input type="text" style="max-width:100px" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" required/>
-                            <div class="invalid-feedback">验证码为4位，且不能为空</div>
-                        </div>
-                        <div class="mb-3">
-                             <img  onClick="this.src+=Math.random()" src="/imgcode?" style="cursor: pointer;" />
-                        </div>
+<style>
+  .auth-page {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e8f5e9 50%, #f1f8e9 100%);
+  }
+  .auth-card {
+    border: none;
+    border-radius: 1.25rem;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.04);
+    overflow: hidden;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .auth-card .card-header {
+    background: linear-gradient(135deg, #2e7d32, #43a047);
+    border: none;
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+  }
+  .auth-card .card-header .icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.6rem;
+  }
+  .auth-card .card-header h4 {
+    color: #fff;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+  .auth-card .card-header p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    margin: 0.25rem 0 0;
+  }
+  .auth-card .card-body {
+    padding: 2rem 1.75rem;
+  }
+  .auth-card .form-control {
+    border-radius: 0.5rem;
+    padding: 0.65rem 1rem;
+    border: 1.5px solid #e0e0e0;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.9rem;
+  }
+  .auth-card .form-control:focus {
+    border-color: #43a047;
+    box-shadow: 0 0 0 3px rgba(67,160,71,0.15);
+  }
+  .auth-card .input-group-text {
+    background: #f5f5f5;
+    border: 1.5px solid #e0e0e0;
+    border-right: none;
+    border-radius: 0.5rem 0 0 0.5rem;
+    color: #666;
+  }
+  .auth-card .input-group .form-control {
+    border-left: none;
+    border-radius: 0 0.5rem 0.5rem 0;
+  }
+  .auth-card .input-group .form-control:focus {
+    border-left: none;
+  }
+  .auth-card .form-label {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #444;
+    margin-bottom: 0.35rem;
+  }
+  .auth-card .btn-submit {
+    background: linear-gradient(135deg, #2e7d32, #43a047);
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+    width: 100%;
+    transition: transform 0.15s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .auth-card .btn-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(46,125,50,0.35);
+  }
+  .auth-card .btn-submit:active {
+    transform: translateY(0);
+  }
+  .auth-card .divider {
+    display: flex;
+    align-items: center;
+    color: #999;
+    font-size: 0.8rem;
+    margin: 1.25rem 0;
+  }
+  .auth-card .divider::before,
+  .auth-card .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8e8e8;
+  }
+  .auth-card .divider span {
+    padding: 0 1rem;
+  }
+  .auth-card .social-login {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .auth-card .social-login a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: 1.5px solid #e8e8e8;
+    color: #555;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .auth-card .social-login a:hover {
+    background: #f0f7f0;
+    border-color: #a5d6a7;
+    color: #2e7d32;
+  }
+  .auth-card .auth-footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 0.75rem;
+  }
+  .auth-card .auth-footer a {
+    color: #2e7d32;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .auth-card .auth-footer a:hover {
+    text-decoration: underline;
+  }
+  .auth-card .captcha-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .auth-card .captcha-wrap input {
+    max-width: 120px;
+  }
+  .auth-card .captcha-wrap img {
+    border-radius: 0.5rem;
+    cursor: pointer;
+    border: 1.5px solid #e0e0e0;
+    height: 42px;
+    transition: opacity 0.2s;
+  }
+  .auth-card .captcha-wrap img:hover {
+    opacity: 0.85;
+  }
+  .auth-card .alert {
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    margin-top: 1rem;
+    margin-bottom: 0;
+  }
+</style>
 
-                     {%endif%}
-                    <br><br>
-                    <button onclick="on_post()" type="submit" style="width: 150px" class="btn btn-primary"> 登 录 </button>
-                    <br><br>
-                        <a href="javascript:" onclick="openlogin('OpenLoginWixin')" > 微信登录 </a> |  新用户请从<a class="text-success" href="reg">这里注册</a>
-                    <br><br>
-                    {%if err %}
-                     <div class="alert alert-danger" role="alert">
-                         {{err}}
-                        </div>
-                    {%endif%}
-                </form>
-      </div>
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="card-header">
+      <div class="icon-circle">🔐</div>
+      <h4>用户登录</h4>
+      <p>欢迎回来，请登录您的账户</p>
+    </div>
+    <div class="card-body">
+      <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
+
+        {%if err %}
+        <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+          <span>⚠️</span> {{err}}
+        </div>
+        {%endif%}
+
+        <div class="mb-3">
+          <label class="form-label" for="username">📧 邮箱 / 手机号</label>
+          <div class="input-group">
+            <span class="input-group-text">📱</span>
+            <input class="form-control" id="username" name="username" placeholder="请输入邮箱或手机号" required>
+            <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="pass">🔑 密码</label>
+          <div class="input-group">
+            <span class="input-group-text">🔒</span>
+            <input type="password" class="form-control" id="pass" name="pass" placeholder="请输入密码" required>
+            <div class="invalid-feedback">密码不能为空</div>
+          </div>
+        </div>
+
+        {%if is_safe_code %}
+        <div class="mb-3">
+          <label class="form-label">🛡️ 验证码</label>
+          <div class="captcha-wrap">
+            <input type="text" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" placeholder="4位验证码" required/>
+            <img onClick="this.src+=(this.src.includes('?')?'':'?')+Math.random()" src="/imgcode?" style="cursor: pointer;" title="点击刷新验证码" />
+          </div>
+          <div class="invalid-feedback">验证码为4位，且不能为空</div>
+        </div>
+        {%endif%}
+
+        <button onclick="on_post()" type="submit" class="btn-submit mt-2">登 录</button>
+
+        <div class="divider"><span>其他方式</span></div>
+
+        <div class="social-login">
+          <a href="javascript:" onclick="openlogin('OpenLoginWixin')">💬 微信登录</a>
+        </div>
+
+        <div class="auth-footer">
+          还没有账号？<a href="reg">立即注册 →</a>
+        </div>
+
+      </form>
     </div>
   </div>
+</div>
 
 <script>
     function on_post(){

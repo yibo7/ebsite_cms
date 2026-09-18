@@ -12,11 +12,59 @@ from eb_modules.eb_shop.datas.shopping_cart import ShoppingCartBll
 
 
 class CartManager:
-    def __init__(self,  user_id: str):
+    def __init__(self,  user_id: str,  user_account: str):
 
         self.user_id = ObjectId(user_id)
+        self.user_account = user_account
         self.bll = ShoppingCartBll()
         self.table = self.bll.table
+
+    # ──────────────────────────────────────────────────────────────
+    #  用户组价格解析
+    # ──────────────────────────────────────────────────────────────
+    @staticmethod
+    def _get_group_price(product_model: dict, user_id: ObjectId):
+        """
+        根据用户所在用户组，获取 SKU 对应的分组价格
+
+        优先级：用户组价格 > marketPrice（未登录或未设置时返回 None）
+
+        @param product_model: column_10 中的单个 SKU 字典
+            {
+                "name": "Original",
+                "marketPrice": 20,
+                "group_prices": [
+                    {"group_id": "...", "group_name": "VIP", "price": 18}
+                ]
+            }
+        @param user_id: 当前登录用户的 ObjectId
+
+        @return: Decimal 价格，没有匹配时返回 None
+        """
+        from bll.user import User
+
+        # 1. 未登录用户：无用户组，返回 None（使用 marketPrice）
+        if not user_id:
+            return None
+
+        # 2. 获取用户的 group_id
+        user_bll = User()
+        user = user_bll.find_one_by_id(user_id)
+        if not user or not user.group_id:
+            return None
+
+        user_group_id = str(user.group_id)
+
+        # 3. 在 SKU 的 group_prices 中查找
+        group_prices = product_model.get("group_prices") or []
+        for gp in group_prices:
+            if gp.get("group_id") == user_group_id:
+                try:
+                    return Decimal(str(gp.get("price", 0)))
+                except Exception:
+                    return None
+
+        return None  # 无匹配 → 使用市场价
 
     def add_item(self,content_id:str, product_id: str, quantity: int = 1) -> str:
 
@@ -58,9 +106,13 @@ class CartManager:
             model.product_sku = product_model["sku"]
             model.product_id = product_model["productId"]
             model.market_price = product_model["marketPrice"]
-            model.price = model.market_price # 可根据会员级别计算当前实现售价
+            # 用户组价格：如果设置了则使用，否则使用 marketPrice
+            group_price = self._get_group_price(product_model, self.user_id)
+            model.price = group_price if group_price is not None else model.market_price
             model.quantity  =quantity  # 订购的数量
             model.weight = product_model["weight"]
+            cost_val = product_model.get("costPrice", 0)
+            model.cost_price = Decimal128(str(Decimal(str(cost_val))))
             self.bll.add(model)
         return ""
 
@@ -122,6 +174,7 @@ class CartManager:
         order_model = bll_order.new_instance()
         order_model.user_id = self.user_id
         order_model.order_status = 0
+        order_model.user_account = self.user_account
 
         order_model.products = [product.__dict__ for product in products]
         order_model.address = address_model.__dict__

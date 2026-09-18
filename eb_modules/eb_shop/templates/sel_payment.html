@@ -1,64 +1,117 @@
 {% extends 'base_site.html' %}
 {% block title %}
-购物车
+支付中心
 {% endblock %}
 
 {% block content %}
- <div class="container">
-    <div class="card mb-3 mt-3">
-        <div class="card-body">
-            <h5 class="card-title">支付信息</h5>
-            <p class="card-text">订单提交成功，请您尽快付款!</p>
-            <p>
-                订单号：{{ order_id }}
-                <span></span>应付金额：
-                <b style="color: #ff0000">{{ total_price }}元</b>
-            </p>
-            <p>
-                请您在<font class="colorc0"><b>24小时</b></font>内完成支付，否则订单会被自动取消，
-                你也可在[<a href="/shop/my_orders">我的订单</a>]中找到此订单。
-            </p>
+
+<link rel="stylesheet" href="/css/user.css">
+
+<div class="pay-page">
+  <div class="pay-container">
+
+    <!-- 订单信息 -->
+    <div class="pay-card">
+      <div class="pay-card-header">
+        <div class="check-icon">✅</div>
+        <h5>订单提交成功</h5>
+        <p>请尽快完成支付，以免订单被取消</p>
+      </div>
+      <div class="pay-card-body">
+        <div class="pay-info-row">
+          <span class="label">📋 订单编号</span>
+          <span class="value">{{ order_id }}</span>
         </div>
+        <div class="pay-info-row">
+          <span class="label">📝 订单名称</span>
+          <span class="value" style="font-size:0.82rem;max-width:280px;word-break:break-all;">{{ order_name }}</span>
+        </div>
+        <div class="pay-info-row">
+          <span class="label">💰 应付金额</span>
+          <span class="value price">¥{{ total_price }}</span>
+        </div>
+      </div>
+      <div class="pay-deadline">
+        <span>⏰</span>
+        <span>请您在 <strong>24 小时</strong> 内完成支付，否则订单会被自动取消。</span>
+      </div>
+      <div class="pay-deadline" style="background:#f8fafc;border-top-color:#e5edf5;color:var(--muted,#64748b);padding-top:0.5rem;padding-bottom:0.5rem;">
+        <span>📌</span>
+        <span>也可在 <a href="/shop/my_orders">我的订单</a> 中找到此订单</span>
+      </div>
     </div>
 
-    <div class="card mb-3 mt-3">
-        <div class="card-body">
-            <h5 class="card-title">择支付平台</h5>
-            <div>
-                <form action="/pay/go_pay" onsubmit="return OnGotoPay(this)" method="post">
-
-                    <div class="d-flex flex-wrap gap-10">
-                       {% for payment in payments %}
-                            <div  class="mt-10 mb-10 p-3">
-                                <input value="{{ payment.id }}" type="radio" name="payment" id="{{ payment.id }}" />
-                                  <label for="{{ payment.id }}"> {{ payment.name }}  </label>
-                            </div>
-                         {% endfor %}
-                    </div>
-
-                    <input name="order_name" type="hidden" value="{{ order_name }}" />
-                    <input name="order_id" type="hidden" value="{{ order_id }}" />
-                    <input name="total_price" type="hidden" value="{{ total_price }}" />
-                    <input name="pay_key" type="hidden" value="{{ pay_key }}" />
-
-                    <div class="d-flex justify-content-center align-items-center">
-                        <input type="submit" class="btn btn-danger mt-10" value=" 前往支付 " />
-                    </div>
-                </form>
-            </div>
+    <!-- 选择支付方式 -->
+    <div class="pay-card">
+      <div class="pay-method-title">
+        <span>💳</span>
+        <span>选择支付方式</span>
+      </div>
+      <form action="/pay/go_pay" onsubmit="return OnGotoPay(this)" method="post">
+        <div class="pay-methods">
+          {% for payment in payments %}
+          <label class="pay-method-item" for="{{ payment.id }}">
+            <input value="{{ payment.id }}" type="radio" name="payment" id="{{ payment.id }}" />
+            <span class="method-icon">
+              {%- if '微信' in payment.name or 'WeChat' in payment.name %}💬
+              {%- elif '支付宝' in payment.name or 'Alipay' in payment.name %}🔵
+              {%- elif '银行' in payment.name or '银联' in payment.name %}🏦
+              {%- elif 'PayPal' in payment.name %}🌐
+              {%- else %}💳
+              {%- endif -%}
+            </span>
+            <span class="method-label">{{ payment.name }}</span>
+          </label>
+          {% endfor %}
         </div>
+
+        <input name="order_name" type="hidden" value="{{ order_name }}" />
+        <input name="order_id" type="hidden" value="{{ order_id }}" />
+        <input name="total_price" type="hidden" value="{{ total_price }}" />
+        <input name="pay_key" type="hidden" value="{{ pay_key }}" />
+
+        <div class="pay-submit-wrap">
+          <button type="submit" class="btn-pay-submit" id="paySubmitBtn">
+            🔒 确认支付 ¥{{ total_price }}
+          </button>
+        </div>
+      </form>
+
+      <div class="pay-back">
+        <a href="/shop/my_orders">← 返回我的订单</a>
+      </div>
     </div>
+
+  </div>
 </div>
 
 <script>
     function OnGotoPay(obj) {
         var payment = $('input[name="payment"]:checked').val();
         if (payment == null || payment == undefined) {
-            alert("请选择一个支付类型");
+            alert("请选择一个支付方式");
             return false;
         }
+        // 禁用按钮防止重复提交
+        $('#paySubmitBtn').prop('disabled', true).text('⏳ 支付处理中...');
         return true;
     }
+
+    // 点击卡片区域选中 radio
+    $(document).ready(function(){
+        $('.pay-method-item').on('click', function(e) {
+            // 如果点击的是 label 或 radio 本身，让浏览器默认行为处理
+            if ($(e.target).is('input[type="radio"], label')) return;
+            $(this).find('input[type="radio"]').prop('checked', true);
+            $('.pay-method-item').removeClass('selected');
+            $(this).addClass('selected');
+        });
+        // radio 变化时更新高亮
+        $('input[name="payment"]').on('change', function() {
+            $('.pay-method-item').removeClass('selected');
+            $(this).closest('.pay-method-item').addClass('selected');
+        });
+    });
 </script>
 
 {% endblock %}

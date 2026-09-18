@@ -93,9 +93,9 @@
           <!-- 操作按钮 -->
           <div class="detail-actions">
             <button class="btn btn-accent" v-on:click="go_to_car">
-              🛒 加入购物车
+              🛒 加入询价单
             </button>
-            <button class="btn btn-outline favorit-btn" onclick="fav_content('{{ model._id }}')">
+            <button id="favorit-btn" class="btn btn-outline favorit-btn" data-faved="false" onclick="fav_content('{{ model._id }}')">
               ☆ 收藏
             </button>
           </div>
@@ -114,7 +114,7 @@
       </div>
       <div class="tab-content product-desc">
         {% if model.info %}
-        {{ model.info }}
+        {{ model.column_7|safe }}
         {% else %}
         <div class="tab-empty">
           <div class="tab-empty-icon">📄</div>
@@ -133,4 +133,11 @@
     const products = {{model.column_10|safe }};
 </script>
 <script type="text/javascript" src="/shop/js/content.js" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (typeof check_fav_status === 'function') {
+      check_fav_status('{{ model._id }}');
+    }
+  });
+</script>
 {% endblock %}

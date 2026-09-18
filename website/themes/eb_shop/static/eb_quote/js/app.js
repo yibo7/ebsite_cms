@@ -4,34 +4,63 @@
 const FIXED_DISCOUNT = 0.10;
 
 /* ===================================================================
-   ===== 产品库 =====
+   ===== 会话管理（无需登录，浏览器生成 UUID） =====
    =================================================================== */
-const PRODUCT_DB = [
-  { id: 'IR1730', brand: '佳能', name: '佳能 IR1730 鼓芯', price: 20, life: '5万页', type: '原色/绿色', icon: '🖨️' },
-  { id: 'IR1435', brand: '佳能', name: '佳能 IR1435 鼓芯', price: 20, life: '4万页', type: '原色/绿色', icon: '🖨️' },
-  { id: 'IR2016', brand: '佳能', name: '佳能 IR2016 鼓芯', price: 23, life: '8万页', type: '原厂', icon: '🖨️' },
-  { id: 'IR2270', brand: '佳能', name: '佳能 IR2270 鼓芯', price: 28, life: '8万页', type: '原厂', icon: '🖨️' },
-  { id: 'IR2525', brand: '佳能', name: '佳能 IR2525 鼓芯', price: 28, life: '8万页', type: '原厂', icon: '🖨️' },
-  { id: 'IR1018', brand: '佳能', name: '佳能 IR1018 鼓芯', price: 12, life: '3万页', type: 'OEM', icon: '🖨️' },
-  { id: 'IRC5540', brand: '佳能', name: '佳能 IRC5540 鼓芯', price: 31, life: '8万页', type: '新都', icon: '🖨️' },
-  { id: 'TOSHIBA-2505', brand: '东芝', name: '东芝 2505 鼓芯', price: 26, life: '6万页', type: '原厂', icon: '🖨️' },
-  { id: 'TOSHIBA-3005', brand: '东芝', name: '东芝 3005 鼓芯', price: 32, life: '8万页', type: '原厂', icon: '🖨️' },
-  { id: 'KONICA-C224', brand: '柯尼卡', name: '柯尼卡 C224 鼓芯', price: 45, life: '10万页', type: '原厂', icon: '🖨️' },
-  { id: 'KYOCERA-TK', brand: '京瓷', name: '京瓷 TK 鼓芯', price: 38, life: '10万页', type: '原厂', icon: '🖨️' },
-  { id: 'XEROX-3370', brand: '施乐', name: '施乐 3370 鼓芯', price: 42, life: '8万页', type: '原厂', icon: '🖨️' },
-  { id: 'SHARP-2608', brand: '夏普', name: '夏普 2608 鼓芯', price: 35, life: '8万页', type: '原厂', icon: '🖨️' },
-  { id: 'RICOH-MP2014', brand: '理光', name: '理光 MP2014 鼓芯', price: 30, life: '6万页', type: '原厂', icon: '🖨️' },
-  { id: 'SAMSUNG-K2200', brand: '三星', name: '三星 K2200 鼓芯', price: 25, life: '5万页', type: 'OEM', icon: '🖨️' }
-];
+function _generateUUID() {
+  // 兼容老旧浏览器的 UUID v4 生成
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+function getSessionId() {
+  let sid = localStorage.getItem('quote_session_id');
+  if (!sid) {
+    sid = window.crypto?.randomUUID ? crypto.randomUUID() : _generateUUID();
+    localStorage.setItem('quote_session_id', sid);
+  }
+  return sid;
+}
+const SESSION_ID = getSessionId();
+
+/* ===================================================================
+   ===== 产品数据（由 API 加载） =====
+   =================================================================== */
+let PRODUCT_DB = [];       // 所有产品缓存
+let PRODUCT_MAP = {};      // _id → product 的映射，快速查找
+
+async function loadProducts() {
+  try {
+    const resp = await fetch('/shop/api/quote/products');
+    const data = await resp.json();
+    if (data.code === 0 && Array.isArray(data.data)) {
+      PRODUCT_DB = data.data;
+      // 构建映射
+      PRODUCT_MAP = {};
+      PRODUCT_DB.forEach(p => { PRODUCT_MAP[p._id] = p; });
+      console.log(`✅ 已加载 ${PRODUCT_DB.length} 个产品`);
+    }
+  } catch (e) {
+    console.warn('⚠️ 产品数据加载失败，使用备用数据', e);
+    // 兜底：保留几个常用型号
+    PRODUCT_DB = [
+      { _id: 'fallback-1', title: '佳能 IR1730 鼓芯', brand: '佳能', model_name: 'IR1730', price: 20 },
+      { _id: 'fallback-2', title: '佳能 IR2016 鼓芯', brand: '佳能', model_name: 'IR2016', price: 23 },
+      { _id: 'fallback-3', title: '东芝 2505 鼓芯', brand: '东芝', model_name: '2505', price: 26 },
+    ];
+    PRODUCT_DB.forEach(p => { PRODUCT_MAP[p._id] = p; });
+  }
+}
+
+/* ===================================================================
+   ===== 对话历史（前端维护，每次请求全量发送） =====
+   =================================================================== */
+let QUOTE_SESSION = [];
 
 /* ===================================================================
    ===== 询价单状态 =====
    =================================================================== */
-let quoteItems = [
-  { id: 'IR1730', name: '佳能 IR1730 鼓芯', price: 20, qty: 10, life: '5万页', type: '原色/绿色', icon: '🖨️', brand: '佳能' },
-  { id: 'IR2016', name: '佳能 IR2016 鼓芯', price: 23, qty: 20, life: '8万页', type: '原厂', icon: '🖨️', brand: '佳能' },
-  { id: 'TOSHIBA-2505', name: '东芝 2505 鼓芯', price: 26, qty: 15, life: '6万页', type: '原厂', icon: '🖨️', brand: '东芝' }
-];
+let quoteItems = [];
 
 /* ===================================================================
    ===== DOM 引用 =====
@@ -55,14 +84,11 @@ function openQuote() {
   document.body.style.overflow = 'hidden';
   renderQuote();
 }
-
 function closeQuote() {
   quoteOffcanvas.classList.remove('show');
   offcanvasBackdrop.classList.remove('show');
   document.body.style.overflow = '';
 }
-
-// ESC 键关闭
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && quoteOffcanvas.classList.contains('show')) {
     closeQuote();
@@ -76,7 +102,6 @@ function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(el.scrollHeight, 100) + 'px';
 }
-
 function handleKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -84,20 +109,142 @@ function handleKey(e) {
   }
 }
 
-function sendMessage() {
+async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text) return;
+
   addMessage('user', text);
   chatInput.value = '';
   chatInput.style.height = 'auto';
+
+  // 追加到对话历史
+  QUOTE_SESSION.push({ role: 'user', content: text });
+
   const typingEl = addTyping();
-  setTimeout(() => {
+
+  try {
+    const resp = await fetch('/shop/api/quote/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: SESSION_ID,
+        messages: QUOTE_SESSION
+      })
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    const result = await resp.json();
     typingEl.remove();
-    const reply = generateAIReply(text);
-    addMessage('ai', reply.html, reply.products);
-  }, 800 + Math.random() * 600);
+
+    const rawReply = result.reply || '已为您查询到相关信息。';
+    const replyHtml = markdownToHtml(rawReply);  // 兜底：Markdown → HTML
+    const matches = result.matches || [];
+
+    // 将匹配的产品转为前端展示格式
+    const matchedProducts = [];
+    if (matches.length > 0) {
+      matches.forEach(m => {
+        const product = PRODUCT_MAP[m.productId];
+        if (product) {
+          const sku = product.skus && product.skus[m.skuIndex] ? product.skus[m.skuIndex] : null;
+          // 优先用产品图片，没有则用 emoji
+          const thumbHtml = product.small_pic
+            ? `<img src="${product.small_pic}" alt="${product.title}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`
+            : '🖨️';
+          const displayPrice = sku ? sku.marketPrice : product.price;
+          matchedProducts.push({
+            id: product._id,
+            name: product.title,
+            price: displayPrice,
+            life: sku ? (sku.name || '标准') : '标准',
+            type: product.brand,
+            icon: thumbHtml
+          });
+        }
+      });
+    }
+
+    addMessage('ai', replyHtml, matchedProducts);
+    QUOTE_SESSION.push({ role: 'assistant', content: replyHtml });
+
+    // 不再自动加入询价单，让用户手动点击 [+]
+
+  } catch (e) {
+    typingEl.remove();
+    console.error('AI 对话异常:', e);
+    // 降级：使用本地规则匹配
+    const fallback = generateAIReply(text);
+    addMessage('ai', fallback.html, fallback.products);
+    QUOTE_SESSION.push({ role: 'assistant', content: fallback.html });
+  }
 }
 
+/* ===================================================================
+   ===== 降级方案：AI 不可用时用规则匹配 =====
+   =================================================================== */
+function generateAIReply(text) {
+  const t = text.toLowerCase();
+  const matchedProducts = PRODUCT_DB.filter(p =>
+    t.includes(p._id.toLowerCase()) ||
+    t.includes(p.title.toLowerCase()) ||
+    t.includes(p.model_name?.toLowerCase() || '') ||
+    (p.brand && t.includes(p.brand.toLowerCase()))
+  );
+  const brands = ['佳能', '东芝', '柯尼卡', '京瓷', '施乐', '夏普', '理光', '三星'];
+  const matchedBrand = brands.find(b => t.includes(b));
+  const isOEM = /oem|odm|定制|贴牌/.test(t);
+  const isBulk = /多少|批量|批发|优惠|折扣/.test(t);
+
+  if (isOEM) {
+    return {
+      html: `我们支持 <strong>OEM / ODM 定制</strong>，包括：<br>
+        • 品牌 LOGO 印刷<br>
+        • 包装定制<br>
+        • 特定型号开发<br><br>
+        定制起订量通常为 <strong>500 支 / 型号</strong>。`,
+      products: []
+    };
+  }
+  if (isBulk && matchedProducts.length === 0 && !matchedBrand) {
+    return {
+      html: `批量采购我们提供额外优惠 🎉<br><br>请告诉我具体需要的<strong>品牌和型号</strong>。`,
+      products: []
+    };
+  }
+  if (matchedProducts.length > 0) {
+    return {
+      html: `为您找到 <strong>${matchedProducts.length} 款</strong>匹配的产品 👇`,
+      products: matchedProducts.map(p => ({
+        id: p._id, name: p.title, price: p.price || 0,
+        life: '标准', type: p.brand, icon: '🖨️'
+      }))
+    };
+  }
+  if (matchedBrand) {
+    const brandProducts = PRODUCT_DB.filter(p => p.brand === matchedBrand).slice(0, 4);
+    return {
+      html: `<strong>${matchedBrand}</strong> 是我们主营品牌之一，以下是部分热销型号 👇`,
+      products: brandProducts.map(p => ({
+        id: p._id, name: p.title, price: p.price || 0,
+        life: '标准', type: p.brand, icon: '🖨️'
+      }))
+    };
+  }
+  return {
+    html: `抱歉，我没有完全理解您的需求 😅<br><br>
+      您可以尝试这样问我：<br>
+      • <strong>"佳能 IR1730 多少钱？"</strong><br>
+      • <strong>"东芝鼓芯有哪些型号？"</strong><br>
+      • <strong>"采购 100 支有优惠吗？"</strong><br>
+      • <strong>"支持 OEM 定制吗？"</strong>`,
+    products: []
+  };
+}
+
+/* ===================================================================
+   ===== 消息渲染 =====
+   =================================================================== */
 function appendMessage(role, html, products, timeStr) {
   const msg = document.createElement('div');
   msg.className = `msg ${role}`;
@@ -171,117 +318,20 @@ function getCurrentTime() {
 }
 
 /* ===================================================================
-   ===== 预设聊天记录 =====
+   ===== 初始化聊天 =====
    =================================================================== */
 function initChatHistory() {
+  // 只显示欢迎语，去掉演示聊天记录
   appendMessage('ai', `您好！我是 <strong>Green Rich 金瑞治</strong> 的 AI 询价助手 👋<br><br>
-    我可以为您实时报价复印机感光鼓芯。请告诉我您需要的<strong>品牌、型号</strong>或<strong>设备机型</strong>，我会立即为您查询。`, null, '09:12');
+    我可以为您实时报价复印机感光鼓芯。请告诉我您需要的<strong>品牌、型号</strong>或<strong>设备机型</strong>，我会立即为您查询。`, null, getCurrentTime());
 
-  appendMessage('user', '你好，我需要采购一批佳能复印机的鼓芯，型号是 IR1730，请报价。', null, '09:13');
-
-  appendMessage('ai', `您好！<strong>佳能 IR1730 鼓芯</strong> 是我们热销型号之一。<br><br>
-    已为您申请到 <strong>10% 优惠折扣</strong>，价格如下 👇<br><br>
-    点击右侧 <strong>+</strong> 即可加入询价单：`, [
-    PRODUCT_DB.find(p => p.id === 'IR1730')
-  ], '09:13');
-
-  appendMessage('user', '好的，先加 10 支。另外 IR2016 也帮我看看。', null, '09:14');
-
-  appendMessage('ai', `已为您加入 <strong>佳能 IR1730 鼓芯 × 10 支</strong> ✅<br><br>
-    以下是 <strong>佳能 IR2016 鼓芯</strong> 的报价，寿命 8 万页，原厂品质：`, [
-    PRODUCT_DB.find(p => p.id === 'IR2016')
-  ], '09:14');
-
-  appendMessage('user', 'IR2016 也来 20 支。对了，东芝的鼓芯有推荐吗？', null, '09:15');
-
-  appendMessage('ai', `已为您加入 <strong>佳能 IR2016 鼓芯 × 20 支</strong> ✅<br><br>
-    <strong>东芝</strong> 是我们主营品牌之一，以下是两款热销型号：`, [
-    PRODUCT_DB.find(p => p.id === 'TOSHIBA-2505'),
-    PRODUCT_DB.find(p => p.id === 'TOSHIBA-3005')
-  ], '09:15');
-
-  appendMessage('user', '东芝 2505 来 15 支。如果我再多买一些，有额外折扣吗？', null, '09:16');
-
-  appendMessage('ai', `已为您加入 <strong>东芝 2505 鼓芯 × 15 支</strong> ✅<br><br>
-    目前您的询价单已享受 <strong>10% 优惠折扣</strong>。<br><br>
-    如果单笔订单超过 <strong>5 万元</strong>，可以联系我们的销售工程师申请 <strong>额外大客户优惠</strong>。`, null, '09:16');
-
-  appendMessage('user', '好的，我先看看。支持 OEM 定制吗？', null, '09:17');
-
-  appendMessage('ai', `我们支持 <strong>OEM / ODM 定制</strong>，包括：<br>
-    • 品牌 LOGO 印刷<br>
-    • 包装定制<br>
-    • 特定型号开发<br><br>
-    定制起订量通常为 <strong>500 支 / 型号</strong>。您可以把需要的型号和数量告诉我，我先为您加入询价单。`, null, '09:17');
-
-  appendMessage('user', '明白了，我先提交这批询价看看总价。', null, '09:18');
-
-  appendMessage('ai', `好的！您当前询价单已包含 <strong>3 款产品</strong>：<br>
-    • 佳能 IR1730 × 10 支<br>
-    • 佳能 IR2016 × 20 支<br>
-    • 东芝 2505 × 15 支<br><br>
-    您可以点击右侧的 <strong>"🛒 提交到购物车"</strong> 生成正式报价单，或继续咨询其他型号。`, null, '09:18');
+  QUOTE_SESSION = [
+    { role: 'assistant', content: '您好！我是 Green Rich 金瑞治 的 AI 询价助手...' }
+  ];
 
   setTimeout(() => {
     chatBody.scrollTop = chatBody.scrollHeight;
   }, 100);
-}
-
-/* ===================================================================
-   ===== AI 回复逻辑 =====
-   =================================================================== */
-function generateAIReply(text) {
-  const t = text.toLowerCase();
-  const matchedProducts = PRODUCT_DB.filter(p =>
-    t.includes(p.id.toLowerCase()) ||
-    t.includes(p.name.toLowerCase()) ||
-    (p.name.toLowerCase().includes(t) && t.length >= 3)
-  );
-  const brands = ['佳能', '东芝', '柯尼卡', '京瓷', '施乐', '夏普', '理光', '三星'];
-  const matchedBrand = brands.find(b => t.includes(b));
-  const isBulk = /多少|100|批量|采购|批发|优惠|折扣/.test(t);
-  const isOEM = /oem|odm|定制|贴牌/.test(t);
-
-  if (isOEM) {
-    return {
-      html: `我们支持 <strong>OEM / ODM 定制</strong>，包括：<br>
-        • 品牌 LOGO 印刷<br>
-        • 包装定制<br>
-        • 特定型号开发<br><br>
-        定制起订量通常为 <strong>500 支 / 型号</strong>。您可以把需要的型号和数量告诉我，我先为您加入询价单。`,
-      products: []
-    };
-  }
-  if (isBulk && matchedProducts.length === 0 && !matchedBrand) {
-    return {
-      html: `批量采购我们提供额外优惠 🎉<br><br>
-        当前询价单已享受 <strong>10% 优惠折扣</strong>。<br><br>
-        请告诉我具体需要的<strong>品牌和型号</strong>，我可以为您精准报价。`,
-      products: []
-    };
-  }
-  if (matchedProducts.length > 0) {
-    return {
-      html: `为您找到 <strong>${matchedProducts.length} 款</strong>匹配的产品，已按 <strong>10% 优惠折扣</strong> 报价 👇<br><br>点击右侧 <strong>+</strong> 即可加入询价单：`,
-      products: matchedProducts
-    };
-  }
-  if (matchedBrand) {
-    const brandProducts = PRODUCT_DB.filter(p => p.brand === matchedBrand).slice(0, 4);
-    return {
-      html: `<strong>${matchedBrand}</strong> 是我们主营品牌之一，以下是部分热销型号（已按优惠折扣报价）👇<br><br>您可以告诉我具体型号，我为您精准查询。`,
-      products: brandProducts
-    };
-  }
-  return {
-    html: `抱歉，我没有完全理解您的需求 😅<br><br>
-      您可以尝试这样问我：<br>
-      • <strong>"佳能 IR1730 多少钱？"</strong><br>
-      • <strong>"东芝鼓芯有哪些型号？"</strong><br>
-      • <strong>"采购 100 支有优惠吗？"</strong><br>
-      • <strong>"支持 OEM 定制吗？"</strong>`,
-    products: []
-  };
 }
 
 /* ===================================================================
@@ -294,20 +344,40 @@ function calcDiscountPrice(originalPrice) {
 /* ===================================================================
    ===== 询价单操作 =====
    =================================================================== */
-function addToQuote(productId, btn) {
-  const product = PRODUCT_DB.find(p => p.id === productId);
-  if (!product) return;
+function addToQuote(productId, btn, qty) {
+  // 优先从 PRODUCT_MAP 查找，否则从 PRODUCT_DB 遍历
+  let product = PRODUCT_MAP[productId];
+  if (!product) {
+    product = PRODUCT_DB.find(p => p._id === productId);
+  }
+  if (!product) {
+    // 兜底：可能是旧版硬编码 ID
+    const legacy = {
+      'IR1730': { title: '佳能 IR1730 鼓芯', price: 20 },
+      'IR2016': { title: '佳能 IR2016 鼓芯', price: 23 },
+      'TOSHIBA-2505': { title: '东芝 2505 鼓芯', price: 26 },
+    }[productId];
+    if (!legacy) return;
+    product = { _id: productId, title: legacy.title, price: legacy.price, life: '标准', brand: '' };
+  }
+
   const existing = quoteItems.find(item => item.id === productId);
+  const addQty = qty || 1;
   if (existing) {
-    existing.qty += 1;
-    showToast(`已增加数量：${product.name}`);
+    existing.qty += addQty;
+    showToast(`已增加 ${addQty} 支：${product.title}`);
   } else {
     quoteItems.push({
-      id: product.id, name: product.name, price: product.price,
-      qty: 1, life: product.life, type: product.type,
-      icon: product.icon, brand: product.brand
+      id: productId,
+      name: product.title,
+      price: product.price || 0,
+      qty: addQty,
+      life: product.life || '标准',
+      type: product.brand || '',
+      icon: '🖨️',
+      brand: product.brand || ''
     });
-    showToast(`已加入询价单：${product.name}`);
+    showToast(`已加入询价单：${product.title}`);
   }
   if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
   renderQuote();
@@ -382,15 +452,15 @@ function renderQuote() {
 function updateBadges(qty) {
   const headerBadge = document.getElementById('headerCartBadge');
   const mobileBadge = document.getElementById('mobileQuoteBadge');
-  if (qty > 0) {
-    headerBadge.textContent = qty > 99 ? '99+' : qty;
-    headerBadge.classList.remove('hidden');
-    mobileBadge.textContent = qty > 99 ? '99+' : qty;
-    mobileBadge.classList.remove('hidden');
-  } else {
-    headerBadge.classList.add('hidden');
-    mobileBadge.classList.add('hidden');
-  }
+  [headerBadge, mobileBadge].forEach(badge => {
+    if (!badge) return;
+    if (qty > 0) {
+      badge.textContent = qty > 99 ? '99+' : qty;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  });
 }
 
 function changeQuoteQty(id, delta) {
@@ -419,23 +489,81 @@ function removeFromQuote(id) {
 }
 
 /* ===================================================================
-   ===== 提交到购物车 =====
+   ===== 提交到购物车（需登录） =====
    =================================================================== */
-function submitToCart() {
+async function submitToCart() {
   if (quoteItems.length === 0) {
     showToast('询价单为空，请先添加产品');
     return;
   }
-  const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+
+  // 尝试提交到后端购物车
+  const items = quoteItems.map(item => ({
+    content_id: item.id,
+    product_id: item.id,  // product_id 与 content_id 相同时，CartManager 会用第一个 SKU
+    qty: item.qty
+  }));
+
   try {
-    localStorage.setItem('greenrich_cart', JSON.stringify({
-      token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
-    }));
-  } catch (e) { /* 忽略 */ }
-  showToast('正在跳转到购物车…');
-  setTimeout(() => {
-    window.location.href = 'cart.html?from=ai&token=' + token;
-  }, 600);
+    const resp = await fetch('/shop/api/quote/submit_order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
+    });
+    const result = await resp.json();
+
+    if (result.code === 0) {
+      // 同时保存询价记录
+      saveQuoteRecord();
+      // 清除询价单
+      quoteItems = [];
+      renderQuote();
+      showToast('✅ 已加入购物车，即将跳转…');
+      setTimeout(() => { window.location.href = '/shop/cart'; }, 800);
+    } else {
+      showToast(result.msg || '提交失败，请登录后再试');
+    }
+  } catch (e) {
+    // 未登录或网络问题，走 localStorage 旧方案
+    const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+    try {
+      localStorage.setItem('greenrich_cart', JSON.stringify({
+        token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
+      }));
+    } catch (e) { /* ignore */ }
+    saveQuoteRecord();
+    showToast('正在跳转到购物车…');
+    setTimeout(() => {
+      window.location.href = 'cart.html?from=ai&token=' + token;
+    }, 600);
+  }
+}
+
+/* ===================================================================
+   ===== 保存询价记录（异步，不影响主流程） =====
+   =================================================================== */
+function saveQuoteRecord() {
+  if (quoteItems.length === 0) return;
+
+  const summary = quoteItems.map(i => `${i.name}×${i.qty}支`).join(', ');
+  const total = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.price) * i.qty, 0);
+
+  fetch('/shop/api/quote/save_record', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sessionId: SESSION_ID,
+      items: quoteItems.map(i => ({
+        content_id: i.id,
+        product_id: i.id,
+        qty: i.qty,
+        title: i.name,
+        price: i.price
+      })),
+      summary: summary,
+      total: total
+    })
+  }).catch(() => {}); // 静默失败，不影响用户体验
 }
 
 /* ===================================================================
@@ -447,14 +575,14 @@ function generateQuoteLink() {
     return;
   }
   const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
-  const baseUrl = window.location.origin + window.location.pathname.replace('ai-quote.html', 'cart.html');
+  const baseUrl = window.location.origin + window.location.pathname.replace('index.html', 'cart.html');
   const quoteUrl = `${baseUrl}?quote=${token}`;
   document.getElementById('quoteLink').value = quoteUrl;
   try {
     localStorage.setItem('greenrich_quote_' + token, JSON.stringify({
       token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
     }));
-  } catch (e) { /* 忽略 */ }
+  } catch (e) { /* ignore */ }
   document.getElementById('modalOverlay').classList.add('show');
 }
 
@@ -491,11 +619,59 @@ function showToast(msg) {
   toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
 }
 
+/**
+ * 简单的 Markdown → HTML 转换（兜底用）
+ * 当 AI 返回的 reply 包含 Markdown 语法时自动转为 HTML
+ */
+function markdownToHtml(text) {
+  if (!text) return '';
+  // 如果已经包含 HTML 标签，说明 AI 正确输出了 HTML，直接返回
+  if (/<[a-z][\s\S]*>/i.test(text)) return text;
+
+  let html = text;
+
+  // 代码块 ```code``` → 忽略（不常见于报价场景，但防止破坏格式）
+  html = html.replace(/```[\s\S]*?```/g, '');
+
+  // 分隔线 --- 或 *** → <hr>
+  html = html.replace(/^[-*]{3,}\s*$/gm, '<hr>');
+
+  // 无序列表 - xxx → <ul><li>xxx</li></ul>
+  html = html.replace(/^(?:[-*]\s)(.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // 有序列表 1. xxx → <ol><li>xxx</li></ol>
+  html = html.replace(/^\d+\.\s(.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)(?!.*<li>)/g, '<ol>$1</ol>');
+
+  // 粗体 **text** → <strong>text</strong>
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // 斜体 *text* → <em>text</em>
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // 换行 → <br>
+  html = html.replace(/\n/g, '<br>');
+
+  // 合并连续的 <br><br> 为段落
+  html = html.replace(/(<br>\s*){2,}/g, '</p><p>');
+  html = html.replace(/^<br>/, '');
+  html = html.replace(/<br>$/, '');
+  html = '<p>' + html + '</p>';
+  html = html.replace(/<p><\/p>/g, '');
+
+  return html;
+}
+
 /* ===================================================================
    ===== 初始化 =====
    =================================================================== */
-function init() {
+async function init() {
+  // 1. 先加载产品
+  await loadProducts();
+  // 2. 渲染询价单
   renderQuote();
+  // 3. 初始化聊天
   initChatHistory();
 }
 init();

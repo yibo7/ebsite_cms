@@ -14,9 +14,10 @@ from bll.user import User
 class TempDataProvider:
     """模板数据提供类"""
 
-    def __init__(self, app: Optional[Flask] = None):
+    def __init__(self, app: Optional[Flask] = None, user_id=None):
         self._bll = NewsContent(app)
         self._special_bll = NewsSpecial(app)
+        self._uid = user_id  # 当前用户 _id（字符串或 ObjectId），供模板按需调用
 
     # ── 专题列表（支持按 parent_id 筛选） ───────────────────────
     def get_specials(self, parent_id: Optional[str] = None, top: int = 0) -> list:
@@ -153,16 +154,19 @@ class TempDataProvider:
         )
 
     # ── 获取用户自己的内容（个人中心首页用，分页） ──────────
-    def get_my_content_list(self, user_id, page: int = 1, page_size: int = 12):
+    def get_my_content_list(self, user_id=None, page: int = 1, page_size: int = 12):
         """
         获取当前用户自己发布的内容（分页），用于个人中心首页
-        :param user_id: 当前用户的 _id（ObjectId 或字符串）
+        :param user_id: 当前用户的 _id，不传则用 self._uid
         :param page: 页码，默认 1
         :param page_size: 每页数量，默认 12
         :return: (data_list, pager_html)
         """
-        if isinstance(user_id, ObjectId):
-            user_id = str(user_id)
+        uid = user_id or self._uid
+        if not uid:
+            return [], ''
+        if isinstance(uid, ObjectId):
+            uid = str(uid)
         rewrite_rule = f'/user/index?p={{0}}'
         # 列表页只返回模板需要的字段
         list_projection = {
@@ -173,21 +177,24 @@ class TempDataProvider:
             page,
             page_size,
             rewrite_rule,
-            {"user_id": ObjectId(user_id)},  # NewsContent 存储的 user_id 为 ObjectId
+            {"user_id": ObjectId(uid)},  # NewsContent 存储的 user_id 为 ObjectId
             sort_key="add_time",
             sort_direction=pymongo.DESCENDING,
             projection=list_projection,
         )
 
     # ── 获取用户内容统计 ────────────────────────────────────
-    def get_user_content_stats(self, user_id) -> dict:
+    def get_user_content_stats(self, user_id=None) -> dict:
         """
         获取用户内容统计信息（使用 MongoDB 聚合，避免拉取全量文档）
-        :param user_id: 用户的 _id（ObjectId 或字符串）
+        :param user_id: 用户的 _id，不传则用 self._uid
         :return: 统计字典
         """
-        if isinstance(user_id, ObjectId):
-            user_id = str(user_id)
+        uid = user_id or self._uid
+        if not uid:
+            return {"total": 0, "total_hits": 0, "favorites": 0}
+        if isinstance(uid, ObjectId):
+            uid = str(uid)
         stats = {
             "total": 0,
             "total_hits": 0,
@@ -196,7 +203,7 @@ class TempDataProvider:
 
         # 用聚合管道一次返回 total 和 total_hits，替代拉取全部文档
         pipeline = [
-            {"$match": {"user_id": ObjectId(user_id)}},
+            {"$match": {"user_id": ObjectId(uid)}},
             {"$group": {
                 "_id": None,
                 "total": {"$sum": 1},
@@ -210,8 +217,40 @@ class TempDataProvider:
 
         # 统计当前用户收藏的内容数量（我的收藏）
         bll_fav = Favorite()
-        stats["favorites"] = bll_fav.count({"user_id": ObjectId(user_id)})
+        stats["favorites"] = bll_fav.count({"user_id": ObjectId(uid)})
         return stats
+
+    # ── 获取当前用户订阅数量 ──────────────────────────────
+    def get_user_sub_count(self, user_id=None) -> int:
+        """
+        获取当前用户的订阅数量
+        :param user_id: 用户的 _id，不传则用 self._uid
+        :return: 订阅数量
+        """
+        uid = user_id or self._uid
+        if not uid:
+            return 0
+        sub_bll = Subscription()
+        return sub_bll.count({"user_id": ObjectId(uid)})
+
+    # ── 获取当前用户的收藏记录（最近 N 条） ─────────────
+    def get_user_favorites(self, user_id=None, top: int = 12) -> list:
+        """
+        获取当前用户的收藏记录，按收藏时间倒序
+        :param user_id: 用户的 _id，不传则用 self._uid
+        :param top: 最多返回记录数，默认 12
+        :return: 收藏记录列表（list[FavoriteModel]）
+        """
+        uid = user_id or self._uid
+        if not uid:
+            return []
+        bll_fav = Favorite()
+        return bll_fav.find_list_by_where(
+            where={"user_id": ObjectId(uid)},
+            sort_key="_id",
+            sort_direction=pymongo.DESCENDING,
+            limit=top,
+        )
 
     # ── 获取当前用户订阅的用户列表 ─────────────────────────
     def get_subscribed_users(self, user_id, page: int = 1, page_size: int = 20) -> Tuple[

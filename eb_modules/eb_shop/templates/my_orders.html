@@ -1,80 +1,120 @@
 {% extends 'base_site.html' %}
 {% block title %}
-购物车
+我的订单
 {% endblock %}
 
 {% block content %}
 
+<div class="uc-page">
+  <div class="container">
+    <div class="row g-4">
+      {% set active_nav = 'orders' %}
+      {% include 'includes/user_sidebar.html' %}
 
-<div class="container container-fluid customize-width mt-3 ">
+      <!-- 主内容区 -->
+      <div class="col-lg-9">
 
-    <div class="tabfg p-3">
-          <ul id="subtab" class="nav nav-tabs">
-              <li class="nav-item">
-                  <a href="/user/index" class="nav-link" >主页</a>
-              </li>
-              <li class="nav-item">
-                  <a href="/user/favorite" class="nav-link " >我的收藏</a>
-              </li>
-             <li class="nav-item">
-                 <a href="/shop/my_orders" class="nav-link active" >我的订单</a>
-              </li>
-          </ul>
-
-          <div class="container mt-5 mb-5">
-               {% if data_list %}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">订单编号</th>
-                            <th scope="col">收货人</th>
-                            <th scope="col">联系方式</th>
-                            <th scope="col">支付方式</th>
-
-                            <th scope="col">金额</th>
-                            <th scope="col">订单状态</th>
-                            <th scope="col">物流公司</th>
-                            <th scope="col">物流订单号</th>
-                            <th scope="col">下单时间</th>
-                            <th scope="col">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in data_list %}
-                        <tr>
-                            <td>{{item.order_id}}</td>
-                            <td>{{item.address.user_name}}</td>
-                            <td>{{item.address.phone}}</td>
-                            <td>{{item.payment_name}}</td>
-
-                            <td>{{item.total_price}}</td>
-                            <td>{{item.order_statu_name}}</td>
-                            <td>{{item.delivery_name}}</td>
-                            <td>{{item.delivery_number}}</td>
-                            <td>{{item.add_time | to_time_name}}</td>
-                            <td>
-<!--                                <a target="_blank" style="color:#ffffff"  class="btn btn-primary btn-sm" >详情</a>-->
-                                {% if item.order_status == 0 %}
-                                    <a style="color:#ffffff" class="btn btn-success btn-sm" href="/shop/sel_payment?orderid={{ item.order_id }}">付款</a>
-                                    <button style="color:#ffffff" class="btn btn-info btn-sm" onclick="OpenCloseOrder({{ item.id }})">关闭</button>
-                                {% elif item.order_status == 2 %}
-                                    <button onclick="SureReceipt({{ item.id }})" class="btn btn-danger btn-sm">确认收货</button>
-                                {% endif %}
-
-                            </td>
-
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-                {% else %}
-                <div class="text-center">没有数据!</div>
-                {% endif %}
-                        {{pager}}
+        <div class="uc-panel">
+          <div class="uc-panel-header">
+            <h5>📦 我的订单</h5>
+            <span class="badge-count">共 {{ data_list|length if data_list else 0 }} 条</span>
           </div>
-       </div>
+          <div class="uc-panel-body">
+            {% if data_list %}
+              {% for item in data_list %}
+
+              {% set status_class = 'default' %}
+              {% if item.order_status == 0 %}{% set status_class = 'pending' %}
+              {% elif item.order_status == 1 %}{% set status_class = 'paid' %}
+              {% elif item.order_status == 2 %}{% set status_class = 'shipped' %}
+              {% elif item.order_status == 3 %}{% set status_class = 'done' %}
+              {% elif item.order_status == -1 %}{% set status_class = 'closed' %}
+              {% endif %}
+
+              <div class="order-card">
+                <!-- 顶栏：订单号 + 金额 + 状态 -->
+                <div class="order-card-top">
+                  <div class="order-card-top-left">
+                    <span class="order-id">#{{ item.order_id }}</span>
+                    <span class="status-badge {{ status_class }}">{{ item.order_statu_name }}</span>
+                  </div>
+                  <span class="order-amount">¥{{ item.total_price }}</span>
+                </div>
+
+                <!-- 信息网格：2列 -->
+                <div class="order-card-info">
+                  <div class="order-info-item">
+                    <span class="label">收货人</span>
+                    <span>{{ item.address.user_name }}</span>
+                  </div>
+                  <div class="order-info-item">
+                    <span class="label">联系方式</span>
+                    <span>{{ item.address.phone }}</span>
+                  </div>
+                  <div class="order-info-item">
+                    <span class="label">支付方式</span>
+                    <span>{{ item.payment_name or '-' }}</span>
+                  </div>
+                  <div class="order-info-item">
+                    <span class="label">下单时间</span>
+                    <span>{{ item.add_time | to_time_name }}</span>
+                  </div>
+                </div>
+
+                <!-- 物流信息 -->
+                {% if item.delivery_name or item.delivery_number %}
+                <div class="order-card-logistics">
+                  <span>🚚</span>
+                  <span>{{ item.delivery_name or '-' }}</span>
+                  {% if item.delivery_number %}
+                  <span style="color:var(--text,#1e293b);">· {{ item.delivery_number }}</span>
+                  {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- 操作按钮 -->
+                <div class="order-card-actions">
+                  {% if item.order_status == 0 %}
+                    <a href="/shop/sel_payment?orderid={{ item.order_id }}" class="btn-order btn-order-pay">💳 付款</a>
+                    <button class="btn-order btn-order-close" onclick="OpenCloseOrder({{ item.id }})">✕ 关闭</button>
+                  {% elif item.order_status == 2 %}
+                    <button class="btn-order btn-order-receipt" onclick="SureReceipt({{ item.id }})">✅ 确认收货</button>
+                  {% endif %}
+                </div>
+              </div>
+
+              {% endfor %}
+            {% else %}
+            <div class="uc-empty">
+              <div class="empty-icon">📭</div>
+              <h6>暂无订单</h6>
+              <p>您还没有下过任何订单，去商城看看吧</p>
+              <a href="/" class="btn-outline">去逛逛 →</a>
+            </div>
+            {% endif %}
+          </div>
+          {% if pager %}
+          <div class="uc-pagination">
+            {{ pager }}
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 
-
+<script>
+function OpenCloseOrder(id){
+    if(confirm('确定要关闭该订单吗？')){
+        // 关闭订单逻辑
+    }
+}
+function SureReceipt(id){
+    if(confirm('确认已收到商品吗？')){
+        // 确认收货逻辑
+    }
+}
+</script>
 {% endblock %}

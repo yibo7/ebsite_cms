@@ -30,11 +30,34 @@ def inject_site_name():
     """
 
     return {'SiteName': current_app.config['site_name'] or 'ebsite'}
-# 模块扩展API蓝图
-# bp_shop_apis = Blueprint('bp_shop_apis', __name__, url_prefix=f"{module_url_prefix}/api/")
 
-settings_temp = None
-@module_attribute('商城管理系统','简单的商城系统，比如，购物车，订单管理。',"/shop/shop_orders",settings_temp,'ebsite')
+
+settings_temp = '''
+                <div class="mb-3">
+            <label>选择AI供应商</label>
+            <select name="ai_provider" class="form-control" style="max-width:500px" required>
+                <option value="deepseek" {% if model.ai_provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
+                <option value="joyagent" {% if model.ai_provider == 'joyagent' %}selected{% endif %}>京东Joyagent</option>
+                <option value="qwen" {% if model.ai_provider == 'qwen' %}selected{% endif %}>阿里千问</option>
+            </select>
+        </div> 
+        <div class="mb-3">
+            <label>AI供应商密钥</label>
+            <input name="ai_key" value="{{model.ai_key}}"   style="max-width:500px" class="form-control" >            
+        </div> 
+        <div class="mb-3">
+            <label>模型名称</label>
+            <input name="ai_model" value="{{model.ai_model}}"   style="max-width:500px" class="form-control" >            
+        </div> 
+
+        <div class="alert alert-primary">注：当前配置修改后需要重启项目才能生效!</div>
+
+        '''
+
+@module_attribute('商城管理系统','简单的商城系统，比如，购物车，订单管理。',"/shop/shop_orders",settings_temp,'ebsite',config_fields={
+        'ai_provider': 'str','ai_key': 'str','ai_model': 'str'
+
+    })
 def module_init(app:Flask, model:ModuleInfo):
     """
     在模块加载成功后触发，此函数名称不能更改
@@ -45,10 +68,12 @@ def module_init(app:Flask, model:ModuleInfo):
     module_configs = model.get_configs()
 
     bp_shop_pages.config = module_configs
+    bp_shop_apis.config = module_configs  # API 蓝图同样需要配置（AI 供应商选择）
 
     # 注册配置热更新
     def refresh_config(saved_config):
         bp_shop_pages.config = saved_config
+        bp_shop_apis.config = saved_config
     model.on_config_changed(refresh_config)
 
     app.register_blueprint(bp_shop_pages)
@@ -119,4 +144,5 @@ def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
 from . import shop_pages
 from . import shop_apis
 from .shop_controls import product_sku
+from . import ai_providers  # AI 供应商注册: deepseek / joyagent / qwen
 

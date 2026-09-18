@@ -55,6 +55,22 @@ header{position:sticky;top:0;z-index:1000;background:rgba(255,255,255,.95);backd
 .btn-quote:hover{background:var(--accent-dark);color:#fff;transform:translateY(-1px);}
 .mobile-toggle{display:none;background:none;border:none;font-size:22px;color:var(--primary);cursor:pointer;}
 
+/* ===== 搜索切换图标 ===== */
+.search-toggle{color:var(--muted);display:flex;align-items:center;transition:color .2s;}
+.search-toggle:hover{color:var(--primary);}
+
+/* ===== 搜索框弹出层 ===== */
+#search-input-box{position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:2px solid var(--primary);padding:14px 20px;box-shadow:0 8px 24px rgba(30,75,138,.12);display:none;z-index:999;}
+#search-input-box.active{display:block;animation:slideDown .25s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+#search-input-box form{max-width:800px;margin:0 auto;gap:10px;}
+#search-input-box .form-control{border:2px solid var(--border);border-radius:999px;padding:10px 18px;font-size:14px;outline:none;transition:border .2s;flex:1;}
+#search-input-box .form-control:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,75,138,.08);}
+#search-input-box .btn-search-go{width:42px;height:42px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;}
+#search-input-box .btn-search-go:hover{background:var(--primary-dark);}
+#search-input-box .search-close{width:36px;height:36px;border-radius:50%;background:#f1f5f9;color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;flex-shrink:0;text-decoration:none;}
+#search-input-box .search-close:hover{background:#fee2e2;color:var(--accent);}
+
 /* ===== CTA 區塊 ===== */
 .cta-section{padding:70px 0;background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 100%);border-radius:24px;margin:0 20px 40px;position:relative;overflow:hidden;}
 .cta-section::before{content:"";position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.05);}
@@ -449,6 +465,9 @@ footer{background:#0b1b33;color:#94a3b8;padding:60px 0 0;}
 .detail-actions .btn{padding:14px 32px;font-size:15px;}
 .detail-actions .btn-accent{box-shadow:0 8px 20px -8px rgba(211,47,47,.5);}
 .detail-actions .btn-outline{background:#fff;}
+.detail-actions .favorit-btn:hover{background:#e8f1fc;color:var(--primary);border-color:var(--primary);transform:translateY(-2px);}
+.detail-actions .favorit-btn.is-faved{background:var(--primary);color:#fff;border-color:var(--primary);}
+.detail-actions .favorit-btn.is-faved:hover{background:var(--primary-dark);color:#fff;border-color:var(--primary-dark);}
 
 /* ===== 商品详情 Tab ===== */
 .product-tab-section{padding:0 0 60px;background:var(--bg);}
@@ -674,13 +693,12 @@ footer{background:#0b1b33;color:#94a3b8;padding:60px 0 0;}
 @media (max-width: 820px) {
   .cart-table-head { display: none; }
   .cart-item {
-    grid-template-columns: 40px 1fr;
+    grid-template-columns: 40px 1fr auto;
     grid-template-areas:
-      "check info"
-      "check price"
-      "check qty"
-      "check subtotal"
-      "check remove";
+      "check info    info"
+      "check price   price"
+      "check qty     qty"
+      "check subtotal remove";
     gap: 12px 14px;
     padding: 18px 18px 20px;
     position: relative;
@@ -690,9 +708,9 @@ footer{background:#0b1b33;color:#94a3b8;padding:60px 0 0;}
   .cart-item .item-price { grid-area: price; text-align: left; font-size: 13px; display: flex; align-items: center; gap: 8px; }
   .cart-item .item-price::before { content: "單價："; color: var(--muted); font-size: 12.5px; font-weight: 500; }
   .cart-item .qty-control { grid-area: qty; margin: 0; justify-self: start; }
-  .cart-item .item-subtotal { grid-area: subtotal; text-align: left; font-size: 17px; display: flex; align-items: baseline; gap: 6px; }
+  .cart-item .item-subtotal { grid-area: subtotal; text-align: left; font-size: 17px; display: flex; align-items: center; gap: 6px; }
   .cart-item .item-subtotal::before { content: "小計："; color: var(--muted); font-size: 12.5px; font-weight: 500; }
-  .cart-item .item-remove { grid-area: remove; position: absolute; top: 18px; right: 18px; }
+  .cart-item .item-remove { grid-area: remove; display: flex; align-items: center; justify-content: flex-end; padding-right: 4px; }
   .item-thumb { width: 64px; height: 64px; font-size: 28px; }
   .summary-grid { grid-template-columns: 1fr; gap: 20px; }
   .summary-trust { grid-template-columns: repeat(2, 1fr); }

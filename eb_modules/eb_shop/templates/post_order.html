@@ -1,125 +1,187 @@
 {% extends 'base_site.html' %}
 {% block title %}
-购物车
+确认订单
 {% endblock %}
 
 {% block content %}
 
-<main>
-    <section class="cart_area">
-        <div class="container">
-            <div class="cart_inner">
-                {% if shopping_cart %}
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th scope="col">商品</th>
-                            <th scope="col">价格</th>
-                            <th scope="col">数量</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in shopping_cart %}
-                        <tr>
-                            <td>
-                                <div class="media">
-                                    <div class="d-flex">
-                                        <a target="_blank" href="{{ item.get_url }}">
-                                            <img width="50" height="50" alt="" src="{{ item.small_pic }}" /></a>
-                                    </div>
-                                    <div class="media-body truncate-text">
-                                        <p><a target="_blank" href="{{ item.get_url }}"><b>{{ item.content_title }}</b></a></p>
-                                        <p> {{ item.product_name }}</p>
-                                    </div>
-                                </div>
+<link rel="stylesheet" href="/css/user.css">
 
-                            </td>
-                            <td>&yen;{{ item.total_price }}</td>
-                            <td>
-                               {{ item.quantity }}
-                            </td>
+<div class="cart-page">
+  <div class="container">
+    <div class="row g-4">
 
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+      <!-- ===== 左侧：商品清单 + 收货地址 ===== -->
+      <div class="col-lg-8">
 
-                <div class="returning_customer">
-                    <div class="check_title">
-                        <h2>
-                            <b>收货人信息</b> <a data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">[使用新地址]</a>
-                        </h2>
-                    </div>
-                    <div class="collapse" id="collapseExample">
-                      <div class="card card-body">
-                            <form id="form_address" class="row g-3">
-                              <div class="col-md-6">
-                                <label class="form-label">联系人(Contact Name)</label>
-                                <input name="user_name" class="form-control" required>
-                              </div>
-                              <div class="col-md-6">
-                                <label class="form-label">联系电话(Phone or mobile)</label>
-                                <input name="phone"  class="form-control" required>
-                              </div>
-                              <div class="col-12">
-                                <label class="form-label">收货地址(Address)</label>
-                                <input name="address_info" type="text" class="form-control" placeholder="1234 Main St" required>
-                              </div> 
-                                <div class="col-md-6">
-                                <label class="form-label">邮编(Zip)</label>
-                                <input name="post_code" class="form-control" required>
-                              </div>
-                              <div class="col-md-6">
-                                <label class="form-label">邮箱(Email)</label>
-                                <input name="email" type="email" class="form-control" required>
-                              </div>
-                                                             
-                              <div class="col-12">
-                                <button type="submit" class="btn btn-primary"> 保 存 </button>
-                              </div>
-                            </form>
-                      </div>
-                    </div>
-                    <form action="/shop/post_order" method="post" id="form_post" >
-                    {% for addr in addr_datas %}
-                        <div class="form-check mt-2 mb-2">
-                            <input class="form-check-input"
-                                   name="address"
-                                   id="radioAddress{{ addr._id }}"
-                                   value="{{ addr._id }}"
-                                   type="radio">
-                            <label for="radioAddress{{ addr._id }}">
-                                {{ addr.address_info }}
-                                收货人:{{ addr.user_name }}
-                                手机:{{ addr.phone }}
-                            </label>
-                            <i onclick="del_address('{{ addr._id }}')" class="fa fa-remove" style="cursor: pointer; color: #f74040;" aria-hidden="true" /></i>
+        {% if shopping_cart %}
 
-                        </div>
-                    {% endfor %}
-                    </form>
-                </div>
-
-
-                <div class="d-flex justify-content-end">
-                    <div class="shipping_box mt-3">
-                        <ul class="list">
-                            <li>商品数量：{{ total_count }}</li>
-                            <li class="active">商品金额：<span>&yen;{{ total_price }}</span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end gap-10 mt-10">
-                    <a class="white-btn mr-10" href="/shop/cart"><i class="fa fa-arrow-left" aria-hidden="true"></i> 返回购物车</a>
-                    <a class="white-btn mr-10" style="background: #f74040; color: white" href="javascript:post_order()"><i class="fa fa-angle-right" aria-hidden="true"></i>提交订单</a>
-                </div>
-                {% else %}
-                <div class="text-center">没有数据!</div>
-                {% endif %}
+        <!-- 商品清单 -->
+        <div class="cart-main mb-4">
+          <div class="cart-head">
+            <div class="cart-head-left">
+              <h2>📦 确认商品</h2>
+              <span class="count">共 <b>{{ total_count }}</b> 件</span>
             </div>
+            <a href="/shop/cart" class="tool-link" style="text-decoration:none;">编辑购物车 →</a>
+          </div>
+          {% for item in shopping_cart %}
+          <div class="order-confirm-item">
+            <div class="order-confirm-thumb">
+              {% if item.small_pic %}
+              <img src="{{ item.small_pic }}" alt="{{ item.content_title }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+              📦
+              {% endif %}
+            </div>
+            <div class="order-confirm-info">
+              <h3>{{ item.content_title }}</h3>
+              <span class="tag">{{ item.product_name }}</span>
+            </div>
+            <div class="order-confirm-qty">
+              <span class="price">¥{{ item.total_price }}</span>
+              × {{ item.quantity }}
+            </div>
+          </div>
+          {% endfor %}
         </div>
-    </section>
-</main>
+
+        <!-- 收货地址 -->
+        <div class="cart-main">
+          <div class="cart-head">
+            <div class="cart-head-left">
+              <h2>📍 收货地址</h2>
+            </div>
+          </div>
+
+          <form action="/shop/post_order" method="post" id="form_post">
+            {% if addr_datas %}
+            <div class="order-addr-list">
+              {% for addr in addr_datas %}
+              <label class="order-addr-card" for="radioAddress{{ addr._id }}">
+                <input class="form-check-input"
+                       name="address"
+                       id="radioAddress{{ addr._id }}"
+                       value="{{ addr._id }}"
+                       type="radio"
+                       {% if loop.first %}checked{% endif %}>
+                <div class="order-addr-body">
+                  <div class="addr-name">
+                    {{ addr.user_name }}
+                    <span class="phone">{{ addr.phone }}</span>
+                  </div>
+                  <div class="addr-detail">{{ addr.address_info }}</div>
+                </div>
+                <button type="button" class="order-addr-del" onclick="del_address('{{ addr._id }}')" title="删除地址">✕</button>
+              </label>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4" style="color:var(--muted,#64748b);font-size:0.88rem;">
+              还没有收货地址，请添加
+            </div>
+            {% endif %}
+          </form>
+
+          <!-- 添加新地址 -->
+          <div class="order-addr-new">
+            <button type="button" class="btn-new-addr" data-bs-toggle="collapse" data-bs-target="#newAddrForm">＋ 添加新地址</button>
+          </div>
+          <div class="collapse" id="newAddrForm">
+            <div class="order-addr-form">
+              <form id="form_address">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">联系人</label>
+                    <input name="user_name" class="form-control" required placeholder="姓名">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">联系电话</label>
+                    <input name="phone" class="form-control" required placeholder="手机号">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">收货地址</label>
+                    <input name="address_info" type="text" class="form-control" placeholder="省/市/区 详细地址" required>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">邮编</label>
+                    <input name="post_code" class="form-control" placeholder="邮编">
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">邮箱</label>
+                    <input name="email" type="email" class="form-control" placeholder="Email">
+                  </div>
+                  <div class="col-12">
+                    <button type="submit" class="btn-save-addr">💾 保存地址</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        </div>
+
+        {% else %}
+        <div class="cart-main">
+          <div class="cart-empty">
+            <div class="empty-icon">📭</div>
+            <h3>没有待结算的商品</h3>
+            <p>您的购物车是空的</p>
+            <a href="/" class="btn btn-accent" style="border-radius:999px;padding:13px 30px;font-size:15px;text-decoration:none;">去逛逛</a>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <!-- ===== 右侧：订单摘要 ===== -->
+      <div class="col-lg-4">
+        <div class="cart-summary">
+          <div class="summary-head">
+            <h3><span class="dot"></span> 订单摘要</h3>
+          </div>
+          <div class="summary-body">
+            <div class="summary-amounts">
+              <div class="summary-row">
+                <span>商品数量</span>
+                <b>{{ total_count }} 件</b>
+              </div>
+              <div class="summary-row">
+                <span>商品金额</span>
+                <b>¥{{ total_price }}</b>
+              </div>
+              <div class="summary-row">
+                <span>运费</span>
+                <span class="free">运费到付</span>
+              </div>
+              <div class="summary-row total">
+                <span>应付总额</span>
+                <b>¥{{ total_price }}</b>
+              </div>
+            </div>
+
+            <div class="summary-actions">
+              <a href="javascript:post_order()" class="btn btn-accent" style="border-radius:999px;padding:15px 24px;font-size:15px;text-decoration:none;text-align:center;">
+                ✅ 提交订单
+              </a>
+              <a href="/shop/cart" class="btn btn-outline" style="border-radius:999px;padding:13px 24px;font-size:14px;text-decoration:none;text-align:center;">
+                ← 返回购物车
+              </a>
+            </div>
+
+            <div class="summary-trust">
+              <div class="trust-row"><span class="ti">🔒</span> 安全支付</div>
+              <div class="trust-row"><span class="ti">🚚</span> 全国配送</div>
+              <div class="trust-row"><span class="ti">🛡️</span> 品质保障</div>
+              <div class="trust-row"><span class="ti">💬</span> 售后无忧</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script type="text/javascript" src="/shop/js/post_order.js" defer></script>
 {% endblock %}

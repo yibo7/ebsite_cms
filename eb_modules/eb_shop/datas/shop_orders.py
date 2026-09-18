@@ -31,6 +31,7 @@ class ShopOrderModel(ModelBase):
         self.order_status: int = 0 # -1(失败-可查看原因)，0新下单（等待支付）,1支付完成(等待发货),2已发货(等待收货),3完成(已收货)
         self.close_reason: str = "" # 失败原因
         self.user_id: ObjectId = ""   # 购买用户ID
+        self.user_account: str = ""  # 购买用户的账号
 
         self.total_weight: Decimal128 = Decimal128("0.0")  # 重量
         self.freight:Decimal128  = Decimal128("0.0") # 运费
