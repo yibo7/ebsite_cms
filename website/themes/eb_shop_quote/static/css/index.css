@@ -15,6 +15,10 @@
   --shadow:0 6px 24px rgba(30,75,138,.08);
   --shadow-lg:0 20px 40px rgba(30,75,138,.12);
 }
+ .btn-quote{position:relative;background:#d32f2f;color:#fff;padding:9px 20px;border-radius:999px;font-weight:600;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;text-decoration:none;}
+.btn-quote:hover{background:#b71c1c;color:#fff;}
+.cart-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(239,68,68,.6);line-height:1;}
+.cart-badge.hidden{display:none;}
 
 /* ===== 全域重置 ===== */
 *{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;}

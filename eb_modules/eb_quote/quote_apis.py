@@ -257,12 +257,15 @@ def _search_products_by_params(
         where["column_3"] = re.compile(re.escape(brand), re.IGNORECASE)
 
     if model:
-        # 型号匹配：column_4 或 title 中包含型号关键词
+        # 型号匹配：column_4、column_5 或 title 中包含型号关键词
+        # column_5（适用型号）包含完整的兼容型号列表，如 "Canon iR1435/iR1435i/iR1435iF/IR1435P"
+        # 不加 column_5 会导致搜索具体子型号（如 IR1435P）时遗漏
         model_pattern = re.compile(
             re.escape(model).replace(r"\ ", ".*"), re.IGNORECASE
         )
         where["$or"] = [
             {"column_4": model_pattern},
+            {"column_5": model_pattern},
             {"title": model_pattern},
         ]
 

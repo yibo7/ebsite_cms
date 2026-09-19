@@ -234,6 +234,28 @@ header{background:rgba(255,255,255,.95);backdrop-filter:blur(12px);border-bottom
 @media (max-width: 820px) {
   body { height: auto; overflow: auto; }
   .nav-links { display: none; }
+  .nav-links[style*="flex"] {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    padding: 8px 20px;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,.1);
+    gap: 0;
+    z-index: 200;
+  }
+  .nav-links[style*="flex"] a {
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 15px;
+  }
+  .nav-links[style*="flex"] a:last-child {
+    border-bottom: none;
+  }
   .mobile-toggle { display: block; }
   .nav { height: 60px; }
 
