@@ -48,7 +48,9 @@
     <div id="search-input-box">
       <form onsubmit="return ChkSo(this);" method="get" action="/search.html"
             class="d-flex justify-content-between align-items-center">
-        <input type="text" class="form-control" id="k" name="k" placeholder="搜索型号 / 品牌 / 关键词...">
+        <input type="hidden" name="t" value="1">
+        <input type="text" class="form-control" id="k" name="k" placeholder="搜索型号 / 品牌 / 关键词..."
+               style="flex:1;margin-right:8px;">
         <button type="submit" class="btn-search-go" aria-label="搜索">&#128270;</button>
         <a href="javascript:void(0)" id="search-close" class="search-close" aria-label="关闭">&#10005;</a>
       </form>

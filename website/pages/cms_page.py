@@ -13,7 +13,8 @@ from bll.content_tags import ContentTags
 from bll.templates import Templates
 from eb_utils import http_helper
 from eb_utils.configs import SiteConstant
-from signals import content_saved
+from eb_utils.mvc_pager import MvcPager
+from signals import content_saved, search_prepare
 from website.pages import pages_blue
 
 
@@ -214,11 +215,47 @@ def search():
     page_size = current_app.config["list_page_size"]
     page_number = http_helper.get_prams_int("p", 1)
 
-    key_word = key_word or ''
+    key_word = (key_word or '').strip()
     rewrite_rule = f'/search.html?k={quote(key_word)}&p={{0}}'
 
-    data_list, pager = bll.search_full(key_word,page_number,page_size, rewrite_rule)
-    return render_template("search.html",key_word=key_word, data_list=data_list, pager=pager)
+    # ---- 信号：让模块可以自定义搜索 ----
+    ctx = {
+        "keyword": key_word,
+        "page_number": page_number,
+        "page_size": page_size,
+        "rewrite_rule": rewrite_rule,
+    }
+    search_prepare.send(ctx)
+    template_name = ctx.get("template", "search.html")
+    custom_query = ctx.get("query")
+    if custom_query:
+        # ---- 模块自定义搜索路径 ----
+        total = bll.count(custom_query)
+
+        datas = []
+        if total > 0:
+            datas, _ = bll.find_pages(page_number, page_size, custom_query,
+                                       "_id", pymongo.DESCENDING)
+
+        # 生成分页器
+        pager = ''
+        if total > page_size:
+            pg = MvcPager()
+            pg.current_page = page_number
+            pg.total_count = total
+            pg.page_size = page_size
+            pg.params = None
+            pg.ShowCodeNum = 10
+            pg.rewrite_rule = rewrite_rule
+            pager = pg.show_pages()
+
+
+        return render_template(template_name, key_word=key_word,
+                               data_list=datas, pager=pager)
+
+    # ---- 默认搜索路径 ----
+    data_list, pager = bll.search_full(key_word, page_number, page_size, rewrite_rule)
+    return render_template(template_name, key_word=key_word, data_list=data_list, pager=pager)
 
 
 @content_saved.connect

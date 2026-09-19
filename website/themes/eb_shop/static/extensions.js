@@ -1,8 +1,31 @@
 
+// ===== 购物车徽章更新 =====
+function updateCartBadge() {
+  var badge = document.getElementById('quoteBadge');
+  if (!badge) return;
+  $.getJSON('/shop/api/cart_count', function(res) {
+    if (res && res.code === 0 && res.data) {
+      var count = res.data.count || 0;
+      if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    } else {
+      badge.classList.add('hidden');
+    }
+  }).fail(function() {
+    badge.classList.add('hidden');
+  });
+}
+
 $(function () {
     $(".rank-list span").each(function (i) {
         $(this).text(i + 1)
     });
+
+    updateCartBadge();
 });
 
 function setActiveNav(cid, selector = '.nav-links a', activeClass = 'active') {

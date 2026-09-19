@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-{{key_word}}
+{{key_word}} - 商品搜索
 {% endblock %}
 
 {% block content %}
@@ -11,25 +11,31 @@
     <div class="breadcrumb">
       <a href="/">首页</a>
       <span>/</span>
-      <span>搜索</span>
+      <a href="/search.html">搜索</a>
+      <span>/</span>
+      <span>商品</span>
     </div>
-    <h1>搜索：<span>{{ key_word }}</span></h1>
-    <p>为您检索到 <strong>{{ data_list | length if data_list else 0 }}</strong> 条与「{{ key_word }}」相关的结果</p>
+    <h1>商品搜索：<span>{{ key_word }}</span></h1>
+    <p>为您检索到 <strong>{{ data_list | length if data_list else 0 }}</strong> 件相关商品</p>
+    <form class="banner-search" method="get" action="/search.html" style="display:flex;gap:8px;max-width:500px;margin:16px auto 0;">
+      <input type="hidden" name="t" value="1">
+      <input type="text" name="k" value="{{ key_word }}" placeholder="搜索型号 / 品牌 / 关键词..."
+             style="flex:1;padding:8px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;">
+      <button type="submit" style="padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;">搜索</button>
+    </form>
   </div>
 </section>
 
-<!-- ===== 主体：搜索列表 ===== -->
+<!-- ===== 商品搜索列表 ===== -->
 <div class="container">
   <div class="shop-layout">
-
-    <!-- 内容区 -->
     <main class="content-area">
 
       <!-- 工具栏 -->
       <div class="toolbar">
         <div class="toolbar-left">
           <span class="result-count">
-            搜索 <b>"{{ key_word }}"</b> 共 <b>{{ data_list | length if data_list else 0 }}</b> 条结果
+            搜索 <b>"{{ key_word }}"</b> 共 <b>{{ data_list | length if data_list else 0 }}</b> 件商品
           </span>
         </div>
       </div>
@@ -60,11 +66,10 @@
             </div>
             <div class="product-foot">
               {% if item.column_11 %}
-              <span class="product-price"><span class="ln">¥{{ item.column_11 }}</span> <small>/ 支</small></span>
+              <span class="product-price"><span class="ln">¥{{ item.column_11 }}</span></span>
               {% endif %}
               <div class="product-actions">
-                <button class="icon-btn" title="收藏">♡</button>
-                <button class="add-cart-btn" >去询价</button>
+                <button class="add-cart-btn">去询价</button>
               </div>
             </div>
           </div>
@@ -74,15 +79,12 @@
         {% else %}
         <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-icon">🔍</div>
-          <h3>找不到与「{{ key_word }}」相关的内容</h3>
+          <h3>找不到与「{{ key_word }}」相关的商品</h3>
           <p>试试更换关键词，或直接联系我们获取完整产品目录。</p>
         </div>
         {% endif %}
 
       </div>
-
-      <!-- 无限加载 -->
-      {% include 'includes/loading_more.html' %}
 
       <!-- 分页 -->
       {% if data_list %}

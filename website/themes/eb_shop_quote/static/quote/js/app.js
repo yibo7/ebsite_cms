@@ -125,7 +125,7 @@ async function sendMessage() {
   QUOTE_SESSION.push({ role: 'user', content: text });
 
   const typingEl = addTyping();
-  typingEl.querySelector('.typing').textContent = '请稍等，我正在帮您问价......';
+  typingEl.querySelector('.typing').textContent = '对方正在输入......';
 
   try {
     const resp = await fetch('/eb_quote/api/quote/chat', {

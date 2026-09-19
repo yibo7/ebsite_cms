@@ -41,14 +41,16 @@
       </a>
       <span class="lang">中文 ▾</span>
       <a href="/user/index" class="nav-link" style="color:inherit;text-decoration:none;">👤 个人中心</a>
-      <a href="/eb_quote/index.html" class="btn-quote">🛒 询价篮 <span class="cart-badge hidden" id="quoteBadge">0</span></a>
+      <a href="/shop/cart" class="btn-quote">🛒 购物车 <span class="cart-badge hidden" id="quoteBadge">0</span></a>
       <button class="mobile-toggle">☰</button>
     </div>
     <!-- 搜索框弹出层 -->
     <div id="search-input-box">
       <form onsubmit="return ChkSo(this);" method="get" action="/search.html"
             class="d-flex justify-content-between align-items-center">
-        <input type="text" class="form-control" id="k" name="k" placeholder="搜索型号 / 品牌 / 关键词...">
+        <input type="hidden" name="t" value="1">
+        <input type="text" class="form-control" id="k" name="k" placeholder="搜索型号 / 品牌 / 关键词..."
+               style="flex:1;margin-right:8px;">
         <button type="submit" class="btn-search-go" aria-label="搜索">&#128270;</button>
         <a href="javascript:void(0)" id="search-close" class="search-close" aria-label="关闭">&#10005;</a>
       </form>
@@ -111,31 +113,6 @@
 <div id="toast-message" class="toast" role="alert">
   <span id="toast-text">提示内容</span>
 </div>
-
-<script>
-function updateQuoteBadge() {
-  var badge = document.getElementById('quoteBadge');
-  if (!badge) return;
-  try {
-    var saved = localStorage.getItem('eb_quote_items');
-    if (saved) {
-      var items = JSON.parse(saved);
-      var count = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
-      if (count > 0) {
-        badge.textContent = count;
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-    } else {
-      badge.classList.add('hidden');
-    }
-  } catch(e) {
-    badge.classList.add('hidden');
-  }
-}
-updateQuoteBadge();
-</script>
 
 </body>
 

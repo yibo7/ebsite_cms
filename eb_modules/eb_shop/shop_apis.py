@@ -13,6 +13,16 @@ from bson import ObjectId
 
 from entity.user_token import UserToken
 from .datas.shop_orders import ShopOrder
+from .datas.cart_manger import CartManager
+
+
+# ── 辅助函数：获取当前登录用户的 uid 和 user_name ──────────
+def _current_user_info():
+    """返回 (user_id_str, user_name) 或 (None, None)"""
+    token = login_utils.get_token()
+    if not token:
+        return None, None
+    return token.id, token.name or ""
 
 
 def _product_to_dict(p):
@@ -123,4 +133,19 @@ def order_count():
             "done": done,
         }
     })
+
+
+@bp_shop_apis.route('cart_count', methods=['GET'])
+def cart_count():
+    """
+    获取当前登录用户的购物车商品总数量（所有商品 quantity 之和）
+    返回 JSON：{ code: 0, data: { count: N } }
+    """
+    uid, account = _current_user_info()
+    if not uid:
+        return jsonify({"code": 0, "data": {"count": 0}})
+
+    cart_mgr = CartManager(uid, account)
+    count = cart_mgr.get_count()
+    return jsonify({"code": 0, "data": {"count": count}})
 

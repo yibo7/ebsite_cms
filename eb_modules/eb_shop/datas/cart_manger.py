@@ -105,16 +105,28 @@ class CartManager:
             model.product_name = product_model["name"]
             model.product_sku = product_model["sku"]
             model.product_id = product_model["productId"]
-            model.market_price = product_model["marketPrice"]
+            model.market_price = Decimal128(str(Decimal(str(product_model["marketPrice"]))))
             # 用户组价格：如果设置了则使用，否则使用 marketPrice
             group_price = self._get_group_price(product_model, self.user_id)
-            model.price = group_price if group_price is not None else model.market_price
+            if group_price is not None:
+                model.price = Decimal128(str(group_price))
+            else:
+                model.price = model.market_price
             model.quantity  =quantity  # 订购的数量
-            model.weight = product_model["weight"]
+            model.weight = Decimal128(str(Decimal(str(product_model["weight"]))))
             cost_val = product_model.get("costPrice", 0)
             model.cost_price = Decimal128(str(Decimal(str(cost_val))))
             self.bll.add(model)
         return ""
+
+    def get_count(self) -> int:
+        """获取当前用户的购物车商品总数量（所有商品 quantity 之和）"""
+        pipeline = [
+            {'$match': {'user_id': self.user_id}},
+            {'$group': {'_id': None, 'total': {'$sum': '$quantity'}}}
+        ]
+        result = list(self.table.aggregate(pipeline))
+        return result[0]['total'] if result else 0
 
     def get_items(self):
 

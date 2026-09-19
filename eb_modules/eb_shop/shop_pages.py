@@ -49,7 +49,7 @@ def cart(user_token:UserToken):
     shopping_cart = bll.get_items()
 
     total_count = sum(item.quantity for item in shopping_cart)
-    total_price = sum(item.price * item.quantity for item in shopping_cart)
+    total_price = sum(Decimal(str(item.price)) * item.quantity for item in shopping_cart)
     total_price = round(total_price, 2)  # 保留 2 位小数
     return render_template("shopping_cart.html", shopping_cart=shopping_cart,total_count=total_count,total_price=total_price, err=err)
 
@@ -68,7 +68,7 @@ def post_order(user_token:UserToken):
 
     shopping_cart = bll.get_items()
     total_count = sum(item.quantity for item in shopping_cart)
-    total_price = sum(item.price * item.quantity for item in shopping_cart)
+    total_price = sum(Decimal(str(item.price)) * item.quantity for item in shopping_cart)
     total_price = round(total_price, 2)  # 保留 2 位小数
 
     addr_datas = Address().get_by_user_id(user_token.id)

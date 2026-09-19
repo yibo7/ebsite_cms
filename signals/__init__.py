@@ -31,6 +31,11 @@ user_reged = my_signals.signal('user-reged')
 # 支付成功后触发
 pay_saved_successful = my_signals.signal('pay-saved-successful')
 
+# 在搜索前触发，传递参数 ctx: dict（可变字典）
+# 模块可以设置 ctx["query"] 自定义搜索条件，设置 ctx["template"] 自定义模板
+# 如果没有任何模块设置 query，则使用默认的 search_full() 搜索 title+info
+search_prepare = my_signals.signal('search-prepare')
+
 # ------------------信号的发送示例-------------------------
 # 只发送不处理返回结果-监听函数不用返回值
 # app_created.send(app)

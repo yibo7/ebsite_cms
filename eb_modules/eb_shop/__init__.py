@@ -1,13 +1,16 @@
 import json
+import re
 from collections import Counter
 
+from bson import ObjectId
 from flask import Flask, Blueprint, current_app
 
 import eb_utils
 from bll.new_content import NewsContent
+from eb_utils import http_helper
 from entity.news_content_model import NewsContentModel
 from entity.pay_back_model import PayBackInfo
-from signals import content_saving, pay_saved_successful
+from signals import content_saving, pay_saved_successful, search_prepare
 from .datas.shop_orders import ShopOrder
 from .. import module_attribute, ModuleInfo
 
@@ -58,6 +61,7 @@ def module_init(app:Flask, model:ModuleInfo):
 
     content_saving.connect(on_content_saving)
     pay_saved_successful.connect(on_pay_saved_successful)
+    search_prepare.connect(on_search_prepare)
 
     ShopOrder(app).create_index_order_id()
 
@@ -116,6 +120,75 @@ def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
     print(f'订单{model.order_no}支付成功，开始处理订单状态')
     # todo
     return True, 'succesfull'
+
+
+# ---------------------------- 商品分类ID ----------------------------
+_PRODUCT_CLASS_ID = ObjectId("6852498a0a8b42f2df14146e")
+_ARTICLE_CLASS_ID = ObjectId("6852685a0a8b42f2df14147b")
+
+
+def _build_word_conditions(keyword: str, fields: list) -> dict:
+    """
+    拆词搜索（AND 逻辑）。
+    将关键词按空白拆为单词，每个单词必须在至少一个字段中匹配。
+    例如 "RICOH MPC8003" → 必须同时有字段含 "RICOH" 和字段含 "MPC8003"，
+    避免任意一词匹配导致的搜索结果太宽泛。
+    """
+    words = [w for w in keyword.split() if w]
+    if not words:
+        return {}
+
+    if len(words) == 1:
+        # 单个单词：跨字段 $or
+        word = words[0]
+        return {
+            "$or": [
+                {field: {"$regex": re.escape(word), "$options": "i"}}
+                for field in fields
+            ]
+        }
+
+    # 多个单词：每个单词至少匹配一个字段（$and）
+    return {
+        "$and": [
+            {
+                "$or": [
+                    {field: {"$regex": re.escape(word), "$options": "i"}}
+                    for field in fields
+                ]
+            }
+            for word in words
+        ]
+    }
+
+
+def on_search_prepare(ctx: dict):
+    """
+    商城模块自定义搜索。
+    当搜索参数中有 t=1 时为商品搜索（默认），t=2 时为文章搜索。
+    """
+    t = http_helper.get_prams("t")
+    if t is None:
+        return  # 不是商城触发的搜索
+
+    keyword = ctx.get("keyword", "")
+    if not keyword:
+        return
+
+    if t == "2":
+        # 文章搜索
+        ctx["template"] = "search_article.html"
+        query = {"class_id": _ARTICLE_CLASS_ID}
+        query.update(_build_word_conditions(keyword, ["title", "info"]))
+        ctx["query"] = query
+    else:
+        # 商品搜索（默认）
+        ctx["template"] = "search_product.html"
+        query = {"class_id": _PRODUCT_CLASS_ID}
+        query.update(_build_word_conditions(keyword, [
+            "column_3", "column_4", "column_5", "column_6"
+        ]))
+        ctx["query"] = query
 
 
 

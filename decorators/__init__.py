@@ -450,7 +450,7 @@ def check_user_login(f: Callable) -> Callable:
         if not user_token:
             if _should_redirect_to_json():
                 return jsonify(api_err_permission("请先登录"))
-            return redirect(url_for('login'))
+            return redirect(url_for('pages_blue.login'))
 
         kwargs['user_token'] = user_token
         return f(*args, **kwargs)
