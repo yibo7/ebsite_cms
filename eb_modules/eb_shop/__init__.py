@@ -35,9 +35,42 @@ def inject_site_name():
     return {'SiteName': current_app.config['site_name'] or 'ebsite'}
 
 
-settings_temp = None
+settings_temp = '''
+<div class="mb-3">
+    <label>商品分类 ID <small class="text-muted">（NewsContent 中商品所属的分类 _id）</small></label>
+    <input name="product_class_id" value="{{model.product_class_id}}"
+           style="max-width:400px" class="form-control" required>
+</div>
+<div class="mb-3">
+    <label>文章分类 ID <small class="text-muted">（NewsContent 中商城文章的分类 _id）</small></label>
+    <input name="article_class_id" value="{{model.article_class_id}}"
+           style="max-width:400px" class="form-control" required>
+</div>
+<div class="mb-3">
+    <label>品牌专题父级 ID <small class="text-muted">（NewsSpecial 中品牌分组的父级 _id）</small></label>
+    <input name="brand_parent_id" value="{{model.brand_parent_id}}"
+           style="max-width:400px" class="form-control" required>
+</div>
+<div class="alert alert-info">修改配置后需重启服务才能生效。</div>
+'''
 
-@module_attribute('商城管理系统','简单的商城系统，比如，购物车，订单管理。',"/shop/shop_orders",settings_temp,'ebsite',config_fields=None)
+# ── 运行时配置（module_init 中从 DB 读取后填充） ─────────────
+product_class_id: ObjectId = None
+article_class_id: ObjectId = None
+
+
+@module_attribute(
+    '商城管理系统',
+    '简单的商城系统，比如，购物车，订单管理。',
+    "/shop/shop_orders",
+    settings_temp,
+    'ebsite',
+    config_fields={
+        'product_class_id': 'str',
+        'article_class_id': 'str',
+        'brand_parent_id': 'str',
+    }
+)
 def module_init(app:Flask, model:ModuleInfo):
     """
     在模块加载成功后触发，此函数名称不能更改
@@ -45,13 +78,26 @@ def module_init(app:Flask, model:ModuleInfo):
     @param app: 当前 flask app实例
     @return:
     """
-    module_configs = model.get_configs()
+    module_configs = model.get_configs() or {}
+
+    # 将分类 ID 转换为 ObjectId 并注入模块级变量和蓝图配置
+    global product_class_id, article_class_id
+
+    product_class_id = _to_objid(module_configs.get('product_class_id'))
+    article_class_id = _to_objid(module_configs.get('article_class_id'))
+    module_configs['_product_class_id'] = str(product_class_id) if product_class_id else ''
+    module_configs['_article_class_id'] = str(article_class_id) if article_class_id else ''
 
     bp_shop_pages.config = module_configs
-    bp_shop_apis.config = module_configs  # API 蓝图同样需要配置（AI 供应商选择）
+    bp_shop_apis.config = module_configs  # API 蓝图同样需要配置
 
     # 注册配置热更新
     def refresh_config(saved_config):
+        global product_class_id, article_class_id
+        product_class_id = _to_objid(saved_config.get('product_class_id'))
+        article_class_id = _to_objid(saved_config.get('article_class_id'))
+        saved_config['_product_class_id'] = str(product_class_id) if product_class_id else ''
+        saved_config['_article_class_id'] = str(article_class_id) if article_class_id else ''
         bp_shop_pages.config = saved_config
         bp_shop_apis.config = saved_config
     model.on_config_changed(refresh_config)
@@ -64,6 +110,15 @@ def module_init(app:Flask, model:ModuleInfo):
     search_prepare.connect(on_search_prepare)
 
     ShopOrder(app).create_index_order_id()
+
+
+def _to_objid(val):
+    """安全地将字符串转为 ObjectId，无效时返回 None"""
+    if val:
+        val = val.strip()
+        if ObjectId.is_valid(val):
+            return ObjectId(val)
+    return None
 
 
 def is_have_sku(model: NewsContentModel)->bool:
@@ -84,11 +139,10 @@ def is_have_sku(model: NewsContentModel)->bool:
             print("当前数据中存在重复 sku：", local_duplicates)
             return True
 
-        # 2. 检查数据库中是否已存在这些 sku（class_id=1）
-        # 可选：排除当前文档（用于更新场景）
+        # 2. 检查数据库中是否已存在这些 sku（限定在商品分类内）
         collection = NewsContent().table
         existing = collection.find_one({
-            "class_id": 1,
+            "class_id": product_class_id,
             "column_10.sku": {"$in": sku_list},
             "_id": {"$ne": model._id}  # 排除当前记录
         })
@@ -122,9 +176,8 @@ def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
     return True, 'succesfull'
 
 
-# ---------------------------- 商品分类ID ----------------------------
-_PRODUCT_CLASS_ID = ObjectId("6852498a0a8b42f2df14146e")
-_ARTICLE_CLASS_ID = ObjectId("6852685a0a8b42f2df14147b")
+# ---------------------------- 商品/文章分类ID（从数据库配置读取）────
+# 实际值在 module_init 中从模块配置加载，赋值给 product_class_id / article_class_id
 
 
 def _build_word_conditions(keyword: str, fields: list) -> dict:
@@ -178,13 +231,13 @@ def on_search_prepare(ctx: dict):
     if t == "2":
         # 文章搜索
         ctx["template"] = "search_article.html"
-        query = {"class_id": _ARTICLE_CLASS_ID}
+        query = {"class_id": article_class_id}
         query.update(_build_word_conditions(keyword, ["title", "info"]))
         ctx["query"] = query
     else:
         # 商品搜索（默认）
         ctx["template"] = "search_product.html"
-        query = {"class_id": _PRODUCT_CLASS_ID}
+        query = {"class_id": product_class_id}
         query.update(_build_word_conditions(keyword, [
             "column_3", "column_4", "column_5", "column_6"
         ]))

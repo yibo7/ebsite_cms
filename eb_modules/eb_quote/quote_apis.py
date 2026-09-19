@@ -132,6 +132,7 @@ _EXTRACT_PROMPT = """你是一个复印机鼓芯销售助手。从用户消息�
 
 ## 规则
 - 提取到多少返回多少，不要遗漏
+- model 字段只放一个主要型号。如果用户提到多个型号，只选第一个。**绝对不要用逗号/和/and 拼接多个型号为一个字符串 **
 - 如果有品牌也有型号，返回 {"brand":"xx","model":"xx","ok":true}
 - 如果只有型号没有品牌，也返回 {"model":"xx","ok":false,"partial":true}
 - 如果只有品牌没有型号，也返回 {"brand":"xx","ok":false,"partial":true}
@@ -260,14 +261,43 @@ def _search_products_by_params(
         # 型号匹配：column_4、column_5 或 title 中包含型号关键词
         # column_5（适用型号）包含完整的兼容型号列表，如 "Canon iR1435/iR1435i/iR1435iF/IR1435P"
         # 不加 column_5 会导致搜索具体子型号（如 IR1435P）时遗漏
-        model_pattern = re.compile(
-            re.escape(model).replace(r"\ ", ".*"), re.IGNORECASE
-        )
-        where["$or"] = [
-            {"column_4": model_pattern},
-            {"column_5": model_pattern},
-            {"title": model_pattern},
-        ]
+        #
+        # 支持多型号拆分：用户/AI 可能传入 "MP 9000 1100 1350, Aficio Pro 1106EX 1356"
+        # 按逗号/斜杠/和/and 拆分后分别搜索每个型号
+        model_parts = re.split(r'[,，/、&]+|(?:\s+(?:and|与|和)\s+)', model)
+        model_parts = [p.strip() for p in model_parts if len(p.strip()) >= 2]
+
+        if not model_parts:
+            model_parts = [model]
+
+        or_conditions = []
+        for part in model_parts:
+            # ① 完整部分的正则（如 "MP 9000 1100 1350"）
+            part_pattern = re.compile(
+                re.escape(part).replace(r"\ ", ".*"), re.IGNORECASE
+            )
+            or_conditions.append({"column_4": part_pattern})
+            or_conditions.append({"column_5": part_pattern})
+            or_conditions.append({"title": part_pattern})
+
+            # ② 进一步拆分：长串中提取单个型号组合
+            # 如 "MP 9000 1100 1350" → 分别搜 "MP 9000"、"MP 1100"、"MP 1350"
+            # 这样即使 column_4 只存了 "MP 9000" 也能搜到
+            tokens = part.split()
+            if len(tokens) >= 3:
+                prefix = tokens[0]  # 型号前缀（如 MP、IR、iR、Pro 等）
+                for token in tokens[1:]:
+                    combined = f"{prefix} {token}"
+                    if len(combined) >= 3:
+                        comb_pattern = re.compile(
+                            re.escape(combined).replace(r"\ ", ".*"),
+                            re.IGNORECASE,
+                        )
+                        or_conditions.append({"column_4": comb_pattern})
+                        or_conditions.append({"column_5": comb_pattern})
+                        or_conditions.append({"title": comb_pattern})
+
+        where["$or"] = or_conditions
 
     if oem:
         where["column_6"] = re.compile(re.escape(oem), re.IGNORECASE)

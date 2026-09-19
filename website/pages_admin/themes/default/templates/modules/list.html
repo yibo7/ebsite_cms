@@ -10,6 +10,7 @@
                 <th>模块说明</th>
                 <th>版本号</th>
                 <th>作者</th>
+                <th>状态</th>
                 <th>操作</th>
             </tr>
         </thead>
@@ -21,12 +22,27 @@
                     <td>{{value.info}}</td>
                     <td>{{value.version}}</td>
                     <td>{{value.author}}</td>
+                    <td>
+                        {% if value.is_running %}
+                        <span class="text-success">🟢 运行中</span>
+                        {% else %}
+                        <span class="text-secondary">🔴 已停用</span>
+                        {% endif %}
+                        {% if value.pending_restart %}
+                        <small class="text-warning">(重启后生效)</small>
+                        {% endif %}
+                    </td>
                     <td class="pd-a">
+                        {% if value.is_running %}
+                        <a href="javascript:;" class="text-danger me-2" onclick="toggleModule('{{key}}', 0)"><i class="fa fa-power-off"></i> 停用</a>
+                        {% else %}
+                        <a href="javascript:;" class="text-success me-2" onclick="toggleModule('{{key}}', 1)"><i class="fa fa-play"></i> 启用</a>
+                        {% endif %}
                         {% if value.admin_url %}
-                        <a href="{{value.admin_url}}" ><i class="fa fa-list-ul"></i> 管理模块 </a>
+                        <a href="{{value.admin_url}}" class="me-2"><i class="fa fa-list-ul"></i> 管理 </a>
                         {%endif%}
                         {% if value.settings_temp %}
-                        <a href="modules_save?id={{key}}" ><i class="fa fa-cog"></i> 设置模块 </a>
+                        <a href="modules_save?id={{key}}" ><i class="fa fa-cog"></i> 设置 </a>
                         {%endif%}
                     </td>
                 </tr>
@@ -34,5 +50,31 @@
         </tbody>
     </table>
 </div>
+
+<script>
+function toggleModule(id, enable) {
+    var action = enable ? '启用' : '停用';
+    if (!confirm('确定要' + action + '该模块吗？修改后需重启服务才能生效。')) {
+        return;
+    }
+    fetch('modules_toggle', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'id=' + encodeURIComponent(id) + '&enable=' + enable
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.code === 0) {
+            alert(data.msg);
+            location.reload();
+        } else {
+            alert('操作失败：' + data.msg);
+        }
+    })
+    .catch(function(err) {
+        alert('请求失败：' + err);
+    });
+}
+</script>
 
 {% endblock %}

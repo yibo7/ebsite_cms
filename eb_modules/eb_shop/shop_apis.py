@@ -32,7 +32,6 @@ def _product_to_dict(p):
         'id': p.id,
         'title': p.title,
         'small_pic': p.small_pic or '',
-        'info': p.info or '',
         'class_name': p.class_name or '',
         'class_id': str(p.class_id) if p.class_id else '',
         'column_3': p.column_3 or '',
@@ -49,7 +48,7 @@ def product_filter():
     品牌/型号级联筛选 API
 
     请求参数（GET 或 POST）：
-      - 无参数：返回品牌列表（parent_id = 6852c97a9d0e112569a8cbf9）
+      - 无参数：返回品牌列表（parent_id 从模块配置中读取）
       - parent_id：返回该品牌 _id 下的型号列表
       - brand_name + 可选 model_name：
           返回 { brands, models, products }
@@ -58,50 +57,63 @@ def product_filter():
     返回 JSON：
       { "code": 0, "brands": [...], "models": [...], "products": [...] }
     """
-    parent_id = request.values.get('parent_id')
-    brand_name = request.values.get('brand_name')
-    model_name = request.values.get('model_name')
+    try:
+        parent_id = request.values.get('parent_id')
+        brand_name = request.values.get('brand_name')
+        model_name = request.values.get('model_name')
 
-    # ── 1. 品牌列表（始终返回） ──────────────────────────────
-    brands = NewsSpecial().get_by_pid("6852c97a9d0e112569a8cbf9")
-    brand_list = [s.to_short_dic() for s in brands]
+        # ── 1. 品牌列表（始终返回） ──────────────────────────────
+        brand_parent_id = bp_shop_apis.config.get('brand_parent_id', '')
+        if brand_parent_id:
+            brand_parent_id = brand_parent_id.strip()
+        if not brand_parent_id:
+            # 配置尚未设置时，使用默认硬编码值
+            brand_parent_id = "6852c97a9d0e112569a8cbf9"
+        brands = NewsSpecial().get_by_pid(brand_parent_id) if brand_parent_id else []
+        brand_list = [s.to_short_dic() for s in brands]
 
-    # ── 2. 型号 / 商品查询条件 ─────────────────────────────
-    models = []
-    products = []
+        # ── 2. 型号 / 商品查询条件 ─────────────────────────────
+        models = []
+        products = []
 
-    if parent_id:
-        # 只查型号（兼容旧逻辑）
-        models = [s.to_short_dic() for s in NewsSpecial().get_by_pid(parent_id)]
+        if parent_id:
+            # 只查型号（兼容旧逻辑）
+            models = [s.to_short_dic() for s in NewsSpecial().get_by_pid(parent_id)]
 
-    elif brand_name:
-        # 根据品牌名称查找品牌对象 → 获取其 _id 查型号
-        matched_brand = None
-        for b in brands:
-            if b.name == brand_name:
-                matched_brand = b
-                break
-        if matched_brand:
-            models = [s.to_short_dic() for s in NewsSpecial().get_by_pid(str(matched_brand._id))]
+        elif brand_name:
+            # 根据品牌名称查找品牌对象 → 获取其 _id 查型号
+            matched_brand = None
+            for b in brands:
+                if b.name == brand_name:
+                    matched_brand = b
+                    break
+            if matched_brand:
+                models = [s.to_short_dic() for s in NewsSpecial().get_by_pid(str(matched_brand._id))]
 
-        # 查询商品
-        where = {"column_3": brand_name}
-        if model_name:
-            where["column_4"] = model_name
+            # 查询商品
+            where = {"column_3": brand_name}
+            if model_name:
+                where["column_4"] = model_name
 
-        content_list = NewsContent().find_list_by_where(
-            where=where,
-            sort_key="order_id",
-            sort_direction=pymongo.DESCENDING,
-        )
-        products = [_product_to_dict(p) for p in content_list]
+            content_list = NewsContent().find_list_by_where(
+                where=where,
+                sort_key="order_id",
+                sort_direction=pymongo.DESCENDING,
+            )
+            products = [_product_to_dict(p) for p in content_list]
 
-    return jsonify({
-        "code": 0,
-        "brands": brand_list,
-        "models": models,
-        "products": products,
-    })
+        return jsonify({
+            "code": 0,
+            "brands": brand_list,
+            "models": models,
+            "products": products,
+        })
+
+    except Exception as e:
+        print(f'product_filter 异常: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({"code": -1, "msg": str(e)}), 500
 
 
 @bp_shop_apis.route('order_count', methods=['GET'])

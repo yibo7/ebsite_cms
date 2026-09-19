@@ -34,3 +34,25 @@ def modules_save():
     return render_template(WebPaths.get_admin_path("modules/save.html"),
                            data_id=data_id, params_temp=safe_html, err=err)
 
+
+@admin_blue.route('modules_toggle', methods=['POST'])
+def modules_toggle():
+    """
+    启用/停用模块。保存 enable 状态到数据库，重启后生效。
+    """
+    data_id = http_helper.get_prams('id')
+    enable = http_helper.get_prams('enable') == '1'
+
+    model = current_app.modules.get(data_id)
+    if not model:
+        return jsonify({"code": -1, "msg": "模块不存在"})
+
+    model.set_enable(enable)
+
+    # 同步更新进程内状态，让界面立刻反映操作结果
+    model.enable = enable
+    model.is_running = enable
+    model.pending_restart = True   # 标记需要重启才完全生效
+
+    return jsonify({"code": 0, "msg": f"模块「{model.name}」已{'启用' if enable else '停用'}，重启服务后生效"})
+

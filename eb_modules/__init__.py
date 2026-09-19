@@ -15,7 +15,10 @@ class ModuleInfo:
         self.author = author
         self.version = version
         self.priority = priority
-        self.enable = enable
+        self.enable = enable            # 装饰器中的默认值
+        self.enable_db = None           # 数据库中的 enable 值（None=尚未查询）
+        self.is_running = False         # 标记模块是否实际加载运行
+        self.pending_restart = False    # True=刚操作了开关，待重启完全生效
         self.config_fields = config_fields or {}
         self._config_refresh_callback = None
 
@@ -72,6 +75,28 @@ class ModuleInfo:
         model = self.table.find_one({"_id": self.id})
         return model
 
+    def get_db_enable(self) -> bool:
+        """
+        从数据库读取该模块的 enable 状态。
+        如果 DB 无记录则返回 None（表示未覆盖）。
+        """
+        doc = self.table.find_one({"_id": self.id}, {"enable": 1})
+        if doc and "enable" in doc:
+            return doc["enable"]
+        return None
+
+    def set_enable(self, enable: bool):
+        """
+        将模块的启用/停用状态保存到数据库。
+        :param enable: True=启用, False=停用
+        """
+        self.table.update_one(
+            {"_id": self.id},
+            {"$set": {"enable": enable}},
+            upsert=True
+        )
+        self.enable_db = enable
+
 
 def module_attribute(name, info, admin_url, settings_temp, author,
                      enable=True, version=1.0, priority=999, config_fields=None):
@@ -115,13 +140,30 @@ def load_modules(app):
                 if not module_name:
                     raise Exception(f"Module '{module}' 模块名称没有定义")
 
-                is_enable = extension_info.enable
-                if is_enable:
-                    extension_info.init_app(app)
-                    module_infos[extension_info.id] = extension_info
-                    init_func(app, extension_info)
+                # 先初始化 app（需要 app.db 来查询数据库）
+                extension_info.init_app(app)
+
+                # 查询数据库中的 enable 状态，覆盖装饰器默认值
+                db_enable = extension_info.get_db_enable()
+                if db_enable is not None:
+                    extension_info.enable = db_enable
+                    extension_info.enable_db = db_enable
+
+                # 无论 enable 与否都放入 app.modules（后台列表才能显示所有模块）
+                module_infos[extension_info.id] = extension_info
+
+                if extension_info.enable:
+                    extension_info.is_running = True
+                    try:
+                        init_func(app, extension_info)
+                    except Exception as e:
+                        print(f'模块【{module_name}】加载失败：{e}')
+                        import traceback
+                        traceback.print_exc()
+                        extension_info.is_running = False
+                        extension_info.enable = False
                 else:
-                    print(f'模块【{module_name}】已关闭（enable=False）')
+                    print(f'模块【{module_name}】已停用（enable=False）')
 
     # print(module_infos)
     app.modules = module_infos
