@@ -55,7 +55,15 @@ function loadQuoteItems() {
     const saved = localStorage.getItem('eb_quote_items');
     if (saved) {
       quoteItems = JSON.parse(saved) || [];
-      // 页面加载后渲染询价单
+      // 兼容旧版 localStorage 数据：将 price 迁移到 unit_price
+      quoteItems.forEach(item => {
+        if (item.unit_price === undefined && item.price !== undefined) {
+          item.unit_price = item.price;
+        }
+        if (!item.class_name && item.life) {
+          item.class_name = item.life;
+        }
+      });
       if (typeof renderQuote === 'function') setTimeout(renderQuote, 0);
     }
   } catch(e) {
@@ -151,25 +159,31 @@ async function sendMessage() {
     if (matches.length > 0) {
       if (!window.PRODUCT_MAP) window.PRODUCT_MAP = {};
       matches.forEach(m => {
+        const sku = m.sku || m.title || '';
         // 存入 PRODUCT_MAP，供 "添加到询价篮" 按钮查找
-        window.PRODUCT_MAP[m.productId] = {
-          _id: m.productId,
+        window.PRODUCT_MAP[sku] = {
+          _id: sku,
           title: m.title || '',
-          price: m.price || 0,
+          unit_price: m.unit_price || 0,
+          market_price: m.market_price || 0,
           small_pic: m.small_pic || '',
-          brand: m.brand || '',
-          life: '标准'
+          class_name: m.class_name || '',
+          sku: sku,
+          url: m.url || '',
+          remarks: m.remarks || ''
         };
         const thumbHtml = m.small_pic
           ? `<img src="${m.small_pic}" alt="${m.title}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`
           : '🖨️';
         matchedProducts.push({
-          id: m.productId,
+          id: sku,
           name: m.title || '',
-          price: m.price || 0,
+          unit_price: m.unit_price || 0,
+          market_price: m.market_price || 0,
           qty: m.qty || 1,
-          life: '标准',
-          type: m.brand || '',
+          class_name: m.class_name || '',
+          sku: sku,
+          url: m.url || '',
           icon: thumbHtml
         });
       });
@@ -226,8 +240,8 @@ function generateAIReply(text) {
     return {
       html: `为您找到 <strong>${matchedProducts.length} 款</strong>匹配的产品 👇`,
       products: matchedProducts.map(p => ({
-        id: p._id, name: p.title, price: p.price || 0,
-        life: '标准', type: p.brand, icon: '🖨️'
+        id: p._id, name: p.title, unit_price: p.price || 0,
+        class_name: '标准', sku: p._id, icon: '🖨️'
       }))
     };
   }
@@ -236,8 +250,8 @@ function generateAIReply(text) {
     return {
       html: `<strong>${matchedBrand}</strong> 是我们主营品牌之一，以下是部分热销型号 👇`,
       products: brandProducts.map(p => ({
-        id: p._id, name: p.title, price: p.price || 0,
-        life: '标准', type: p.brand, icon: '🖨️'
+        id: p._id, name: p.title, unit_price: p.price || 0,
+        class_name: '标准', sku: p._id, icon: '🖨️'
       }))
     };
   }
@@ -265,21 +279,24 @@ function appendMessage(role, html, products, timeStr) {
   if (products && products.length > 0) {
     productsHtml = '<div class="chat-products">';
     products.forEach(p => {
-      const dp = calcDiscountPrice(p.price);
-      const saved = p.price - dp;
+      const up = p.unit_price || 0;
+      const dp = calcDiscountPrice(up);
+      const saved = up - dp;
+      const productUrl = p.url || '#';
+      const productLinkAttrs = p.url ? `href="${p.url}" target="_blank" rel="noopener"` : `href="#" onclick="event.stopPropagation();"`;
       productsHtml += `
         <div class="chat-product">
-          <div class="cp-thumb">${p.icon}</div>
+          <a ${productLinkAttrs} class="cp-thumb-link">${p.icon}</a>
           <div class="cp-info">
-            <h4>${p.name}</h4>
+            <h4><a ${productLinkAttrs} class="cp-title-link">${p.name}</a></h4>
             <div class="cp-meta">
-              <span class="tag">${p.id}</span>
-              <span class="tag">${p.life}</span>
+              <span class="tag">${p.sku || p.id}</span>
+              <span class="tag">${p.class_name || ''}</span>
             </div>
           </div>
           <div class="cp-price">
             <b>¥${dp.toFixed(2)}</b>
-            ${saved > 0 ? `<small>¥${p.price.toFixed(2)}</small><span class="save">省¥${saved.toFixed(2)}</span>` : ''}
+            ${saved > 0 ? `<small>¥${up.toFixed(2)}</small><span class="save">省¥${saved.toFixed(2)}</span>` : ''}
           </div>
           <div class="cp-action">
             <button class="cp-add-btn" onclick="addToQuote('${p.id}', this)" title="加入询价单">+</button>
@@ -369,12 +386,12 @@ function addToQuote(productId, btn, qty) {
   if (!product) {
     // 兜底：可能是旧版硬编码 ID
     const legacy = {
-      'IR1730': { title: '佳能 IR1730 鼓芯', price: 20 },
-      'IR2016': { title: '佳能 IR2016 鼓芯', price: 23 },
-      'TOSHIBA-2505': { title: '东芝 2505 鼓芯', price: 26 },
+      'IR1730': { title: '佳能 IR1730 鼓芯', unit_price: 20 },
+      'IR2016': { title: '佳能 IR2016 鼓芯', unit_price: 23 },
+      'TOSHIBA-2505': { title: '东芝 2505 鼓芯', unit_price: 26 },
     }[productId];
     if (!legacy) return;
-    product = { _id: productId, title: legacy.title, price: legacy.price, life: '标准', brand: '' };
+    product = { _id: productId, title: legacy.title, unit_price: legacy.unit_price };
   }
 
   const existing = quoteItems.find(item => item.id === productId);
@@ -384,15 +401,23 @@ function addToQuote(productId, btn, qty) {
     saveQuoteItems();
     showToast(`已增加 ${addQty} 支：${product.title}`);
   } else {
+    const thumbHtml = product.small_pic
+      ? (product.small_pic.startsWith('http') || product.small_pic.startsWith('/')
+        ? `<img src="${product.small_pic}" alt="${product.title}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`
+        : product.small_pic)
+      : '🖨️';
     quoteItems.push({
       id: productId,
       name: product.title,
-      price: product.price || 0,
+      unit_price: product.unit_price || 0,
+      market_price: product.market_price || 0,
       qty: addQty,
-      life: product.life || '标准',
-      type: product.brand || '',
-      icon: product.small_pic || '🖨️',
-      brand: product.brand || ''
+      class_name: product.class_name || '',
+      sku: product.sku || productId,
+      url: product.url || '',
+      remarks: product.remarks || '',
+      small_pic: product.small_pic || '',
+      icon: thumbHtml
     });
     saveQuoteItems();
     showToast(`已加入询价单：${product.title}`);
@@ -407,15 +432,21 @@ function renderQuote() {
   let itemsHtml = '';
   if (hasItems) {
     quoteItems.forEach(item => {
-      const dp = calcDiscountPrice(item.price);
+      const up = item.unit_price || 0;
+      const dp = calcDiscountPrice(up);
       const subtotal = dp * item.qty;
+      const itemUrl = item.url || '';
+      const itemLinkAttrs = itemUrl ? `href="${itemUrl}" target="_blank" rel="noopener"` : `href="#" onclick="event.stopPropagation();return false;"`;
+      const thumbLink = itemUrl
+        ? `<a href="${itemUrl}" target="_blank" rel="noopener" class="qi-thumb-link">${item.small_pic ? `<img src="${item.small_pic}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</a>`
+        : `<div class="qi-thumb">${item.small_pic ? `<img src="${item.small_pic}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</div>`;
       itemsHtml += `
         <div class="quote-item">
-          <div class="qi-thumb">${item.icon && (item.icon.startsWith('http') || item.icon.startsWith('/')) ? `<img src="${item.icon}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</div>
+          ${thumbLink}
           <div class="qi-info">
-            <h4>${item.name}</h4>
+            <h4><a ${itemLinkAttrs} class="qi-title-link">${item.name}</a></h4>
             <div class="qi-meta">
-              <span class="qi-original">¥${item.price.toFixed(2)}</span>
+              <span class="qi-original">¥${up.toFixed(2)}</span>
               <span class="qi-level-price">¥${dp.toFixed(2)}</span>
             </div>
             <div class="qi-qty">
@@ -445,8 +476,8 @@ function renderQuote() {
 
   let totalCount = quoteItems.length;
   let totalQty = quoteItems.reduce((s, i) => s + i.qty, 0);
-  let originalTotal = quoteItems.reduce((s, i) => s + i.price * i.qty, 0);
-  let discountTotal = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.price) * i.qty, 0);
+  let originalTotal = quoteItems.reduce((s, i) => s + (i.unit_price || 0) * i.qty, 0);
+  let discountTotal = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.unit_price || 0) * i.qty, 0);
   let discountAmount = originalTotal - discountTotal;
 
   document.getElementById('qfCountDesktop').textContent = totalCount;
@@ -520,9 +551,13 @@ async function submitToCart() {
     content_id: item.id,
     qty: item.qty,
     title: item.name,
-    price: item.price,
-    spec: item.life || '',
-    small_pic: item.icon || ''
+    unit_price: item.unit_price || 0,
+    market_price: item.market_price || 0,
+    class_name: item.class_name || '',
+    sku: item.sku || '',
+    url: item.url || '',
+    remarks: item.remarks || '',
+    small_pic: item.small_pic || ''
   }));
 
   try {
@@ -561,7 +596,7 @@ function saveQuoteRecord() {
   if (quoteItems.length === 0) return;
 
   const summary = quoteItems.map(i => `${i.name}×${i.qty}支`).join(', ');
-  const total = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.price) * i.qty, 0);
+  const total = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.unit_price || 0) * i.qty, 0);
 
   fetch('/eb_quote/api/quote/save_record', {
     method: 'POST',
@@ -573,7 +608,7 @@ function saveQuoteRecord() {
         product_id: i.id,
         qty: i.qty,
         title: i.name,
-        price: i.price
+        unit_price: i.unit_price || 0
       })),
       summary: summary,
       total: total

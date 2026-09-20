@@ -7,6 +7,9 @@
     <li class="nav-item">
       <a class="nav-link active" aria-current="page" href="shop_quotes">报价单管理</a>
     </li>
+    <li class="nav-item">
+      <a class="nav-link" href="shop_quote_prompts">🤖 提示词配置</a>
+    </li>
   </ul>
   <br>
 
@@ -95,7 +98,7 @@
           {% for p in item.product_list %}
           <div class="order-product-row">
             <div>
-              <div>{{ p.title }}</div>
+              <div>{% if p.url %}<a href="{{ p.url }}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">{% endif %}{{ p.title }}{% if p.url %}</a>{% endif %}</div>
               {% if p.spec %}<div class="p-spec">{{ p.spec }}</div>{% endif %}
             </div>
             <div class="p-price">¥{{ "%.2f"|format(p.unit_price) }}</div>

@@ -145,6 +145,8 @@
 .order-product-row .p-price {
   font-weight: 600;
 }
+.order-product-row div:first-child a{color:inherit;text-decoration:none;}
+.order-product-row div:first-child a:hover{color:#2563eb;text-decoration:underline!important;}
 
 /* ── 金额汇总 ── */
 .order-fin-row {

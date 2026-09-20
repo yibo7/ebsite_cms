@@ -29,36 +29,68 @@ def inject_site_name():
     return {'SiteName': current_app.config['site_name'] or 'ebsite'}
 
 
-settings_temp = '''
-                <div class="mb-3">
-            <label>选择AI供应商</label>
-            <select name="ai_provider" class="form-control" style="max-width:500px" required>
-                <option value="deepseek" {% if model.ai_provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
-                <option value="joyagent" {% if model.ai_provider == 'joyagent' %}selected{% endif %}>京东Joyagent</option>
-                <option value="qwen" {% if model.ai_provider == 'qwen' %}selected{% endif %}>阿里千问</option>
-            </select>
-        </div> 
-        <div class="mb-3">
-            <label>AI供应商密钥</label>
-            <input name="ai_key" value="{{model.ai_key}}"   style="max-width:500px" class="form-control" >            
-        </div> 
-        <div class="mb-3">
-            <label>模型名称</label>
-            <input name="ai_model" value="{{model.ai_model}}"   style="max-width:500px" class="form-control" >            
-        </div> 
+# AI 供应商设置（不含品类下拉，品类在模块底部的导入之后动态构建）
+_SETTINGS_AI = '''
+<div class="mb-3">
+    <label>选择AI供应商</label>
+    <select name="ai_provider" class="form-control" style="max-width:500px" required>
+        <option value="deepseek" {% if model.ai_provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
+        <option value="joyagent" {% if model.ai_provider == 'joyagent' %}selected{% endif %}>京东Joyagent</option>
+        <option value="qwen" {% if model.ai_provider == 'qwen' %}selected{% endif %}>阿里千问</option>
+    </select>
+</div> 
+<div class="mb-3">
+    <label>AI供应商密钥</label>
+    <input name="ai_key" value="{{model.ai_key}}"   style="max-width:500px" class="form-control" >            
+</div> 
+<div class="mb-3">
+    <label>模型名称</label>
+    <input name="ai_model" value="{{model.ai_model}}"   style="max-width:500px" class="form-control" >            
+</div> 
+'''
 
-        <div class="mb-3">
-            <label>欢迎语（支持HTML）</label>
-            <textarea name="welcome_message" rows="5" style="max-width:500px" class="form-control">{{model.welcome_message}}</textarea>
-            <small class="text-muted">留空则使用默认中英双语欢迎语。</small>
-        </div> 
 
-        <div class="alert alert-primary">注：当前配置修改后需要重启项目才能生效!</div>
+def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
+    print(f'订单{model.order_no}支付成功，开始处理订单状态')
+    # todo
+    return True, 'succesfull'
 
-        '''
+
+# ═════════════════════════════════════════════════════════════════
+#  模块内部导入（触发 AI 供应商 & Handler 注册）
+# ═════════════════════════════════════════════════════════════════
+from . import quote_pages
+from . import quote_apis
+from . import ai_providers  # AI 供应商注册: deepseek / joyagent / qwen
+from . import ai_handlers      # 品类 Handler 注册: printer_drum 等
+
+# 此时 ai_handlers 已全部导入，_HANDLER_REGISTRY 已填充
+from .ai_handlers import _HANDLER_REGISTRY
+
+# 从注册表动态生成品类下拉选项
+_product_type_options = "\n".join(
+    f'<option value="{key}" {{% if model.product_type == "{key}" %}}selected{{% endif %}}>'
+    f'{cls.display_name or key}</option>'
+    for key, cls in _HANDLER_REGISTRY.items()
+)
+
+# 完整设置模板（AI 供应商 + 动态品类下拉）
+settings_temp = f'''
+{_SETTINGS_AI}
+<div class="mb-3">
+    <label>AI聊天逻辑提供者</label>
+    <select name="product_type" class="form-control" style="max-width:500px" required>
+        {_product_type_options}
+    </select>
+    <small class="text-muted">选择提供者后，对应的搜索逻辑、默认提示词会自动切换。新增品类在品类处理器中注册即可自动出现。</small>
+</div> 
+
+<div class="alert alert-primary">注：AI 供应商与品类相关配置修改后需要重启项目才能生效！提示词与欢迎语请在「报价单管理 → 提示词配置」中编辑，无需重启。</div>
+'''
+
 
 @module_attribute('智能询价系统','通过AI调用商品数据给客户报价，目前依赖于eb_shop的商品表运行。',"/eb_quote/shop_quotes",settings_temp,'ebsite',config_fields={
-        'ai_provider': 'str','ai_key': 'str','ai_model': 'str','welcome_message': 'str'
+        'ai_provider': 'str','ai_key': 'str','ai_model': 'str','product_type': 'str'
 
     })
 def module_init(app:Flask, model:ModuleInfo):
@@ -86,15 +118,6 @@ def module_init(app:Flask, model:ModuleInfo):
     pay_saved_successful.connect(on_pay_saved_successful)
     ShopQuoteRecord(app).create_index_record_id()
 
-
-def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
-    print(f'订单{model.order_no}支付成功，开始处理订单状态')
-    # todo
-    return True, 'succesfull'
-
-
-
-from . import quote_pages
-from . import quote_apis
-from . import ai_providers  # AI 供应商注册: deepseek / joyagent / qwen
-
+    # 将默认提示词写入数据库（首次启动时）
+    from .datas.prompts_config import ShopQuotePrompts
+    ShopQuotePrompts(app).ensure_seeded()

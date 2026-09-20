@@ -1,0 +1,190 @@
+{% extends 'base_admin.html' %}
+{% block title %}AI 提示词配置{% endblock %}
+
+{% block content %}
+<style>
+  .pc-wrap{max-width:960px;padding:20px;}
+  .pc-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+  .pc-card-header{padding:14px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .pc-card-body{padding:20px;}
+  .pc-field{margin-bottom:18px;}
+  .pc-field:last-child{margin-bottom:0;}
+  .pc-field label{display:block;font-size:13px;font-weight:700;color:#1e293b;margin-bottom:5px;}
+  .pc-field .hint{font-size:12px;color:#94a3b8;margin-bottom:6px;line-height:1.5;}
+  .pc-field .hint code{background:#f1f5f9;padding:1px 6px;border-radius:4px;font-size:11.5px;color:#475569;}
+  .pc-field textarea{width:100%;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:monospace;line-height:1.6;outline:none;transition:.2s;resize:vertical;}
+  .pc-field textarea:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+  .pc-field input[type="text"]{width:100%;max-width:400px;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;font-size:14px;outline:none;transition:.2s;}
+  .pc-field input[type="text"]:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+  .pc-actions{padding:16px 20px;border-top:1px solid #e2e8f0;background:#fafbfc;display:flex;gap:10px;align-items:center;}
+  .pc-btn{padding:9px 24px;border-radius:999px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:.2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;}
+  .pc-btn-primary{background:linear-gradient(135deg,#1e4b8a,#2563eb);color:#fff;}
+  .pc-btn-primary:hover{box-shadow:0 6px 20px rgba(37,99,235,.3);}
+  .pc-btn-outline{background:#fff;border:1px solid #e2e8f0;color:#475569;}
+  .pc-btn-outline:hover{background:#f1f5f9;border-color:#94a3b8;}
+  .pc-toast{position:fixed;top:20px;right:20px;padding:12px 24px;border-radius:10px;font-size:14px;font-weight:600;z-index:9999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.15);}
+  .pc-toast.success{background:#065f46;color:#fff;display:block;}
+  .pc-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;}
+  .pc-badge-default{background:#f1f5f9;color:#64748b;}
+  .pc-badge-custom{background:#dbeafe;color:#1e40af;}
+</style>
+
+<div class="pc-wrap">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h4 style="margin:0;font-size:20px;">🤖 AI 提示词配置</h4>
+      <p style="margin:4px 0 0;font-size:13px;color:#64748b;">
+        编辑 AI 聊天助手的提示词模板，保存后立即生效。
+      </p>
+    </div>
+    <a href="/eb_quote/shop_quotes" class="pc-btn pc-btn-outline">← 返回报价单管理</a>
+  </div>
+
+  {% if saved %}
+  <div style="padding:12px 18px;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;color:#065f46;font-size:14px;font-weight:600;margin-bottom:20px;">
+    ✅ 配置已保存成功！
+  </div>
+  {% endif %}
+
+  <form method="post">
+    <!-- ===== 基本信息 ===== -->
+    <div class="pc-card">
+      <div class="pc-card-header">🏢 基本信息</div>
+      <div class="pc-card-body">
+        <div class="pc-field">
+          <label>店铺名称</label>
+          <div class="hint">
+            用于 AI 回复中自我介绍，模板中通过 <code>{shop_name}</code> 引用。
+          </div>
+          <input type="text" name="shop_name"
+                 value="{{ config.shop_name or defaults.shop_name }}"
+                 placeholder="Green Rich 金瑞治">
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 欢迎语 ===== -->
+    <div class="pc-card">
+      <div class="pc-card-header">
+        👋 欢迎语
+        {% if config.welcome_message and config.welcome_message.strip() %}
+          <span class="pc-badge pc-badge-custom">已自定义</span>
+        {% else %}
+          <span class="pc-badge pc-badge-default">使用默认</span>
+        {% endif %}
+      </div>
+      <div class="pc-card-body">
+        <div class="pc-field">
+          <div class="hint">
+            客户首次进入聊天时显示的欢迎信息。支持 HTML 标签。<br>
+            留空则使用系统默认欢迎语。
+          </div>
+          <textarea name="welcome_message" rows="6"
+                    placeholder="（留空使用默认值）">{{ config.welcome_message or '' }}</textarea>
+        </div>
+      </div>
+      <div class="pc-actions">
+        <button type="button" class="pc-btn pc-btn-outline" onclick="restoreDefault('welcome_message')">恢复默认</button>
+      </div>
+    </div>
+
+    <!-- ===== AI 提取提示词 ===== -->
+    <div class="pc-card">
+      <div class="pc-card-header">
+        🔍 AI 提取提示词
+        {% if config.extract_prompt and config.extract_prompt.strip() %}
+          <span class="pc-badge pc-badge-custom">已自定义</span>
+        {% else %}
+          <span class="pc-badge pc-badge-default">使用默认</span>
+        {% endif %}
+      </div>
+      <div class="pc-card-body">
+        <div class="pc-field">
+          <div class="hint">
+            从客户消息中提取商品参数（品牌、型号等）。AI 必须返回 JSON。<br>
+            留空则使用系统默认提示词。
+          </div>
+          <textarea name="extract_prompt" rows="12"
+                    placeholder="（留空使用默认值）">{{ config.extract_prompt or '' }}</textarea>
+        </div>
+      </div>
+      <div class="pc-actions">
+        <button type="button" class="pc-btn pc-btn-outline" onclick="restoreDefault('extract_prompt')">恢复默认</button>
+      </div>
+    </div>
+
+    <!-- ===== 销售文案提示词 ===== -->
+    <div class="pc-card">
+      <div class="pc-card-header">
+        💬 销售文案提示词
+        {% if config.sales_prompt_tpl and config.sales_prompt_tpl.strip() %}
+          <span class="pc-badge pc-badge-custom">已自定义</span>
+        {% else %}
+          <span class="pc-badge pc-badge-default">使用默认</span>
+        {% endif %}
+      </div>
+      <div class="pc-card-body">
+        <div class="pc-field">
+          <div class="hint">
+            AI 生成报价回复时使用的模板。可用占位符：<br>
+            <code>{shop_name}</code> — 店铺名称 &nbsp;
+            <code>{user_query}</code> — 客户原始提问 &nbsp;
+            <code>{found_products}</code> — 搜索结果产品列表 &nbsp;
+            <code>{custom_instruction}</code> — 系统自动指令（如引导点击加入询价单）
+          </div>
+          <textarea name="sales_prompt_tpl" rows="16"
+                    placeholder="（留空使用默认值）">{{ config.sales_prompt_tpl or '' }}</textarea>
+        </div>
+      </div>
+      <div class="pc-actions">
+        <button type="button" class="pc-btn pc-btn-outline" onclick="restoreDefault('sales_prompt_tpl')">恢复默认</button>
+      </div>
+    </div>
+
+    <!-- ===== 引导提示词 ===== -->
+    <div class="pc-card">
+      <div class="pc-card-header">
+        🧭 引导提示词
+        {% if config.guide_prompt and config.guide_prompt.strip() %}
+          <span class="pc-badge pc-badge-custom">已自定义</span>
+        {% else %}
+          <span class="pc-badge pc-badge-default">使用默认</span>
+        {% endif %}
+      </div>
+      <div class="pc-card-body">
+        <div class="pc-field">
+          <div class="hint">
+            当 AI 无法从客户消息中提取任何参数时，用此提示词引导客户提供信息。<br>
+            可用占位符：<code>{user_msg}</code> — 客户原始消息。
+          </div>
+          <textarea name="guide_prompt" rows="8"
+                    placeholder="（留空使用默认值）">{{ config.guide_prompt or '' }}</textarea>
+        </div>
+      </div>
+      <div class="pc-actions">
+        <button type="button" class="pc-btn pc-btn-outline" onclick="restoreDefault('guide_prompt')">恢复默认</button>
+      </div>
+    </div>
+
+    <!-- ===== 保存 ===== -->
+    <div style="text-align:center;padding:10px 0 40px;">
+      <button type="submit" class="pc-btn pc-btn-primary" style="font-size:16px;padding:12px 48px;">
+        💾 保存配置
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+/* 恢复默认值：清空字段 + 提交表单 */
+function restoreDefault(field) {
+  if (!confirm('确定要恢复该提示词的默认值吗？')) return;
+  document.querySelector(`[name="${field}"]`).value = '';
+  /* 创建一个隐藏的表单提交，仅清空该字段 */
+  var form = document.querySelector('form');
+  /* 标记此字段需要恢复默认，服务端收到空值即使用默认 */
+  /* 直接提交即可，空字符串会触发服务端使用默认 */
+  form.submit();
+}
+</script>
+{% endblock %}

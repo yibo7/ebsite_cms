@@ -31,6 +31,11 @@ def quote_view(record_id: str):
             "title": p.get("title", ""),
             "spec": p.get("spec", ""),
             "small_pic": p.get("small_pic", ""),
+            "sku": p.get("sku", ""),
+            "url": p.get("url", ""),
+            "remarks": p.get("remarks", ""),
+            "class_name": p.get("class_name", ""),
+            "market_price": float(p.get("market_price", 0)),
             "qty": qty,
             "unit_price": unit_price,
             "subtotal": round(unit_price * qty, 2),
@@ -176,6 +181,12 @@ def shop_quotes(admin_token: UserToken):
             "product_list": [{
                 "title": p.get("title", ""),
                 "spec": p.get("spec", ""),
+                "small_pic": p.get("small_pic", ""),
+                "sku": p.get("sku", ""),
+                "url": p.get("url", ""),
+                "remarks": p.get("remarks", ""),
+                "class_name": p.get("class_name", ""),
+                "market_price": float(p.get("market_price", 0)),
                 "qty": p.get("qty", 0),
                 "unit_price": float(p.get("unit_price", 0)),
                 "subtotal": float(p.get("subtotal", 0)),
@@ -204,4 +215,44 @@ def shop_quote_update_status(admin_token: UserToken):
         bll.update_status(record_id, status, reason)
 
     return redirect(url_for('bp_quote_pages.shop_quotes'))
+
+
+@bp_quote_pages.route('/shop_quote_prompts', methods=['GET', 'POST'])
+@check_admin_login
+def shop_quote_prompts(admin_token: UserToken):
+    """AI 提示词配置（后台）"""
+    from .datas.prompts_config import ShopQuotePrompts
+
+    bll = ShopQuotePrompts()
+    config = bll.get_config()
+
+    if request.method == 'POST':
+        data = {
+            "shop_name": request.form.get("shop_name", "").strip(),
+            "welcome_message": request.form.get("welcome_message", "").strip(),
+            "extract_prompt": request.form.get("extract_prompt", "").strip(),
+            "sales_prompt_tpl": request.form.get("sales_prompt_tpl", "").strip(),
+            "guide_prompt": request.form.get("guide_prompt", "").strip(),
+        }
+        bll.save_config(data)
+
+        return redirect(url_for('bp_quote_pages.shop_quote_prompts', saved=1))
+
+    saved = bool(request.args.get("saved", False))
+
+    # 从当前 Handler 加载品类默认值作为展示提示
+    from .ai_handlers import get_ai_handler
+    handler = get_ai_handler()
+
+    return render_template(
+        "shop_admin/prompts_config.html",
+        config=config, saved=saved,
+        defaults={
+            "shop_name": getattr(handler, "default_shop_name", ""),
+            "welcome_message": getattr(handler, "default_welcome_message", ""),
+            "extract_prompt": getattr(handler, "default_extract_prompt", ""),
+            "sales_prompt_tpl": getattr(handler, "default_sales_prompt_tpl", ""),
+            "guide_prompt": getattr(handler, "default_guide_prompt", ""),
+        }
+    )
 # endregion
