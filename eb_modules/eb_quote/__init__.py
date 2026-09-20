@@ -57,7 +57,7 @@ settings_temp = '''
 
         '''
 
-@module_attribute('智能询价系统','通过AI调用商品数据给客户报价，目前依赖于eb_shop的商品表运行。',"/quote/admin_quotes",settings_temp,'ebsite',config_fields={
+@module_attribute('智能询价系统','通过AI调用商品数据给客户报价，目前依赖于eb_shop的商品表运行。',"/eb_quote/shop_quotes",settings_temp,'ebsite',config_fields={
         'ai_provider': 'str','ai_key': 'str','ai_model': 'str','welcome_message': 'str'
 
     })

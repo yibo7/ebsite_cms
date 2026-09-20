@@ -22,104 +22,6 @@ from entity.user_token import UserToken
 QUOTE_CLASS_ID = "6852498a0a8b42f2df14146e"  # 产品所在分类 ID
 
 
-def _load_quote_products(max_count: int = 500) -> list[dict]:
-    """
-    加载报价系统的产品列表（从 NewsContent 指定分类）
-    结果会被缓存到 current_app.config，避免每次请求都查库
-
-    返回格式：
-    [
-        {
-            "_id": "MongoDB ObjectId 字符串",
-            "title": "佳能 IR1730 鼓芯",
-            "small_pic": "/uploads/xxx.jpg",
-            "brand": "佳能",
-            "model_name": "IR1730",
-            "compatible": "兼容机型",
-            "oem_code": "OEM码",
-            "price": 20.0,
-            "skus": [{"name": "Original", "marketPrice": 20, ...}]
-        },
-        ...
-    ]
-    """
-    import re
-
-    def _extract_img_src(html: str) -> str:
-        """从 <img src=\"...\"> HTML 中提取纯 URL"""
-        m = re.search(r'<img[^>]+src=["\']([^"\']+)["\']', html)
-        return m.group(1) if m else html
-
-    cache_key = "_quote_products_cache"
-    cached = current_app.config.get(cache_key)
-    if cached:
-        return cached
-
-    bll = NewsContent()
-    # 注意：class_id 在 MongoDB 中是 ObjectId 类型
-    # 不能用 get_new_datas（它传字符串查不到），直接查
-    class_oid = ObjectId(QUOTE_CLASS_ID)
-    import pymongo
-    models = bll.find_list_by_where(
-        {"class_id": class_oid},
-        sort_key="_id",
-        sort_direction=pymongo.DESCENDING,
-        limit=max_count
-    )
-
-    products = []
-    for p in models:
-        skus = p.column_10
-        if isinstance(skus, str):
-            try:
-                skus = json.loads(skus)
-            except (json.JSONDecodeError, TypeError):
-                skus = []
-
-        products.append({
-            "_id": str(p._id),
-            "title": p.title or "",
-            "small_pic": _extract_img_src(p.small_pic) if p.small_pic else "",
-            "brand": p.column_3 or "",
-            "model_name": p.column_4 or "",
-            "compatible": p.column_5 or "",
-            "oem_code": p.column_6 or "",
-            "price": float(p.column_11 or 0),
-            "skus": skus or [],
-        })
-
-    # 缓存1分钟（后台新增商品后最多1分钟可见）
-    current_app.config[cache_key] = products
-    return products
-
-
-@bp_quote_apis.route('quote/products', methods=['GET'])
-def quote_products():
-    """
-    获取报价系统中的所有产品列表
-
-    返回 JSON：
-    {
-        "code": 0,
-        "data": [ {_id, title, brand, model_name, price, skus, ...} ]
-    }
-    """
-    products = _load_quote_products()
-    return jsonify({"code": 0, "data": products})
-
-
-def _build_product_catalog_text(products: list[dict]) -> str:
-    """将产品列表转为极简的 AI 目录文本（最小 token 数）"""
-    lines = []
-    for i, p in enumerate(products, 1):
-        # 只保留产品 ID、名称和价格，极度精简
-        title_short = p["title"][:60]  # 标题截断
-        lines.append(
-            f'{i}. [{p["_id"]}] {title_short} ¥{p["price"]}'
-        )
-    return "\n".join(lines)
-
-
 # ═════════════════════════════════════════════════════════════════
 #  AI 提取提示词 — 从客户消息中提取产品参数
 # ═════════════════════════════════════════════════════════════════
@@ -171,61 +73,6 @@ _GUIDE_PROMPT = """客户说：{user_msg}
 """
 
 
-def _enrich_matches_from_reply(reply: str, products: list[dict]) -> list[dict]:
-    """
-    从 AI 回复文本中精确提取匹配的产品
-
-    策略：双层匹配
-    第一层（精确）：检查归一化的产品标题是否出现在回复中
-    第二层（兜底）：检查 "品牌+型号" 组合是否出现在回复中
-
-    @param reply: AI 回复文本
-    @param products: 产品列表
-    @return: [{"productId": "...", "skuIndex": 0, "qty": 1}, ...]
-    """
-    import re
-
-    if not reply or not products:
-        return []
-
-    # 归一化 AI 回复：去空格、分隔符、特殊字符
-    reply_flat = re.sub(r'[\s\-_/\\,，、()（）\[\]【】:：]+', '', reply.lower())
-
-    results = []
-
-    for p in products:
-        # --- 第一层：标题精确匹配 ---
-        title = p.get("title") or ""
-        title_flat = re.sub(r'[\s\-_/\\,，、()（）\[\]【】:：]+', '', title.lower())
-
-        matched = False
-        if len(title_flat) >= 10 and title_flat in reply_flat:
-            matched = True
-
-        # --- 第二层：品牌+型号组合匹配 ---
-        if not matched:
-            brand = (p.get("brand") or "").lower().strip()
-            model = (p.get("model_name") or "").lower().strip()
-            if brand and model:
-                # 组合方式1: "ricohmp9000"
-                combo1 = re.sub(r'[\s\-_]+', '', f"{brand}{model}")
-                # 组合方式2: "mp9000" (部分型号)
-                combo2 = re.sub(r'[\s\-_]+', '', model)
-
-                if combo1 in reply_flat or (len(combo2) >= 4 and combo2 in reply_flat):
-                    matched = True
-
-        if matched:
-            results.append({
-                "productId": p["_id"],
-                "skuIndex": 0,
-                "qty": 1
-            })
-
-    # 最多返回 2 个（通常只有 1 个精确匹配）
-    return results[:2]
-
-
 def _search_products_by_params(
     brand: str, model: str, oem: str = ""
 ) -> list[dict]:
@@ -241,7 +88,7 @@ def _search_products_by_params(
     @param brand: 品牌名（如 Ricoh、佳能）
     @param model: 型号（如 MPC8003、IR1730）
     @param oem:   OEM码（可选）
-    @return: 产品列表（格式同 _load_quote_products 返回的 dict）
+    @return: 产品列表（dict 格式: _id, title, small_pic, brand, model_name, compatible, oem_code, price, skus）
     """
     import re
     from bson import ObjectId
@@ -337,93 +184,6 @@ def _search_products_by_params(
     return products
 
 
-def _search_products(products: list[dict], query: str) -> list[dict]:
-    """
-    从用户查询文本中搜索匹配的产品（检索优先）
-
-    策略：
-    1. 精确匹配：品牌名、型号名、标题完全匹配（最高分）
-    2. 模糊匹配：将查询词拆分为 token，与产品关键词模糊匹配
-    3. 按匹配分数排序，返回 Top-5
-
-    @param products: 所有产品列表
-    @param query: 用户查询文本
-    @return: 按匹配度排序的产品列表
-    """
-    import re
-    if not query or not products:
-        return []
-
-    query_lower = query.lower().strip()
-
-    # 从查询中提取有意义的 token
-    # 先尝试提取品牌+型号的组合（如 "佳能 IR1730"）
-    query_tokens = set()
-    for token in re.split(r'[\s,，、/]+', query_lower):
-        token = token.strip()
-        if len(token) >= 2:
-            query_tokens.add(token)
-
-    current_app.logger.warning(
-        f"[_search_products] 查询='{query_lower[:80]}', "
-        f"提取关键词={query_tokens}"
-    )
-
-    # 对每个产品评分
-    scored = []
-    for p in products:
-        score = 0
-        # 构建可搜索文本
-        search_text = (
-            f"{p.get('title','')} {p.get('brand','')} "
-            f"{p.get('model_name','')} {p.get('compatible','')} "
-            f"{p.get('oem_code','')}"
-        ).lower()
-
-        # --- 精确匹配（高分）---
-        # 查询词完全出现在标题/品牌/型号中
-        for qt in query_tokens:
-            if qt in search_text:
-                score += len(qt) * 3  # 长关键词权重大
-
-        # 查询整体出现在标题中（最高分）
-        if query_lower in search_text:
-            score += 50
-
-        # 查询中的每个字符片段匹配
-        # 例如 "IR1730" 匹配 "IR1730"
-        for qt in query_tokens:
-            # 数字型号精确匹配
-            for field in ['model_name', 'title']:
-                field_val = (p.get(field) or '').lower()
-                if qt == field_val or qt in field_val.split():
-                    score += 30
-
-            # 品牌精确匹配
-            brand = (p.get('brand') or '').lower()
-            if qt == brand:
-                score += 25
-
-        # --- 辅助加分 ---
-        # sku 名称匹配
-        for sku in (p.get('skus') or []):
-            sku_name = (sku.get('name') or '').lower()
-            if sku_name and any(qt in sku_name for qt in query_tokens):
-                score += 5
-
-        if score > 0:
-            scored.append((p, score))
-            current_app.logger.warning(
-                f"  [评分] {p['title'][:50]} → {score}分"
-            )
-
-    # 按分数降序排列
-    scored.sort(key=lambda x: x[1], reverse=True)
-
-    # 返回 Top-5
-    return [p for p, s in scored[:5]]
-
-
 @bp_quote_apis.route('quote/welcome', methods=['GET'])
 def quote_welcome():
     """返回可配置的欢迎语"""
@@ -500,7 +260,7 @@ def quote_chat():
         return jsonify({
             "reply": "<p>Please tell me the <strong>brand</strong> and <strong>model</strong> of the copier drum you need.</p>"
                      "<p>请提供复印机鼓芯的<strong>品牌</strong>和<strong>型号</strong>。</p>"
-                     "<p>例：<br>• Ricoh MPC8003<br>• 佳能 IR1730<br>• Sharp MX-2600N</p>",
+                     "<p>例：<br>• Toshiba E168<br>• 佳能 iRC5030<br>• Samsung MLT-R706</p>",
             "matches": []
         })
 

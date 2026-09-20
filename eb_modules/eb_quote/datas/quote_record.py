@@ -6,6 +6,7 @@
 import time
 from typing import Optional
 
+from bson import ObjectId
 from flask import Flask
 from pymongo import ASCENDING
 
@@ -69,8 +70,8 @@ class ShopQuoteRecord(BllBase[ShopQuoteRecordModel]):
 
     @staticmethod
     def _generate_record_id() -> str:
-        rand = int(time.time() * 1000) % 1000000
-        return f"QR{rand:06d}"
+        """使用 MongoDB ObjectId 作为 record_id，全局唯一且不可枚举"""
+        return str(ObjectId())
 
     def save_record(self, model: ShopQuoteRecordModel) -> str:
         model.add_time = int(time.time())
@@ -123,5 +124,5 @@ class ShopQuoteRecord(BllBase[ShopQuoteRecordModel]):
                                sort_key="add_time", sort_direction=-1)
 
     def create_index_record_id(self):
-        self.table.create_index([("record_id", ASCENDING)], unique=True)
-        print("create_index : ShopQuoteRecord.record_id")
+        """record_id 随 ObjectId 生成已全局唯一，无需额外唯一索引"""
+        pass

@@ -124,6 +124,10 @@ footer{background:#0b1b33;color:#94a3b8;padding:60px 0 0;}
   .foot-grid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 576px) {
+  .logo small { display: none; }
+}
+
 @media (max-width: 480px) {
   .cta-btns { flex-direction: column; }
   .cta-btns .btn { width: 100%; justify-content: center; }
