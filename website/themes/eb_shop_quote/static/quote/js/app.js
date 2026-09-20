@@ -63,6 +63,17 @@ function loadQuoteItems() {
         if (!item.class_name && item.life) {
           item.class_name = item.life;
         }
+        if (!item.small_pic && item.icon) {
+          item.small_pic = item.icon;
+        }
+        if (!item.url) {
+          // 从 id 尝试构造 URL（旧数据没有 url 字段）
+          const idStr = String(item.id || '');
+          if (idStr.length === 24) { // MongoDB ObjectId — 无法推断文章 ID，跳过
+          } else if (idStr.match(/^\d+$/)) {
+            item.url = '/a' + idStr + '.html';
+          }
+        }
       });
       if (typeof renderQuote === 'function') setTimeout(renderQuote, 0);
     }

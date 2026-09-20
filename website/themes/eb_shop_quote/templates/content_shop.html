@@ -92,9 +92,10 @@
 
           <!-- 操作按钮 -->
           <div class="detail-actions">
-            <button class="btn btn-accent" onclick="addToQuoteBasket('{{ model._id }}','{{ model.title }}','{{ model.small_pic }}',{{ model.column_11 or 0 }})">
-              🛒 加入询价篮
-            </button>
+            <button class="btn btn-accent" id="addToBasketBtn"
+  onclick="addToQuoteBasket('{{ model._id }}','{{ model.title|replace("'","\\'") }}','{{ model.small_pic }}',{{ model.column_11|default(0) }},'{{ model.get_url() }}')">
+  🛒 加入询价篮
+</button>
             <button id="favorit-btn" class="btn btn-outline favorit-btn" data-faved="false" onclick="fav_content('{{ model._id }}')">
               ☆ 收藏
             </button>
@@ -131,52 +132,12 @@
     let cid = {{model.class_n_id}};
     const ContentId = "{{ model._id }}";
     const products = {{model.column_10|safe }};
-</script>
-<script>
-/* ===== 加入询价篮（localStorage） ===== */
-function addToQuoteBasket(id, title, pic, price) {
-  const qtyEl = document.querySelector('.qty-control input[type=number]');
-  const qty = qtyEl ? parseInt(qtyEl.value) || 1 : 1;
-  let items = [];
-  try {
-    const saved = localStorage.getItem('eb_quote_items');
-    if (saved) items = JSON.parse(saved) || [];
-  } catch(e) {}
-  const existing = items.find(i => i.id === id);
-  if (existing) {
-    existing.qty += qty;
-  } else {
-    items.push({ id: id, name: title, price: price, qty: qty, icon: pic || '🖨️', spec: '', brand: '' });
-  }
-  localStorage.setItem('eb_quote_items', JSON.stringify(items));
-
-  // 更新所有页面的询价篮角标
-  function _updateBadge() {
-    var badges = document.querySelectorAll('.cart-badge');
-    var total = items.reduce(function(s, i) { return s + (i.qty || 1); }, 0);
-    for (var i = 0; i < badges.length; i++) {
-      if (total > 0) {
-        badges[i].textContent = total;
-        badges[i].classList.remove('hidden');
-      } else {
-        badges[i].classList.add('hidden');
-      }
-    }
-  }
-  _updateBadge();
-
-  // Toast 提示
-  const t = document.getElementById('toast-message');
-  const s = document.getElementById('toast-text');
-  if (t && s) { s.textContent = '已加入询价篮'; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2000); }
-}
+     /* ===== 收藏状态 ===== */
+document.addEventListener('DOMContentLoaded', function() {
+  if (typeof check_fav_status === 'function') check_fav_status('{{ model._id }}');
+});
 </script>
 <script type="text/javascript" src="/shop/js/content.js" defer></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    if (typeof check_fav_status === 'function') {
-      check_fav_status('{{ model._id }}');
-    }
-  });
-</script>
+<script type="text/javascript" src="/eb_quote/js/content.js" defer></script>
+
 {% endblock %}
