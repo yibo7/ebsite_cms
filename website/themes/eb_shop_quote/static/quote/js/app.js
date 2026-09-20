@@ -345,14 +345,40 @@ function getCurrentTime() {
 }
 
 /* ===================================================================
+   ===== 更新店铺名称（从 API 配置读取） =====
+   =================================================================== */
+function updateShopName(name) {
+  if (!name) return;
+  const shortName = name.length > 12 ? name.substring(0, 12) : name;
+  const dot = name.charAt(0).toUpperCase();
+  const titleEl = document.getElementById('pageTitle');
+  if (titleEl) titleEl.textContent = `AI 智能询价 | ${name} - 询价系统`;
+  const dotEl = document.getElementById('logoDot');
+  const nameEl = document.getElementById('logoName');
+  const suffixEl = document.getElementById('logoSuffix');
+  if (dotEl) dotEl.textContent = dot;
+  if (nameEl) nameEl.textContent = name;
+  if (suffixEl) suffixEl.textContent = '';
+  const headerEl = document.getElementById('chatHeaderTitle');
+  if (headerEl) headerEl.innerHTML = `${shortName} 智能询价助手 <span class="ai-badge">AI</span>`;
+  const descEl = document.querySelector('meta[name="description"]');
+  if (descEl && !descEl.hasAttribute('data-updated')) {
+    descEl.setAttribute('data-updated', '1');
+    descEl.content = `${name}AI智能询价系统，对话式咨询产品报价，实时报价，一键生成报价单。`;
+  }
+}
+
+/* ===================================================================
    ===== 初始化聊天 =====
    =================================================================== */
 function initChatHistory() {
-  // 从后端获取可配置的欢迎语
+  // 从后端获取可配置的欢迎语与店铺名称
   fetch('/eb_quote/api/quote/welcome')
     .then(r => r.json())
     .then(data => {
       appendMessage('ai', data.welcome, null, getCurrentTime());
+      // 更新页面中所有硬编码的店铺名称
+      updateShopName(data.shop_name || 'Green Rich');
     })
     .catch(() => {
       // 兜底：双语欢迎语

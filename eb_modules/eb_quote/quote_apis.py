@@ -45,9 +45,10 @@ def _get_prompt(field: str) -> str:
 
 @bp_quote_apis.route('quote/welcome', methods=['GET'])
 def quote_welcome():
-    """返回可配置的欢迎语（从 ShopQuotePrompts 读取）"""
+    """返回可配置的欢迎语与店铺名称"""
     welcome = _get_prompt("welcome_message")
-    return jsonify({"welcome": welcome})
+    shop_name = _get_prompt("shop_name") or "Green Rich"
+    return jsonify({"welcome": welcome, "shop_name": shop_name})
 
 
 @bp_quote_apis.route('quote/chat', methods=['POST'])

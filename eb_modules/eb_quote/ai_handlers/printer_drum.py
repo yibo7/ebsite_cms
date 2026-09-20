@@ -28,13 +28,14 @@ class PrinterDrumHandler(AiHandlerBase):
 提取字段：
 - brand: 复印机品牌（如 佳能/Canon、Ricoh、Sharp、Xerox、Kyocera、Toshiba、Samsung 等）
 - model: 复印机型号（如 IR1730、MPC8003、MP9000 等）
-- oem: OEM码/货号（如果有）
+- oem: OEM码/货号/SKU/料号/产品编号（如 GX-MPC305-117、C200-037、302L57503 等）
 
 ## 规则
 - model 字段只放一个主要型号。如果用户提到多个型号，只选第一个。
 - 如果有品牌也有型号，返回 {"brand":"xx","model":"xx","ok":true}
 - 如果只有型号没有品牌，也返回 {"model":"xx","ok":false,"partial":true}
 - 如果只有品牌没有型号，也返回 {"brand":"xx","ok":false,"partial":true}
+- 如果只有 OEM/SKU/料号 没有品牌型号，返回 {"oem":"xx","ok":false,"partial":true}
 - 如果完全无法提取，返回 {"ok":false,"partial":false}
 只返回 JSON。"""
     default_sales_prompt_tpl = """你是一个复印机鼓芯的专业销售助手，代表"{shop_name}"公司。
@@ -62,25 +63,71 @@ class PrinterDrumHandler(AiHandlerBase):
         model = (params.get("model") or "").strip()
         oem = (params.get("oem") or "").strip()
         bll = NewsContent()
-        where = {"class_id": ObjectId(QUOTE_CLASS_ID)}
+        class_oid = ObjectId(QUOTE_CLASS_ID)
+
+        # ── 构建 AND 条件：每个条件独立过滤，组合后缩小范围 ──
+        where = {"class_id": class_oid}
+        and_c = []
+
         if brand:
-            where["column_3"] = re.compile(re.escape(brand), re.IGNORECASE)
+            and_c.append({"column_3": re.compile(re.escape(brand), re.IGNORECASE)})
+
         if model:
             parts = [p.strip() for p in re.split(r'[,，/、&]+|(?:\s+(?:and|与|和)\s+)', model) if len(p.strip()) >= 2]
             if not parts: parts = [model]
-            or_c = []
+            model_or = []
             for p in parts:
                 pat = re.compile(re.escape(p).replace(r"\ ", ".*"), re.IGNORECASE)
-                for f in ("column_4","column_5","title"):
-                    or_c.append({f: pat})
-            where["$or"] = or_c
+                for f in ("column_4", "column_5", "title"):
+                    model_or.append({f: pat})
+            if model_or:
+                and_c.append({"$or": model_or})
+
         if oem:
-            where["column_6"] = re.compile(re.escape(oem), re.IGNORECASE)
+            # OEM/SKU 搜索范围更宽：column_6=OEM, column_7=备注, column_10=SKU JSON, title=标题
+            oem_pat = re.compile(re.escape(oem), re.IGNORECASE)
+            oem_or = []
+            for f in ("column_6", "column_7", "column_10", "title"):
+                oem_or.append({f: oem_pat})
+            and_c.append({"$or": oem_or})
+
+        if and_c:
+            where["$and"] = and_c
+
         try:
-            models = bll.find_list_by_where(where, sort_key="order_id",
-                                            sort_direction=pymongo.DESCENDING, limit=10)
+            models = bll.find_list_by_where(
+                where, sort_key="order_id",
+                sort_direction=pymongo.DESCENDING, limit=10
+            )
         except Exception as e:
-            current_app.logger.error(f"打印耗材搜索异常: {e}"); return []
+            current_app.logger.error(f"打印耗材搜索异常: {e}")
+            return []
+
+        # ── Python 层兜底：MongoDB $regex 对数组字段不生效时，全量文本搜索 ──
+        if not models and (model or oem):
+            kw = model or oem
+            current_app.logger.warning(f"[DEBUG 兜底搜索] 关键词={kw}")
+            try:
+                all_m = bll.find_list_by_where(
+                    {"class_id": class_oid},
+                    sort_key="order_id", sort_direction=pymongo.DESCENDING, limit=200
+                )
+                hits = []
+                for m in all_m:
+                    text_parts = [
+                        str(getattr(m, f, "") or "")
+                        for f in ("title", "column_3", "column_4", "column_5",
+                                  "column_6", "column_7", "column_8", "column_9", "column_10")
+                    ]
+                    full_text = " ".join(text_parts).lower()
+                    if kw.lower() in full_text:
+                        hits.append(m)
+                if hits:
+                    models = hits[:10]
+                    current_app.logger.warning(f"[DEBUG 兜底搜索] 找到 {len(models)} 个")
+            except Exception as e:
+                current_app.logger.error(f"兜底搜索异常: {e}")
+
         products = []
         for p in models:
             skus = p.column_10
