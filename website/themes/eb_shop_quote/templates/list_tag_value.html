@@ -6,7 +6,7 @@
 {% block content %}
 <div class="container mt-3 mb-3">
     <div class="title">
-        <div class="title-txt"><span><a href='/tags1.html'>所有标签</a></span> > <span><a>{{model.name}}</a></span></div>
+        <div class="title-txt"><span><a href='/tags1.html'>{{ lang.tags_title or '所有标签' }}</a></span> > <span><a>{{model.name}}</a></span></div>
     </div>
 </div>
 <div class="container">
@@ -34,7 +34,7 @@
             </div>
 
             {% else %}
-            <div class="p-5 text-center">暂无数据</div>
+            <div class="p-5 text-center">{{ lang.tag_no_data or '暂无数据' }}</div>
             {% endif %}
 
             {% include 'loading_more.html' %}
@@ -45,7 +45,7 @@
         <div class="col-lg-3 d-none d-lg-block">
 
             <div class="eb-box">
-                    <div class="right-width-tt">猜你喜欢</div>
+                    <div class="right-width-tt">{{ lang.tag_guess_title or '猜你喜欢' }}</div>
                     <ul class="rank-list">
                          {{ widget("683ab7d64b6149cc6b93c78d") }}
                     </ul>

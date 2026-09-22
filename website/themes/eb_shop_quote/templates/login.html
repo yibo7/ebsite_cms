@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-用户登录
+{{ lang.login_title or '用户登录' }}
 {% endblock %}
 
 {% block content %}
@@ -189,8 +189,8 @@
   <div class="auth-card">
     <div class="card-header">
       <div class="icon-circle">🔐</div>
-      <h4>用户登录</h4>
-      <p>欢迎回来，请登录您的账户</p>
+      <h4>{{ lang.login_title or '用户登录' }}</h4>
+      <p>{{ lang.login_subtitle or '欢迎回来，请登录您的账户' }}</p>
     </div>
     <div class="card-body">
       <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
@@ -202,44 +202,44 @@
         {%endif%}
 
         <div class="mb-3">
-          <label class="form-label" for="username">📧 邮箱 / 手机号</label>
+          <label class="form-label" for="username">{{ lang.login_username_label or '邮箱 / 手机号' }}</label>
           <div class="input-group">
             <span class="input-group-text">📱</span>
-            <input class="form-control" id="username" name="username" placeholder="请输入邮箱或手机号" required>
-            <div class="invalid-feedback">请输入有效的手机号或邮件地址。</div>
+            <input class="form-control" id="username" name="username" placeholder="{{ lang.login_username_placeholder or '请输入邮箱或手机号' }}" required>
+            <div class="invalid-feedback">{{ lang.login_error_username or '请输入有效的手机号或邮件地址。' }}</div>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label" for="pass">🔑 密码</label>
+          <label class="form-label" for="pass">{{ lang.login_password_label or '密码' }}</label>
           <div class="input-group">
             <span class="input-group-text">🔒</span>
-            <input type="password" class="form-control" id="pass" name="pass" placeholder="请输入密码" required>
-            <div class="invalid-feedback">密码不能为空</div>
+            <input type="password" class="form-control" id="pass" name="pass" placeholder="{{ lang.login_password_placeholder or '请输入密码' }}" required>
+            <div class="invalid-feedback">{{ lang.login_error_password or '密码不能为空' }}</div>
           </div>
         </div>
 
         {%if is_safe_code %}
         <div class="mb-3">
-          <label class="form-label">🛡️ 验证码</label>
+          <label class="form-label">{{ lang.login_captcha_label or '验证码' }}</label>
           <div class="captcha-wrap">
-            <input type="text" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" placeholder="4位验证码" required/>
-            <img onClick="this.src+=(this.src.includes('?')?'':'?')+Math.random()" src="/imgcode?" style="cursor: pointer;" title="点击刷新验证码" />
+            <input type="text" class="form-control" title="{{ lang.login_captcha_placeholder or '4位验证码' }}" pattern=".{4}" name="code" placeholder="{{ lang.login_captcha_placeholder or '4位验证码' }}" required/>
+            <img onClick="this.src+=(this.src.includes('?')?'':'?')+Math.random()" src="/imgcode?" style="cursor: pointer;" title="{{ lang.contact_form_captcha_hint or '点击刷新验证码' }}" />
           </div>
-          <div class="invalid-feedback">验证码为4位，且不能为空</div>
+          <div class="invalid-feedback">{{ lang.login_error_captcha or '验证码为4位，且不能为空' }}</div>
         </div>
         {%endif%}
 
-        <button onclick="on_post()" type="submit" class="btn-submit mt-2">登 录</button>
+        <button onclick="on_post()" type="submit" class="btn-submit mt-2">{{ lang.login_btn or '登 录' }}</button>
 
-        <div class="divider"><span>其他方式</span></div>
+        <div class="divider"><span>{{ lang.login_other or '其他方式' }}</span></div>
 
         <div class="social-login">
-          <a href="javascript:" onclick="openlogin('OpenLoginWixin')">💬 微信登录</a>
+          <a href="javascript:" onclick="openlogin('OpenLoginWixin')">{{ lang.login_wechat or '微信登录' }}</a>
         </div>
 
         <div class="auth-footer">
-          还没有账号？<a href="reg">立即注册 →</a>
+          {{ lang.login_no_account or '还没有账号？' }}<a href="reg">{{ lang.login_register_link or '立即注册 →' }}</a>
         </div>
 
       </form>
@@ -249,7 +249,7 @@
 
 <script>
     function on_post(){
-        blockTips("提交中...",2)
+        blockTips("{{ lang.login_loading or '提交中...' }}",2)
     }
 </script>
 {% endblock %}

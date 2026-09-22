@@ -30,7 +30,56 @@
             </div>
         </form>
     </div>
-    {{table_html}}
+
+    <table class="table table-hover eb-table">
+        <thead>
+            <tr>
+                <th scope="col">缩略图</th>
+                <th scope="col">文章标题</th>
+                <th scope="col">文章ID</th>
+                <th scope="col">唯一ID</th>
+                <th scope="col">分类名称</th>
+                <th scope="col">访问次数</th>
+                <th scope="col">添加人</th>
+                <th scope="col">是否推荐</th>
+                <th scope="col">添加时间</th>
+                <th style="width:180px;" scope="col">操作</th>
+                <th scope="col"><input id='chAll' onclick='on_check(this)' type='checkbox' /></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if datas %}
+            {% for item in datas %}
+            <tr>
+                <td>
+                    {% if item.small_pic %}
+                    <img src="{{ item.small_pic }}" alt="{{ item.title }}" style="max-width:80px;max-height:80px;" onerror="this.src='/nopic.gif';this.onerror=null;">
+                    {% else %}
+                    <img src="/nopic.gif" alt="{{ item.title }}" style="max-width:80px;max-height:80px;">
+                    {% endif %}
+                </td>
+                <td>{{ item.a_title() | safe }}</td>
+                <td>{{ item.id }}</td>
+                <td>{{ item._id }}</td>
+                <td>{{ item.class_name }}</td>
+                <td>{{ item.hits }}</td>
+                <td>{{ item.user_name }}</td>
+                <td>{{ item.is_good | to_bool_name }}</td>
+                <td>{{ item.add_time | to_time_name }}</td>
+                <td>
+                    <a href="{{ modify_btn.url.replace('#_id#', item._id | string) }}" class="btn btn-info btn-sm">{{ modify_btn.show_name }}</a>
+                    <a href="{{ del_btn.url.replace('#_id#', item._id | string) }}" onclick="return confirm('确认要执行吗？');" class="btn btn-info btn-sm">{{ del_btn.show_name }}</a>
+                </td>
+                <td><input value="{{ item._id }}" type="checkbox" /></td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="11" class="text-center">暂无数据</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
 </div>
 <nav class="mt-2 px-2 mb-3">
     {{pager}}

@@ -7,6 +7,6 @@
     "IsDebug": true,
     "IsVercel": true,
     "Port": 8066,
-    "DefaultLang": "auto",
+    "DefaultLang": "en",
     "FileStorageSubdir": "shop"
 }

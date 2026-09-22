@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-个人中心
+{{ lang.user_center or '个人中心' }}
 {% endblock %}
 
 {% block content %}
@@ -19,8 +19,8 @@
 
         <!-- 欢迎横幅 -->
         <div class="uc-welcome">
-          <h3>👋 欢迎回来，{{ user.ni_name or user.name }}</h3>
-          <p>这里是您的个人中心，可以管理收藏、查看订单等</p>
+          <h3>{% set welcome = lang.user_welcome or '欢迎回来，{name}' %}{{ welcome.replace('{name}', user.ni_name or user.name) }}</h3>
+          <p>{{ lang.user_welcome_desc or '这里是您的个人中心，可以管理收藏、查看订单等' }}</p>
         </div>
 
         <!-- 统计卡片 -->
@@ -31,7 +31,7 @@
               <div class="uc-stat-icon gold">❤️</div>
               <div class="uc-stat-info">
                 <div class="num">{{ stats.favorites }}</div>
-                <div class="label">收藏</div>
+                <div class="label">{{ lang.user_stats_fav or '收藏' }}</div>
               </div>
             </div>
           </div>
@@ -40,7 +40,7 @@
               <div class="uc-stat-icon green">👁️</div>
               <div class="uc-stat-info">
                 <div class="num">{{ stats.total_hits }}</div>
-                <div class="label">人气</div>
+                <div class="label">{{ lang.user_stats_views or '人气' }}</div>
               </div>
             </div>
           </div>
@@ -49,7 +49,7 @@
               <div class="uc-stat-icon red">📋</div>
               <div class="uc-stat-info">
                 <div class="num"><span id="order-count">-</span></div>
-                <div class="label">询价单</div>
+                <div class="label">{{ lang.user_stats_quotes or '询价单' }}</div>
               </div>
             </div>
           </div>
@@ -58,8 +58,8 @@
         <!-- 最近收藏 -->
         <div class="uc-panel">
           <div class="uc-panel-header">
-            <h5>❤️ 最近收藏</h5>
-            <span class="badge-count">共 {{ stats.favorites }} 条</span>
+            <h5>❤️ {{ lang.user_fav_recent or '最近收藏' }}</h5>
+            <span class="badge-count">{{ lang.user_fav_count or '共 ' + stats.favorites|string + ' 条' }}</span>
           </div>
           <div class="uc-panel-body">
             {% if favorites %}
@@ -79,13 +79,13 @@
             {% else %}
             <div class="uc-panel-empty">
               <div class="empty-icon">📭</div>
-              <p>还没有收藏任何商品</p>
-              <a href="/" class="btn-outline">去逛逛 →</a>
+              <p>{{ lang.user_recent_empty_title or '还没有收藏任何商品' }}</p>
+              <a href="{{ LANG_PREFIX }}/" class="btn-outline">{{ lang.user_fav_browse or '去逛逛 →' }}</a>
             </div>
             {% endif %}
           </div>
           {% if favorites %}
-          <a href="/user/favorite" class="uc-panel-more">查看全部收藏 →</a>
+          <a href="/user/favorite" class="uc-panel-more">{{ lang.user_fav_view_all or '查看全部收藏 →' }}</a>
           {% endif %}
         </div>
 

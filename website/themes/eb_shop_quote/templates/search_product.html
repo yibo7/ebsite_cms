@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-{{key_word}} - 商品搜索
+{% set sp_title = lang.search_product_page_title or '{keyword} - 商品搜索' %}{{ sp_title.replace('{keyword}', key_word) }}
 {% endblock %}
 
 {% block content %}
@@ -9,19 +9,19 @@
 <section class="page-banner">
   <div class="container banner-content">
     <div class="breadcrumb">
-      <a href="/">首页</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.breadcrumb_home or '首页' }}</a>
       <span>/</span>
-      <a href="/search.html">搜索</a>
+      <a href="/search.html">{{ lang.breadcrumb_search or '搜索' }}</a>
       <span>/</span>
-      <span>商品</span>
+      <span>{{ lang.search_product or '商品' }}</span>
     </div>
-    <h1>商品搜索：<span>{{ key_word }}</span></h1>
-    <p>为您检索到 <strong>{{ data_list | length if data_list else 0 }}</strong> 件相关商品</p>
+    <h1>{{ lang.search_product or '商品搜索' }}：<span>{{ key_word }}</span></h1>
+    <p>{{ lang.search_result_count_prefix or '为您检索到 ' }}<strong>{{ data_list | length if data_list else 0 }}</strong>{{ lang.search_result_count_suffix or ' 件相关商品' }}</p>
     <form class="banner-search" method="get" action="/search.html" style="display:flex;gap:8px;max-width:500px;margin:16px auto 0;">
       <input type="hidden" name="t" value="1">
-      <input type="text" name="k" value="{{ key_word }}" placeholder="搜索型号 / 品牌 / 关键词..."
+      <input type="text" name="k" value="{{ key_word }}" placeholder="{{ lang.search_placeholder or '搜索型号 / 品牌 / 关键词...' }}"
              style="flex:1;padding:8px 14px;border:1px solid #d1d5db;border-radius:6px;font-size:14px;">
-      <button type="submit" style="padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;">搜索</button>
+      <button type="submit" style="padding:8px 20px;background:#2563eb;color:#fff;border:none;border-radius:6px;cursor:pointer;">{{ lang.search_btn or '搜索' }}</button>
     </form>
   </div>
 </section>
@@ -35,7 +35,7 @@
       <div class="toolbar">
         <div class="toolbar-left">
           <span class="result-count">
-            搜索 <b>"{{ key_word }}"</b> 共 <b>{{ data_list | length if data_list else 0 }}</b> 件商品
+            {% set sp_for = lang.search_product_for or '搜索「{keyword}」共 ' %}{{ sp_for.replace('{keyword}', key_word) }}<b>{{ data_list | length if data_list else 0 }}</b>{{ lang.search_result_count_suffix or ' 件商品' }}
           </span>
         </div>
       </div>
@@ -47,7 +47,7 @@
         {% for item in data_list %}
         <a href="{{ item.get_url() }}" class="product-card eb-list-item">
           <div class="product-thumb">
-            {% if loop.first %}<span class="badge hot">热销</span>{% endif %}
+            {% if loop.first %}<span class="badge hot">{{ lang.hot_badge or '热销' }}</span>{% endif %}
             <img src="{{ item.small_pic or '/images/placeholder.png' }}" alt="{{ item.title }}">
           </div>
           <div class="product-body">
@@ -69,7 +69,7 @@
               <span class="product-price"><span class="ln">¥{{ item.column_11 }}</span></span>
               {% endif %}
               <div class="product-actions">
-                <button class="add-cart-btn">去询价</button>
+                <button class="add-cart-btn">{{ lang.product_inquire or '去询价' }}</button>
               </div>
             </div>
           </div>
@@ -79,8 +79,8 @@
         {% else %}
         <div class="empty-state" style="grid-column: 1 / -1;">
           <div class="empty-icon">🔍</div>
-          <h3>找不到与「{{ key_word }}」相关的商品</h3>
-          <p>试试更换关键词，或直接联系我们获取完整产品目录。</p>
+          <h3>{% set snp = lang.search_no_product or '找不到与「{keyword}」相关的商品' %}{{ snp.replace('{keyword}', key_word) }}</h3>
+          <p>{{ lang.search_no_product_tip or '试试更换关键词，或直接联系我们获取完整产品目录。' }}</p>
         </div>
         {% endif %}
 

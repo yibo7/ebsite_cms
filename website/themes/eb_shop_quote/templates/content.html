@@ -12,13 +12,13 @@
 <section class="page-banner">
   <div class="container banner-content">
     <div class="breadcrumb">
-      <a href="index.html">首页</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.breadcrumb_home or '首页' }}</a>
       <span>/</span>
       {% if model.class_name %}
       <a href="{{ get_class_link(model.class_n_id) }}">{{ model.class_name }}</a>
       <span>/</span>
       {% endif %}
-      <span>正文</span>
+      <span>{{ lang.breadcrumb_article or '正文' }}</span>
     </div>
     <h1 style="font-size:clamp(20px,3.2vw,32px);">{{ model.title }}</h1>
     {% if model.add_time %}
@@ -43,7 +43,7 @@
           <h1 style="font-size:clamp(18px,2.5vw,26px);">{{ model.title }}</h1>
           <div class="article-meta">
             <span class="meta-date">📅 {% if model.add_time %}{{ model.add_time|to_time_name }}{% elif model.update_time %}{{ model.update_time|to_time_name }}{% endif %}</span>
-            <span class="meta-views">👁️ {{ model.hits or 0 }} 次阅读</span>
+            <span class="meta-views">👁️ {{ model.hits or 0 }} {{ lang.article_views or '次阅读' }}</span>
           </div>
         </header>
 
@@ -65,27 +65,27 @@
         <nav class="article-nav">
           <div class="article-nav-prev">
             {% if prev_article %}
-            <span class="nav-label">← 上一篇</span>
+            <span class="nav-label">{{ lang.article_prev or '← 上一篇' }}</span>
             <a href="{{ prev_article.get_url() }}">{{ prev_article.title }}</a>
             {% else %}
-            <span class="nav-label">← 上一篇</span>
-            <span class="nav-empty">没有了</span>
+            <span class="nav-label">{{ lang.article_prev or '← 上一篇' }}</span>
+            <span class="nav-empty">{{ lang.article_none or '没有了' }}</span>
             {% endif %}
           </div>
           <div class="article-nav-next">
             {% if next_article %}
-            <span class="nav-label">下一篇 →</span>
+            <span class="nav-label">{{ lang.article_next or '下一篇 →' }}</span>
             <a href="{{ next_article.get_url() }}">{{ next_article.title }}</a>
             {% else %}
-            <span class="nav-label">下一篇 →</span>
-            <span class="nav-empty">没有了</span>
+            <span class="nav-label">{{ lang.article_next or '下一篇 →' }}</span>
+            <span class="nav-empty">{{ lang.article_none or '没有了' }}</span>
             {% endif %}
           </div>
         </nav>
 
         <!-- 返回列表 -->
         <div class="article-back">
-          <a href="{{ get_class_link(model.class_n_id) }}" class="btn btn-outline">← 返回列表</a>
+          <a href="{{ get_class_link(model.class_n_id) }}" class="btn btn-outline">{{ lang.article_back or '← 返回列表' }}</a>
         </div>
 
       </article>
@@ -94,17 +94,17 @@
       <aside class="news-sidebar">
 
         <div class="sidebar-widget">
-          <h3>🔍 搜索文章</h3>
+          <h3>{{ lang.article_search_title or '搜索文章' }}</h3>
           <form class="sidebar-search" method="get" action="/search.html">
             <input type="hidden" name="t" value="2">
-            <input type="text" name="k" placeholder="输入关键词..." required>
-            <button type="submit">搜索</button>
+            <input type="text" name="k" placeholder="{{ lang.article_search_placeholder or '输入关键词...' }}" required>
+            <button type="submit">{{ lang.search_btn or '搜索' }}</button>
           </form>
         </div>
 
         <!-- 热门文章 -->
         <div class="sidebar-widget">
-          <h3>🔥 热门文章</h3>
+          <h3>🔥 {{ lang.article_hot_title or '热门文章' }}</h3>
           <div class="sidebar-hot">
             {% set hot_articles = temp_data.getHotDatas(6, class_id="6852685a0a8b42f2df14147b") %}
             {% if hot_articles %}
@@ -113,7 +113,7 @@
               <span class="hot-num">{{ loop.index }}</span>
               <div class="hot-content">
                 <a href="{{ item.get_url() }}">{{ item.title }}</a>
-                <span class="hot-meta">{{ item.add_time|to_time_name }} · {{ item.hits }} 次阅读</span>
+                <span class="hot-meta">{{ item.add_time|to_time_name }} · {{ item.hits }} {{ lang.article_views or '次阅读' }}</span>
               </div>
             </div>
             {% endfor %}
@@ -123,17 +123,17 @@
 
         <!-- 猜你喜欢 -->
         <div class="sidebar-widget">
-          <h3>📌 猜你喜欢</h3>
+          <h3>📌 {{ lang.article_guess_title or '猜你喜欢' }}</h3>
           {{ widget("683ab7d64b6149cc6b93c78d") }}
         </div>
 
         <!-- 订阅 -->
         <div class="sidebar-widget sidebar-subscribe">
-          <h3>📬 订阅资讯</h3>
-          <p>第一时间获取 Green Rich 最新产品资讯与行业动态。</p>
+          <h3>📬 {{ lang.article_subscribe_title or '订阅资讯' }}</h3>
+          <p>{{ lang.article_subscribe_desc or '第一时间获取 Green Rich 最新产品资讯与行业动态。' }}</p>
           <div class="subscribe-box">
-            <input type="email" placeholder="输入您的邮箱">
-            <button>订阅</button>
+            <input type="email" placeholder="{{ lang.article_subscribe_email_placeholder or '输入您的邮箱' }}">
+            <button>{{ lang.article_subscribe_btn or '订阅' }}</button>
           </div>
         </div>
 

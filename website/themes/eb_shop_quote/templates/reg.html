@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-用户注册
+{{ lang.reg_title or '用户注册' }}
 {% endblock %}
 {% block content %}
 
@@ -193,8 +193,8 @@
   <div class="auth-card">
     <div class="card-header">
       <div class="icon-circle">📝</div>
-      <h4>用户注册</h4>
-      <p>创建您的账户，开启更多服务</p>
+      <h4>{{ lang.reg_title or '用户注册' }}</h4>
+      <p>{{ lang.reg_subtitle or '创建您的账户，开启更多服务' }}</p>
     </div>
     <div class="card-body">
       <form action="{{request.path}}" method="post" class="needs-validation" novalidate>
@@ -206,52 +206,52 @@
         {%endif%}
 
         <div class="mb-3">
-          <label class="form-label" for="username">📧 邮箱 / 手机号</label>
+          <label class="form-label" for="username">{{ lang.reg_username_label or '邮箱 / 手机号' }}</label>
           <div class="input-group">
             <span class="input-group-text">📱</span>
-            <input type="text" class="form-control" id="username" name="username" placeholder="请输入邮箱或手机号" required>
-            <div class="invalid-feedback">请输入有效的email或手机号。</div>
+            <input type="text" class="form-control" id="username" name="username" placeholder="{{ lang.reg_username_placeholder or '请输入邮箱或手机号' }}" required>
+            <div class="invalid-feedback">{{ lang.reg_error_email or '请输入有效的email或手机号。' }}</div>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label" for="password">🔑 密码</label>
+          <label class="form-label" for="password">{{ lang.reg_password_label or '密码' }}</label>
           <div class="input-group">
             <span class="input-group-text">🔒</span>
-            <input type="password" class="form-control" id="password" name="password" placeholder="请设置密码" required>
-            <div class="invalid-feedback">密码不能为空</div>
+            <input type="password" class="form-control" id="password" name="password" placeholder="{{ lang.reg_password_placeholder or '请设置密码' }}" required>
+            <div class="invalid-feedback">{{ lang.reg_error_password or '密码不能为空' }}</div>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label" for="repassword">✅ 确认密码</label>
+          <label class="form-label" for="repassword">{{ lang.reg_password_confirm_label or '✅ 确认密码' }}</label>
           <div class="input-group">
             <span class="input-group-text">🔐</span>
-            <input type="password" class="form-control" id="repassword" name="repassword" placeholder="请再次输入密码" required>
-            <div class="invalid-feedback">确认密码不能为空</div>
+            <input type="password" class="form-control" id="repassword" name="repassword" placeholder="{{ lang.reg_password_confirm_placeholder or '请再次输入密码' }}" required>
+            <div class="invalid-feedback">{{ lang.reg_error_confirm or '确认密码不能为空' }}</div>
           </div>
         </div>
 
         <div class="mb-3">
-          <label class="form-label">🛡️ 验证码</label>
+          <label class="form-label">{{ lang.reg_captcha_label or '验证码' }}</label>
           <div class="captcha-wrap">
-            <input type="text" class="form-control" title="验证码为4个字符" pattern=".{4}" name="code" placeholder="4位验证码" required/>
-            <img onClick="this.src+=(this.src.includes('?')?'':'?')+Math.random()" src="/imgcode?" style="cursor: pointer;" title="点击刷新验证码" />
+            <input type="text" class="form-control" title="{{ lang.reg_captcha_placeholder or '4位验证码' }}" pattern=".{4}" name="code" placeholder="{{ lang.reg_captcha_placeholder or '4位验证码' }}" required/>
+            <img onClick="this.src+=(this.src.includes('?')?'':'?')+Math.random()" src="/imgcode?" style="cursor: pointer;" title="{{ lang.contact_form_captcha_hint or '点击刷新验证码' }}" />
           </div>
         </div>
 
         <div class="form-check mt-3">
           <input class="form-check-input" type="checkbox" id="invalidCheck3" required>
           <label class="form-check-label" for="invalidCheck3">
-            我已阅读并同意 <a onclick="reg_info()" href="#">《注册条款》</a>
+            {{ lang.reg_agree or '我已阅读并同意 ' }}<a onclick="reg_info()" href="#">{{ lang.reg_terms or '《注册条款》' }}</a>
           </label>
-          <div class="invalid-feedback">你必须同意条款才能注册哦</div>
+          <div class="invalid-feedback">{{ lang.reg_agree_error or '你必须同意条款才能注册哦' }}</div>
         </div>
 
-        <button onclick="on_post()" type="submit" class="btn-submit mt-4">注 册</button>
+        <button onclick="on_post()" type="submit" class="btn-submit mt-4">{{ lang.reg_btn or '注 册' }}</button>
 
         <div class="auth-footer">
-          已有账号？<a href="/login">立即登录 →</a>
+          {{ lang.reg_have_account or '已有账号？' }}<a href="/login">{{ lang.reg_login_link or '立即登录 →' }}</a>
         </div>
 
       </form>
@@ -261,10 +261,10 @@
 
 <script>
     function on_post(){
-        blockTips("提交中...",2)
+        blockTips("{{ lang.reg_loading or '提交中...' }}",2)
     }
     function reg_info(){
-        OpenIframe("reg_info.html","服务条款","同意")
+        OpenIframe("reg_info.html","{{ lang.reg_terms or '服务条款' }}","{{ lang.btn_confirm or '同意' }}")
     }
     function agr_reg(){
         $("#invalidCheck3").prop("checked",true);

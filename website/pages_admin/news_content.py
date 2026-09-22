@@ -7,7 +7,6 @@ from bll.site_model import SiteModel
 from entity.news_content_model import NewsContentModel
 from entity.site_model_entity import FieldModel
 from entity.user_token import UserToken
-from temp_expand import get_table_html
 from website.pages_admin import admin_blue
 from eb_utils import http_helper
 from eb_utils.configs import WebPaths
@@ -26,10 +25,10 @@ def content_list():
     del_btn = {"show_name": "删除", "url": "content_list_del?ids=#_id#", "confirm": True}
     modify_btn = {"show_name": "修改", "url": "content_list_save?_id=#_id#", "confirm": False}
 
-    table_html = get_table_html(datas, [del_btn, modify_btn])
     class_list = NewsClass().get_tree_text()
-    return render_template(WebPaths.get_admin_path("news_content/content_list.html"), table_html=table_html,
-                           pager=pager, class_id=class_id, class_list=class_list, keyword=keyword or '')
+    return render_template(WebPaths.get_admin_path("news_content/content_list.html"), datas=datas,
+                           pager=pager, class_id=class_id, class_list=class_list, keyword=keyword or '',
+                           del_btn=del_btn, modify_btn=modify_btn)
 
 
 @admin_blue.route('content_list_save', methods=['GET', 'POST'])

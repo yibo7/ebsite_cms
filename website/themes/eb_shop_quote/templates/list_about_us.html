@@ -9,12 +9,12 @@
 <section class="page-banner">
   <div class="container banner-content">
     <div class="breadcrumb">
-      <a href="index.html">首页</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.breadcrumb_home or '首页' }}</a>
       <span>/</span>
-      <span>关于我们</span>
+      <span>{{ lang.nav_about_us or '关于我们' }}</span>
     </div>
-    <h1>关于<span>Green Rich 金瑞治</span></h1>
-    <p>始于 1997 年，专注复印机感光鼓芯研发制造，全球 50+ 国家信赖之选。</p>
+    <h1>{{ (lang.about_title or '关于<span>Green Rich 金瑞治</span>')|safe }}</h1>
+    <p>{{ lang.about_subtitle or '始于 1997 年，专注复印机感光鼓芯研发制造，全球 50+ 国家信赖之选。' }}</p>
   </div>
 </section>
 
@@ -25,13 +25,15 @@
 
       <!-- 左侧文字 -->
       <div class="about-text">
-        <h2>关于<span>我们</span></h2>
-        {{ widget("6aab5f5b7b19c0e12d922c9c") }}
+        <h2>{{ (lang.about_us or '关于<span>我们</span>')|safe }}</h2>
+        <p>{{ (lang.about_company_intro or '<strong><span style="color:#1b4d3d;">Green Rich（金瑞治）</span></strong>是一家成立于 1997 年的耗材品牌公司，专注于复印机感光鼓芯的研发、制造和销售。公司旗下拥有 <strong><span style="color:#1b4d3d;">Green Rich（金瑞治）</span></strong> 与 <strong><span style="color:#b23e2d;">红米</span></strong> 两个知名品牌，在行业内以<strong><span style="color:#16634f;">高品质、高性价比</span></strong>的鼓芯产品著称。Green Rich 致力于为用户提供卓越的打印体验，通过精密的工艺和优质的材料，确保打印结果的<strong><span style="color:#16634f;">清晰度和持久性</span></strong>。无论是家庭用户还是企业客户，Green Rich 都提供广泛的产品系列，涵盖各种型号和规格的复印机鼓芯，以满足不同需求。红米品牌专注于复印机鼓芯领域，为用户提供高性能的复印机鼓芯解决方案。红米鼓芯以其卓越的性能和可靠性而备受赞誉，保证了高质量的复印输出效果。不论是在办公室还是学校等环境中，红米为用户提供了稳定、高效的复印体验，满足了大量文件复制和打印的需求。Green Rich（金瑞治）凭借多年来在复印机鼓芯领域的<strong><span style="color:#1b4d3d;">专业经验和技术实力</span></strong>，不断推动行业的发展和创新。')|safe }}</p>
+
+
         <div class="about-highlights">
-          <div class="about-highlight"><span class="check">✓</span> 厂家直销</div>
-          <div class="about-highlight"><span class="check">✓</span> 诚信保障</div>
-          <div class="about-highlight"><span class="check">✓</span> 全球配送</div>
-          <div class="about-highlight"><span class="check">✓</span> 无忧售后</div>
+          <div class="about-highlight"><span class="check">✓</span> {{ lang.about_highlight_1 or '厂家直销' }}</div>
+          <div class="about-highlight"><span class="check">✓</span> {{ lang.about_highlight_2 or '诚信保障' }}</div>
+          <div class="about-highlight"><span class="check">✓</span> {{ lang.about_highlight_3 or '全球配送' }}</div>
+          <div class="about-highlight"><span class="check">✓</span> {{ lang.about_highlight_4 or '无忧售后' }}</div>
         </div>
       </div>
 
@@ -48,29 +50,29 @@
 <section class="section section-alt">
   <div class="container">
     <div class="sec-header">
-      <h2>用<span>数据</span>说话</h2>
-      <p>20 余年行业沉淀，全球客户共同见证</p>
+      <h2>{{ (lang.stats_title or '用<span>数据</span>说话')|safe }}</h2>
+      <p>{{ lang.stats_subtitle or '20 余年行业沉淀，全球客户共同见证' }}</p>
     </div>
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon">🏭</div>
         <b>1997</b>
-        <span>品牌创立年份</span>
+        <span>{{ lang.stats_founded or '品牌创立年份' }}</span>
       </div>
       <div class="stat-card">
         <div class="stat-icon">📦</div>
         <b>1000+</b>
-        <span>在售鼓芯型号</span>
+        <span>{{ lang.stats_models or '在售鼓芯型号' }}</span>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🌍</div>
         <b>50+</b>
-        <span>产品出口国家</span>
+        <span>{{ lang.stats_countries or '产品出口国家' }}</span>
       </div>
       <div class="stat-card">
         <div class="stat-icon">✅</div>
         <b>&lt;0.1%</b>
-        <span>出厂不良率</span>
+        <span>{{ lang.stats_defect or '出厂不良率' }}</span>
       </div>
     </div>
   </div>
@@ -80,50 +82,50 @@
 <section class="section">
   <div class="container">
     <div class="sec-header">
-      <h2>为什么选择 <span>Green Rich</span></h2>
-      <p>您值得信赖的复印机耗材合作伙伴</p>
+      <h2>{{ (lang.why_title or '为什么选择 <span>Green Rich</span>')|safe }}</h2>
+      <p>{{ lang.why_subtitle or '您值得信赖的复印机耗材合作伙伴' }}</p>
     </div>
     <div class="feat-grid">
       <div class="feat">
         <div class="icon">🏭</div>
         <div>
-          <h4>源头工厂</h4>
-          <p>20 余年自主研发制造经验，无中间商，价格更具竞争力</p>
+          <h4>{{ lang.why_factory or '源头工厂' }}</h4>
+          <p>{{ lang.why_factory_desc or '20 余年自主研发制造经验，无中间商，价格更具竞争力' }}</p>
         </div>
       </div>
       <div class="feat">
         <div class="icon">✅</div>
         <div>
-          <h4>品质承诺</h4>
-          <p>出货前 100% 全检，不良率严格控制在 0.1% 以内</p>
+          <h4>{{ lang.why_quality or '品质承诺' }}</h4>
+          <p>{{ lang.why_quality_desc or '出货前 100% 全检，不良率严格控制在 0.1% 以内' }}</p>
         </div>
       </div>
       <div class="feat">
         <div class="icon">🌍</div>
         <div>
-          <h4>广泛兼容</h4>
-          <p>覆盖 8 大主流品牌，上千种型号一站式采购</p>
+          <h4>{{ lang.why_compatibility or '广泛兼容' }}</h4>
+          <p>{{ lang.why_compatibility_desc or '覆盖 8 大主流品牌，上千种型号一站式采购' }}</p>
         </div>
       </div>
       <div class="feat">
         <div class="icon">🚀</div>
         <div>
-          <h4>极速交付</h4>
-          <p>常规型号 48 小时内发货，支持 OEM/ODM 定制</p>
+          <h4>{{ lang.why_delivery or '极速交付' }}</h4>
+          <p>{{ lang.why_delivery_desc or '常规型号 48 小时内发货，支持 OEM/ODM 定制' }}</p>
         </div>
       </div>
       <div class="feat">
         <div class="icon">🔬</div>
         <div>
-          <h4>自主研发</h4>
-          <p>绿色鼓芯涂层技术，寿命提升 30%</p>
+          <h4>{{ lang.why_one_stop or '自主研发' }}</h4>
+          <p>{{ lang.why_one_stop_desc or '绿色鼓芯涂层技术，寿命提升 30%' }}</p>
         </div>
       </div>
       <div class="feat">
         <div class="icon">🛡️</div>
         <div>
-          <h4>无忧售后</h4>
-          <p>12 个月质保，退换货保障</p>
+          <h4>{{ lang.why_warranty or '无忧售后' }}</h4>
+          <p>{{ lang.why_warranty_desc or '12 个月质保，退换货保障' }}</p>
         </div>
       </div>
     </div>
@@ -134,29 +136,29 @@
 <section class="timeline-section">
   <div class="container">
     <div class="sec-header">
-      <h2>品牌<span>发展历程</span></h2>
-      <p>从深圳小厂到全球化耗材供应商，我们始终坚守品质初心</p>
+      <h2>{{ (lang.timeline_title or '品牌<span>发展历程</span>')|safe }}</h2>
+      <p>{{ lang.timeline_subtitle or '从深圳小厂到全球化耗材供应商，我们始终坚守品质初心' }}</p>
     </div>
     <div class="timeline">
       <div class="timeline-item">
         <div class="timeline-dot">1997</div>
-        <h4>品牌创立</h4>
-        <p>Green Rich 在深圳成立<br>专注 OPC 鼓芯研发</p>
+        <h4>{{ lang.timeline_1997_title or '品牌创立' }}</h4>
+        <p>{{ (lang.timeline_1997_desc or 'Green Rich 在深圳成立<br>专注 OPC 鼓芯研发')|safe }}</p>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot">2005</div>
-        <h4>技术突破</h4>
-        <p>自主研发绿色鼓芯涂层<br>寿命提升 30%</p>
+        <h4>{{ lang.timeline_2005_title or '技术突破' }}</h4>
+        <p>{{ (lang.timeline_2005_desc or '自主研发绿色鼓芯涂层<br>寿命提升 30%')|safe }}</p>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot">2015</div>
-        <h4>全球布局</h4>
-        <p>产品出口 50+ 国家<br>建立海外仓储中心</p>
+        <h4>{{ lang.timeline_2015_title or '全球布局' }}</h4>
+        <p>{{ (lang.timeline_2015_desc or '产品出口 50+ 国家<br>建立海外仓储中心')|safe }}</p>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot">2024</div>
-        <h4>智能制造</h4>
-        <p>全自动产线投产<br>年产能突破 500 万支</p>
+        <h4>{{ lang.timeline_2024_title or '智能制造' }}</h4>
+        <p>{{ (lang.timeline_2024_desc or '全自动产线投产<br>年产能突破 500 万支')|safe }}</p>
       </div>
     </div>
   </div>
@@ -169,72 +171,72 @@
 
       <!-- 左侧表单 -->
       <div class="contact-form">
-        <h2>联系<span>我们</span></h2>
-        <p>填写以下信息，我们的销售工程师将在 30 分钟内与您联系，提供一对一选型建议与批发报价。</p>
+        <h2>{{ (lang.contact_title or '联系<span>我们</span>')|safe }}</h2>
+        <p>{{ lang.contact_desc or '填写以下信息，我们的销售工程师将在 30 分钟内与您联系，提供一对一选型建议与批发报价。' }}</p>
 
         <form id="f_68527c940a8b42f2df1414a3" onsubmit="return on_custom_form(this)" method="post">
           <div class="form-row">
             <div class="form-group">
-              <label for="UserName">姓名 <span class="req">*</span></label>
-              <input type="text" id="UserName" name="UserName" minlength="1" maxlength="50" placeholder="请输入您的姓名" required>
+              <label for="UserName">{{ lang.contact_form_name or '姓名' }} <span class="req">*</span></label>
+              <input type="text" id="UserName" name="UserName" minlength="1" maxlength="50" placeholder="{{ lang.contact_form_name_placeholder or '请输入您的姓名' }}" required>
             </div>
             <div class="form-group">
-              <label for="ContectInfo">联系方式 <span class="req">*</span></label>
-              <input type="text" id="ContectInfo" name="ContectInfo" minlength="1" placeholder="手机号 / 微信 / 邮箱" required>
+              <label for="ContectInfo">{{ lang.contact_form_contact or '联系方式' }} <span class="req">*</span></label>
+              <input type="text" id="ContectInfo" name="ContectInfo" minlength="1" placeholder="{{ lang.contact_form_contact_placeholder or '手机号 / 微信 / 邮箱' }}" required>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full">
-              <label for="Info">备注</label>
-              <textarea id="Info" name="Info" rows="2" cols="20" placeholder="请填写你希望合作的愿望或商品类型" vglp="savedata" isnull="0"></textarea>
+              <label for="Info">{{ lang.contact_form_note or '备注' }}</label>
+              <textarea id="Info" name="Info" rows="2" cols="20" placeholder="{{ lang.contact_form_note_placeholder or '请填写你希望合作的愿望或商品类型' }}" vglp="savedata" isnull="0"></textarea>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group full">
-              <label for="safe_code">验证码 <span class="req">*</span></label>
+              <label for="safe_code">{{ lang.contact_form_captcha or '验证码' }} <span class="req">*</span></label>
               <div class="captcha-row">
-                <input type="text" name="safe_code" id="safe_code" style="max-width:100px" class="form-control" title="验证码为4个字符" pattern=".{4}" required>
-                <img onClick="this.src+=Math.random()" src="/imgcode?" title="点击刷新" />
+                <input type="text" name="safe_code" id="safe_code" style="max-width:100px" class="form-control" title="{{ lang.contact_form_captcha_hint or '看不清？点击验证码刷新' }}" pattern=".{4}" required>
+                <img onClick="this.src+=Math.random()" src="/imgcode?" title="{{ lang.contact_form_captcha_hint or '看不清？点击验证码刷新' }}" />
               </div>
-              <span class="hint">看不清？点击验证码刷新</span>
+              <span class="hint">{{ lang.contact_form_captcha_hint or '看不清？点击验证码刷新' }}</span>
             </div>
           </div>
 
           <div class="form-submit">
-            <button type="submit" class="btn btn-accent">提交</button>
+            <button type="submit" class="btn btn-accent">{{ lang.contact_form_submit or '提交' }}</button>
           </div>
         </form>
       </div>
 
       <!-- 右侧联系方式 -->
       <div class="contact-info">
-        <h3><span class="dot"></span>联系方式</h3>
+        <h3><span class="dot"></span>{{ lang.contact_info_title or '联系方式' }}</h3>
 
         <div class="contact-item">
           <div class="ci-icon">📍</div>
           <div class="ci-body">
-            <h4>公司地址</h4>
-            <p>📍 广州市天河区五山路135号2楼B区</p>
-            <p class="sub">广东省广州市 · Green Rich 金瑞治</p>
+            <h4>{{ lang.contact_address or '公司地址' }}</h4>
+            <p>{{ lang.contact_address_value or '广州市天河区五山路135号2楼B区' }}</p>
+            <p class="sub">{{ lang.contact_address_sub or '广东省广州市 · Green Rich 金瑞治' }}</p>
           </div>
         </div>
         <div class="contact-item">
           <div class="ci-icon">📱</div>
           <div class="ci-body">
-            <h4>WhatsApp联系</h4>
-            <p><a target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?">WhatsApp</a></p>
-            <p class="sub">周一至周六 9:00 - 18:00</p>
+            <h4>{{ lang.contact_info_whatsapp or 'WhatsApp联系' }}</h4>
+            <p><a target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?">{{ lang.cta_whatsapp or 'WhatsApp' }}</a></p>
+            <p class="sub">{{ lang.contact_info_hours or '周一至周六 9:00 - 18:00' }}</p>
           </div>
         </div>
 
         <div class="contact-item">
           <div class="ci-icon">💬</div>
           <div class="ci-body">
-            <h4>商务合作</h4>
-            <p><a href="tel:+8615910983264">+8615910983264</a></p>
-            <p class="sub">OEM / ODM 定制请联系</p>
+            <h4>{{ lang.contact_business or '商务合作' }}</h4>
+            <p><a href="tel:+8615910983264">+8613725264670</a></p>
+            <p class="sub">{{ lang.contact_business_sub or 'OEM / ODM 定制请联系' }}</p>
           </div>
         </div>
 

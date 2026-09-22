@@ -12,9 +12,9 @@
 <section class="page-banner">
   <div class="container banner-content">
     <div class="breadcrumb">
-      <a href="index.html">首页</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.breadcrumb_home or '首页' }}</a>
       <span>/</span>
-      <span>产品中心</span>
+      <span>{{ lang.breadcrumb_product or '产品中心' }}</span>
       <span>/</span>
       <span>{{ model.class_name }}</span>
     </div>
@@ -42,32 +42,32 @@
 
           <div class="detail-meta">
             <div class="meta-row">
-              <span class="meta-label">商品品牌</span>
+              <span class="meta-label">{{ lang.product_brand_label or '商品品牌' }}</span>
               <span class="meta-value">金瑞治 (Green Rich)</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">商品货号</span>
+              <span class="meta-label">{{ lang.product_sku_label or '商品货号' }}</span>
               <span class="meta-value">[[SelProduct ? SelProduct.sku : '---']]</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">OEM</span>
+              <span class="meta-label">{{ lang.product_oem_label or 'OEM' }}</span>
               <span class="meta-value">{{ model.column_6 }}</span>
             </div>
             <div class="meta-row">
-              <span class="meta-label">适用机型</span>
+              <span class="meta-label">{{ lang.product_compatible_label or '适用机型' }}</span>
               <span class="meta-value">{{ model.column_3 }} {{ model.column_5 }}</span>
             </div>
           </div>
 
           <!-- 价格 -->
           <div class="detail-price">
-            <span class="price-current">¥ ***</span>
-            <span class="price-note">提交询价单可看价格，也可 <a href="/c109p1.html">点击这里</a> 建立合作关系</span>
+            <span class="price-current">{{ lang.product_price_placeholder or '¥ ***' }}</span>
+            <span class="price-note">{{ (lang.product_price_note or '提交询价单可看价格，也可 <a href=\"/c109p1.html\">点击这里</a> 建立合作关系')|safe }}</span>
           </div>
 
           <!-- 规格选择 -->
           <div class="detail-spec" v-if="Products && Products.length > 0">
-            <span class="spec-label">规格</span>
+            <span class="spec-label">{{ lang.product_spec_label or '规格' }}</span>
             <div class="spec-btns">
               <input
                 :class="['spec-btn', { active: SelProduct.productId === product.productId }]"
@@ -82,7 +82,7 @@
 
           <!-- 数量 -->
           <div class="detail-qty">
-            <span class="qty-label">数量</span>
+            <span class="qty-label">{{ lang.product_qty_label or '数量' }}</span>
             <div class="qty-control">
               <button type="button" v-on:click="Quantity = Math.max(1, Quantity - 1)">−</button>
               <input type="number" v-model="Quantity" min="1" max="9999" />
@@ -94,15 +94,15 @@
           <div class="detail-actions">
             <div class="dropdown d-inline-block">
             <button class="btn btn-accent dropdown-toggle" id="addToBasketBtn" data-bs-toggle="dropdown" aria-expanded="false">
-              🛒 采购此商品
+              {{ lang.product_buy_btn or '采购此商品' }}
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" target="_blank" :href="'https://wa.me/8615910983264?text=' + encodeURIComponent('Hi, I would like to inquire about product SKU: ' + (SelProduct ? SelProduct.sku : '') + '. Are you free to talk?')" >💬 WhatsApp</a></li>
-              <li><a class="dropdown-item" target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" >✉️ 微信客服</a></li>
+              <li><a class="dropdown-item" target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" >{{ lang.nav_wechat or '微信客服' }}</a></li>
             </ul>
           </div>
             <button id="favorit-btn" class="btn btn-outline favorit-btn" data-faved="false" onclick="fav_content('{{ model._id }}')">
-              ☆ 收藏
+              {{ lang.product_fav_btn or '收藏' }}
             </button>
           </div>
 
@@ -116,7 +116,7 @@
   <section class="section product-tab-section">
     <div class="container">
       <div class="tab-header">
-        <span class="tab-item active">详情</span>
+        <span class="tab-item active">{{ lang.product_tab_detail or '详情' }}</span>
       </div>
       <div class="tab-content product-desc">
         {% if model.info %}
@@ -124,7 +124,7 @@
         {% else %}
         <div class="tab-empty">
           <div class="tab-empty-icon">📄</div>
-          <p>暂无详情数据</p>
+          <p>{{ lang.product_no_detail or '暂无详情数据' }}</p>
         </div>
         {% endif %}
       </div>

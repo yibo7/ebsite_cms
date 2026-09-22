@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-我的收藏
+{{ lang.user_favorites or '我的收藏' }}
 {% endblock %}
 
 {% block content %}
@@ -16,8 +16,8 @@
 
         <div class="uc-panel">
           <div class="uc-panel-header">
-            <h5>❤️ 我的收藏</h5>
-            <span class="badge-count">共 {{ data_list|length if data_list else 0 }} 条</span>
+            <h5>❤️ {{ lang.user_favorites or '我的收藏' }}</h5>
+            <span class="badge-count">{{ lang.user_fav_count or '共 ' + (data_list|length if data_list else 0)|string + ' 条' }}</span>
           </div>
           <div class="uc-panel-body">
             {% if data_list %}
@@ -43,9 +43,9 @@
             {% else %}
             <div class="uc-empty">
               <div class="empty-icon">💔</div>
-              <h6>还没有收藏</h6>
-              <p>去商品页面点击 ❤️ 即可收藏您感兴趣的商品</p>
-              <a href="/" class="btn-outline">去逛逛 →</a>
+              <h6>{{ lang.user_fav_empty_title or '还没有收藏' }}</h6>
+              <p>{{ lang.user_fav_empty_desc or '去商品页面点击 ❤️ 即可收藏您感兴趣的商品' }}</p>
+              <a href="{{ LANG_PREFIX }}/" class="btn-outline">{{ lang.user_fav_browse or '去逛逛 →' }}</a>
             </div>
             {% endif %}
           </div>

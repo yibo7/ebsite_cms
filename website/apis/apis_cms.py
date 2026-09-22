@@ -1,7 +1,8 @@
 
-from flask import jsonify, request
-
+import logging
 import re
+
+from flask import jsonify, request
 
 from bll.admin_menus import AdminMenus
 from bll.custom_form import CustomForm
@@ -11,13 +12,16 @@ from bll.new_content import NewsContent
 from bll.new_special import NewsSpecial
 from bll.user import User
 from bll.widget_bll import WidgetBll
-from decorators import rate_limit_ip, verify_site_key_md5
+from decorators import rate_limit_ip, reject_dangerous_input, verify_site_key_hmac, verify_site_key_md5
 from eb_cache import cache
 from eb_utils import http_helper
+from eb_utils.html_sanitizer import sanitize_html
 from eb_utils.image_code import ImageCode
 from entity import api_msg
 from entity.api_msg import ApiMsg, api_succesful
 from website.apis import api_blue
+
+logger = logging.getLogger(__name__)
 
 
 @api_blue.route('getsubmenus', methods=['POST'])
@@ -178,23 +182,37 @@ def special_pages():
         return jsonify({'code': 0, "data": models_dicts, 'count': i_count})
     return 'not found.', 404
 
-@api_blue.route('auto_post_content/<int:user_id>/<int:class_id>/<md5:site_key_md5>', methods=['POST'])
-@verify_site_key_md5
-def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
+@api_blue.route('auto_post_content/<int:user_id>/<int:class_id>', methods=['POST'])
+@verify_site_key_hmac
+@rate_limit_ip(30, 1)  # 同一IP每分钟最多发布30次
+@reject_dangerous_input
+def auto_post_content(user_id: int, class_id: int):
     """
     可以通过三方或具自动入库的接口，此接口虽然不需要用户登录权限，但需要网站的密钥配合使用
+
+    鉴权方式（请求头）：
+      - X-Timestamp: 当前 Unix 时间戳（秒）
+      - X-Sign: HMAC-SHA256(timestamp + ":" + 原始请求体, SiteKey)
+
     可以post的参数为内容实体字段
     add_time, title, info, small_pic, class_name, class_id, class_n_id, seo_title, seo_keyword, seo_description, hits, comment_num, favorable_num, user_id, user_name, user_ni_name, rand_num, is_good,  id, column_1, column_2, column_3, column_4, column_5, column_6, column_7, column_8, column_9, column_10, column_11, column_12, column_13, column_14, column_15, column_16, column_17, column_18, column_19, column_20, column_21
     有一个特殊的字段tag不能直接传递，需要通过tagstr参数传递，多个标签可用英文逗号分开
     :param user_id: 添加用户的ID整数
     :param class_id: 要添加到哪个分类下的分类ID整数
-    :param site_key_md5: 网密钥的md5值
     :return:
     """
+
+    # ── 审计日志：记录调用来源 ──
+    caller_ip = http_helper.get_ip()
+    caller_ua = request.headers.get('User-Agent', '')
+    logger.info("API发布请求 | user_id=%s | class_id=%s | ip=%s | ua=%s",
+                user_id, class_id, caller_ip, caller_ua[:200])
 
     user_model = User().get_by_int_id(user_id)
     class_model = NewsClass().get_by_int_id(class_id)
     if not user_model or not class_model:
+        logger.warning("API发布失败 | 不存在用户或分类 | user_id=%s | class_id=%s | ip=%s",
+                       user_id, class_id, caller_ip)
         return jsonify(api_msg.api_err("发布失败，不存在用户或不存在分类"))
 
     dic_prams = http_helper.get_prams_dict()
@@ -211,11 +229,19 @@ def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
     # is_good、hits、user_id 等敏感字段也不在白名单中
     dic_prams = {k: v for k, v in dic_prams.items() if k in ALLOWED_FIELDS}
 
-    # ── 内容字段过滤 Jinja2 模板语法，防止 SSTI ──
-    _JINJA2_PATTERN = re.compile(r'\{\{.*?\}\}|\{%.*?%\}|{#.*?#}')
-    for field in list(dic_prams.keys()):
-        if isinstance(dic_prams[field], str):
-            dic_prams[field] = _JINJA2_PATTERN.sub('', dic_prams[field])
+    # ── HTML 安全净化（防御纵深）：允许富文本标签但禁止脚本 ──
+    HTML_FIELDS = {'info', 'column_1', 'column_2', 'column_3', 'column_4',
+                   'column_6', 'column_7', 'column_8', 'column_9', 'column_10',
+                   'column_11', 'column_12', 'column_13', 'column_14', 'column_15',
+                   'column_16', 'column_17', 'column_18', 'column_19', 'column_20', 'column_21'}
+    for field in HTML_FIELDS & dic_prams.keys():
+        if isinstance(dic_prams[field], str) and dic_prams[field]:
+            dic_prams[field] = sanitize_html(dic_prams[field])
+
+    # ── 标题也做轻量级清理（只移除事件处理器） ──
+    if 'title' in dic_prams and isinstance(dic_prams['title'], str):
+        from eb_utils.html_sanitizer import strip_event_handlers
+        dic_prams['title'] = strip_event_handlers(dic_prams['title'])
 
     bll = NewsContent()
     model = bll.new_instance()
@@ -239,9 +265,12 @@ def auto_post_content(user_id: int, class_id: int, site_key_md5: str):
     if tagstr:
         model.set_tag_string(tagstr)
 
-    bll.save_content(model)
+    model = bll.save_content(model)
 
-    return jsonify(api_msg.api_succesful("发布成功"))
+    logger.info("API发布成功 | user_id=%s | class_id=%s | title=%s | ip=%s",
+                user_id, class_id, model.title[:50], caller_ip)
+
+    return jsonify(api_msg.api_succesful(model.get_url()))
 
 
 @api_blue.route('get_content/<int:content_id>/<md5:site_key_md5>', methods=['POST', 'GET'])

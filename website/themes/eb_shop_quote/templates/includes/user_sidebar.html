@@ -7,16 +7,16 @@
   <!-- 用户信息卡片 -->
   <div class="uc-profile">
     <div class="uc-avatar">{{ (user.ni_name or user.name or '?')[0] }}</div>
-    <div class="uc-name">{{ user.ni_name or user.name or '用户' }}</div>
+    <div class="uc-name">{{ user.ni_name or user.name or lang.user_sidebar_unknown or '用户' }}</div>
     <div class="uc-username">@{{ user.name or 'unknown' }}</div>
     <div class="uc-stats">
       <div>
         <span class="uc-stat-num">{{ _s.favorites }}</span>
-        <span class="uc-stat-label">收藏</span>
+        <span class="uc-stat-label">{{ lang.user_sidebar_fav or '收藏' }}</span>
       </div>
       <div>
         <span class="uc-stat-num">{{ _s.total_hits }}</span>
-        <span class="uc-stat-label">询价单</span>
+        <span class="uc-stat-label">{{ lang.user_sidebar_quotes or '询价单' }}</span>
       </div>
     </div>
   </div>
@@ -26,19 +26,19 @@
   <div class="uc-nav">
     <a href="/user/index" class="uc-nav-item{{ ' active' if active_nav == 'index' else '' }}">
       <span class="uc-nav-icon">🏠</span>
-      控制面板
+      {{ lang.user_sidebar_dashboard or '控制面板' }}
     </a>
     <a href="/user/favorite" class="uc-nav-item{{ ' active' if active_nav == 'favorite' else '' }}">
       <span class="uc-nav-icon">❤️</span>
-      我的收藏
+      {{ lang.user_favorites or '我的收藏' }}
     </a>
     <a href="/eb_quote/my_quotes" class="uc-nav-item{{ ' active' if active_nav == 'quotes' else '' }}">
       <span class="uc-nav-icon">🛒</span>
-      我的报价单
+      {{ lang.user_sidebar_quotes or '我的报价单' }}
     </a>
-    <a href="/user/log_out" class="uc-nav-item exit" onclick="return confirm('确定要退出登录吗？')">
+    <a href="/user/log_out" class="uc-nav-item exit" onclick="return confirm('{{ lang.user_sidebar_logout_confirm or '确定要退出登录吗？' }}')">
       <span class="uc-nav-icon">🚪</span>
-      退出登录
+      {{ lang.user_sidebar_logout or '退出登录' }}
     </a>
   </div>
 </div>

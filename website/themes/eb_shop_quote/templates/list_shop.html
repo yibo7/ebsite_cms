@@ -7,12 +7,12 @@
  <section class="page-banner">
   <div class="container banner-content">
     <div class="breadcrumb">
-      <a href="index.html">首页</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.breadcrumb_home or '首页' }}</a>
       <span>/</span>
-      <span>产品中心</span>
+      <span>{{ lang.breadcrumb_product or '产品中心' }}</span>
     </div>
-    <h1>复印机<span>感光鼓芯</span>全系列</h1>
-    <p>覆盖佳能、东芝、柯尼卡、京瓷、施乐、夏普、理光、三星等 8 大品牌，上千种型号一站式采购，出货前 100% 全检。</p>
+    <h1>{{ (lang.product_page_title or '复印机<span>感光鼓芯</span>全系列')|safe }}</h1>
+    <p>{{ lang.product_page_desc or '覆盖佳能、东芝、柯尼卡、京瓷、施乐、夏普、理光、三星等 8 大品牌，上千种型号一站式采购，出货前 100% 全检。' }}</p>
 
   </div>
 </section>
@@ -29,9 +29,9 @@
 
         <!-- 第一行：品牌 -->
         <div class="filter-row">
-          <span class="filter-label">品牌</span>
+          <span class="filter-label">{{ lang.product_filter_brand or '品牌' }}</span>
           <div class="filter-tags" id="filterBrand">
-            <span class="filter-tag active" data-id="">全部</span>
+            <span class="filter-tag active" data-id="">{{ lang.product_filter_all or '全部' }}</span>
             {% set brands = temp_data.get_specials(parent_id="6852c97a9d0e112569a8cbf9") %}
             {% for b in brands %}
             <span class="filter-tag" data-id="{{ b._id }}" data-name="{{ b.name }}">{{ b.name }}</span>
@@ -41,8 +41,8 @@
 
         <!-- 第二行：型号 -->
         <div class="filter-row">
-          <span class="filter-label">型号</span>
-          <div class="filter-tags" id="filterModel"><span class="filter-tag active">全部</span></div>
+          <span class="filter-label">{{ lang.product_filter_model or '型号' }}</span>
+          <div class="filter-tags" id="filterModel"><span class="filter-tag active">{{ lang.product_filter_all or '全部' }}</span></div>
         </div>
 
       </div>
@@ -50,7 +50,7 @@
       <!-- 工具栏 -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <span class="result-count">产品列表</span>
+          <span class="result-count">{{ lang.product_list_title or '产品列表' }}</span>
           <div class="active-filters" id="activeFilters"></div>
         </div>
       </div>
@@ -58,7 +58,7 @@
       <!-- 产品网格 -->
       <div class="product-grid eb-list-box" id="productGrid">
 
-        <!-- ═══ 后端模板渲染的初始数据（不动） ═══ -->
+        <!-- ═══ 后端模板渲染的初始数据 ═══ -->
         <div id="serverProductList">
         {% if data_list %}
         {% for item in data_list %}
@@ -66,7 +66,7 @@
            data-brand="{{ item.column_4 or '' }}"
            data-type="{{ item.column_3 or '' }}">
           <div class="product-thumb">
-            {% if loop.first %}<span class="badge hot">热销</span>{% endif %}
+            {% if loop.first %}<span class="badge hot">{{ lang.hot_badge or '热销' }}</span>{% endif %}
             <img src="{{ item.small_pic}}" alt="{{ item.title }}">
           </div>
           <div class="product-body">
@@ -80,10 +80,10 @@
               {% endif %}
             </div>
             <div class="product-foot">
-             <span class="product-price"><span class="ln">¥***</span> <small>/ 支</small></span>
+             <span class="product-price"><span class="ln">{{ lang.product_price_placeholder or '¥***' }}</span> <small>{{ lang.product_per_unit or '/ 支' }}</small></span>
               <div class="product-actions">
-                <button class="icon-btn" title="收藏">♡</button>
-                <button class="add-cart-btn">去询价</button>
+                <button class="icon-btn" title="{{ lang.user_favorites or '收藏' }}">{{ lang.product_favorite_btn or '♡' }}</button>
+                <button class="add-cart-btn">{{ lang.product_inquire or '去询价' }}</button>
               </div>
             </div>
           </div>
@@ -92,8 +92,8 @@
         {% else %}
         <div class="empty-state">
           <div class="empty-icon">🔍</div>
-          <h3>没有找到匹配的产品</h3>
-          <p>试试调整筛选条件，或直接联系我们获取完整产品目录。</p>
+          <h3>{{ lang.product_no_result or '没有找到匹配的产品' }}</h3>
+          <p>{{ lang.product_no_result_tip or '试试调整筛选条件，或直接联系我们获取完整产品目录。' }}</p>
         </div>
         {% endif %}
         </div>

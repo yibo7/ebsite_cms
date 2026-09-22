@@ -1,13 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh-Hans" data-bs-theme="light">
+<html lang="{% if current_lang == 'en' %}en{% elif current_lang == 'ar' %}ar{% else %}zh-CN{% endif %}" data-bs-theme="light">
 
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{% block title %}{% endblock %}-{{SiteName}}</title>
+  <title>{% block title %}{% endblock %}-{{ lang.site_name or 'Green Rich' }}</title>
   <link rel="icon" href="/favicon.svg" />
   <meta name="keywords" content="鼓芯，复印机鼓芯" />
+  <!-- hreflang 多语言 -->
+  <link rel="alternate" hreflang="zh" href="{% if current_lang != 'zh' %}/zh{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
+  <link rel="alternate" hreflang="en" href="{% if current_lang != 'en' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
+  <link rel="alternate" hreflang="ar" href="{% if current_lang != 'ar' %}/ar{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
+  <link rel="canonical" href="{% if current_lang != default_lang %}/{{ current_lang }}{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
   <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
   <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
@@ -20,29 +25,44 @@
 <body>
  <header>
   <div class="container nav">
-    <a class="logo" href="/">
+    <a class="logo" href="{{ LANG_PREFIX }}/">
       <span class="dot">G</span>Green Rich <small>金瑞治</small>
     </a>
     <nav class="nav-links">
-      <a href="/" >首页</a>
-      <a cid="105" href="{{ LANG_PREFIX }}/c105p1.html">产品中心</a>
-      <a cid="106" href="{{ LANG_PREFIX }}/c106p1.html">行业资讯</a>
-      <a cid="108" href="{{ LANG_PREFIX }}/c108p1.html">关于我们</a>
-      <a cid="109" href="{{ LANG_PREFIX }}/c109p1.html">加盟合作</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '首页' }}</a>
+      <a cid="105" href="{{ LANG_PREFIX }}/c105p1.html">{{ lang.nav_products or '产品中心' }}</a>
+      <a cid="106" href="{{ LANG_PREFIX }}/c106p1.html">{{ lang.nav_news or '行业资讯' }}</a>
+      <a cid="108" href="{{ LANG_PREFIX }}/c108p1.html">{{ lang.nav_about_us or '关于我们' }}</a>
+      <a cid="109" href="{{ LANG_PREFIX }}/c109p1.html">{{ lang.nav_join_us or '加盟合作' }}</a>
     </nav>
     <div class="header-actions">
-      <a href="javascript:void(0)" id="search-toggle" class="search-toggle" title="搜索" style="font-size:20px;">
+      <a href="javascript:void(0)" id="search-toggle" class="search-toggle" title="{{ lang.search_title or '搜索' }}" style="font-size:20px;">
         &#128270;
       </a>
-      <span class="lang">中文 ▾</span>
+      <!-- 语言切换（下拉菜单） -->
+      <div class="dropdown d-inline-block lang-dropdown">
+        <button class="btn btn-sm btn-outline-secondary dropdown-toggle lang-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {{ available_langs.get(current_lang, current_lang) }}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          {% for code, name in available_langs.items() %}
+          <li>
+            <a class="dropdown-item {% if code == current_lang %}active{% endif %}"
+               href="{% if code == default_lang %}{{ request.path }}{% else %}/{{ code }}{{ request.path }}{% endif %}">
+              {{ name }}
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
 
       <div class="dropdown d-inline-block">
         <a href="javascript:void(0)" class="btn-quote dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          🛒 询价 <span class="cart-badge hidden" id="quoteBadge">0</span>
+          🛒 {{ lang.nav_inquiry or '询价' }} <span class="cart-badge hidden" id="quoteBadge">0</span>
         </a>
         <ul class="dropdown-menu">
           <li><a class="dropdown-item" target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?" >💬 WhatsApp</a></li>
-          <li><a class="dropdown-item" target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" >✉️ 微信客服</a></li>
+          <li><a class="dropdown-item" target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" >✉️ {{ lang.nav_wechat or '微信客服' }}</a></li>
         </ul>
       </div>
       <button class="mobile-toggle">☰</button>
@@ -52,10 +72,10 @@
       <form onsubmit="return ChkSo(this);" method="get" action="/search.html"
             class="d-flex justify-content-between align-items-center">
         <input type="hidden" name="t" value="1">
-        <input type="text" class="form-control" id="k" name="k" placeholder="搜索型号 / 品牌 / 关键词..."
+        <input type="text" class="form-control" id="k" name="k" placeholder="{{ lang.search_placeholder or '搜索型号 / 品牌 / 关键词...' }}"
                style="flex:1;margin-right:8px;">
-        <button type="submit" class="btn-search-go" aria-label="搜索">&#128270;</button>
-        <a href="javascript:void(0)" id="search-close" class="search-close" aria-label="关闭">&#10005;</a>
+        <button type="submit" class="btn-search-go" aria-label="{{ lang.search_title or '搜索' }}">&#128270;</button>
+        <a href="javascript:void(0)" id="search-close" class="search-close" aria-label="{{ lang.search_close or '关闭' }}">&#10005;</a>
       </form>
     </div>
   </div>
@@ -68,11 +88,11 @@
 <!-- ===== CTA ===== -->
 <section id="contact" class="cta-section">
   <div class="cta-content">
-    <h2>获取专属报价方案</h2>
-    <p>留下您的需求，我们的销售工程师将在 30 分钟内与您联系，提供一对一选型建议与批发报价。</p>
+    <h2>{{ lang.cta_title or '获取专属报价方案' }}</h2>
+    <p>{{ lang.cta_desc or '留下您的需求，我们的销售工程师将在 30 分钟内与您联系，提供一对一选型建议与批发报价。' }}</p>
     <div class="cta-btns">
-      <a target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?" class="btn btn-accent">💬 WhatsApp</a>
-      <a target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" class="btn btn-white">✉️ 微信客服</a>
+      <a target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?" class="btn btn-accent">💬 {{ lang.cta_whatsapp or 'WhatsApp' }}</a>
+      <a target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" class="btn btn-white">✉️ {{ lang.cta_wechat or '微信客服' }}</a>
     </div>
   </div>
 </section>
@@ -82,33 +102,34 @@
     <div class="foot-grid">
       <div>
         <h4 style="color:#93c5fd;font-size:18px;">🟢 Green Rich 金瑞治</h4>
-        <p>始于1997年，深圳市金瑞治科技有限公司是一家专业从事复印机感光鼓芯研发、生产和销售的高新技术企业。我们致力于为全球客户提供高品质、高性价比的打印耗材解决方案。</p>
+        <p>{{ lang.footer_company_desc or '始于1997年，深圳市金瑞治科技有限公司是一家专业从事复印机感光鼓芯研发、生产和销售的高新技术企业。我们致力于为全球客户提供高品质、高性价比的打印耗材解决方案。' }}</p>
       </div>
       <div>
-        <h4>快速链接</h4>
-        <a href="/" >首页</a>
-        <a href="{{ LANG_PREFIX }}/c105p1.html">产品中心</a>
-        <a href="{{ LANG_PREFIX }}/c106p1.html">行业资讯</a>
-        <a href="{{ LANG_PREFIX }}/c108p1.html">关于我们</a>
-        <a href="{{ LANG_PREFIX }}/c109p1.html">加盟合作</a>
+        <h4>{{ lang.footer_quick_links or '快速链接' }}</h4>
+        <a href="{{ LANG_PREFIX }}/">{{ lang.nav_home or '首页' }}</a>
+        <a href="{{ LANG_PREFIX }}/c105p1.html">{{ lang.nav_products or '产品中心' }}</a>
+        <a href="{{ LANG_PREFIX }}/c106p1.html">{{ lang.nav_news or '行业资讯' }}</a>
+        <a href="{{ LANG_PREFIX }}/c108p1.html">{{ lang.nav_about_us or '关于我们' }}</a>
+        <a href="{{ LANG_PREFIX }}/c109p1.html">{{ lang.nav_join_us or '加盟合作' }}</a>
 
       </div>
       <div class="foot-wechat">
-        <h4>微信客服</h4>
-        <a href="/images/weixin_kf.png" target="_blank" title="点击查看大图">
-          <img src="/images/weixin_kf.png" alt="微信客服二维码">
+        <h4>{{ lang.footer_wechat or '微信客服' }}</h4>
+        <a href="/images/weixin_kf.png" target="_blank" title="{{ lang.footer_wechat or '微信客服' }}">
+          <img src="/images/weixin_kf.png" alt="{{ lang.footer_wechat or '微信客服' }}">
         </a>
       </div>
       <div class="foot-contact">
-        <h4>联系我们</h4>
-        <a href="#">📍 广州市天河区五山路135号2楼B区</a>
-        <a href="#">🕐 周一至周六 9:00 - 18:00</a>
-        <a target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?" >💬 WhatsApp</a>
+        <h4>{{ lang.footer_contact or '联系我们' }}</h4>
+        <a href="#">{{ lang.footer_contact_address or '广州市天河区五山路135号2楼B区' }}</a>
+        <a href="#">{{ lang.footer_contact_hours or '周一至周六 9:00 - 18:00' }}</a>
+        <a target="_blank" href="https://wa.me/8615910983264?text=Hi, I'd like to chat about working together. Are you free to talk?" >💬 {{ lang.footer_contact_whatsapp or 'WhatsApp' }}</a>
+        <a target="_blank" href="https://www.facebook.com/people/Green-rich/61587842649157/" >📘 {{ lang.footer_contact_facebook or 'Facebook' }}</a>
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© 1997–2026 金瑞治(广州)光电 版权所有 </span>
-      <span><a href="#">隐私政策</a><a href="#">使用条款</a></span>
+      <span>{{ lang.footer_rights or '© 1997–2026 金瑞治(广州)光电 版权所有' }}</span>
+      <span><a href="#">{{ lang.footer_privacy or '隐私政策' }}</a><a href="#">{{ lang.footer_terms or '使用条款' }}</a></span>
     </div>
   </div>
 </footer>
@@ -116,7 +137,7 @@
 
 <!-- Toast 提示消息容器（供 comm.js 的 toast() 函数使用） -->
 <div id="toast-message" class="toast" role="alert">
-  <span id="toast-text">提示内容</span>
+  <span id="toast-text">{{ lang.toast_default or '提示内容' }}</span>
 </div>
 
 

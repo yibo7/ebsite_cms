@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-首页
+{{ lang.home_title or '首页' }}
 {% endblock %}
 
 {% block content %}
@@ -13,73 +13,72 @@
     <div class="hero-slide active">
       <div class="container hero-grid">
         <div>
-          <span class="hero-tag">🏭 始于 1997 · 专注复印机鼓芯 27 年</span>
-          <h1>复印机感光鼓芯<em>品质稳定 · 寿命长 · 性价比高</em></h1>
-          <p>Green Rich（金瑞治）专注复印机感光鼓芯研发二十余载，凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。</p>
+          <span class="hero-tag">{{ lang.home_hero_tag_1 or '始于 1997 · 专注复印机鼓芯 27 年' }}</span>
+          <h1>{{ (lang.home_hero_headline_1 or '复印机感光鼓芯<em>品质稳定 · 寿命长 · 性价比高</em>')|safe }}</h1>
+          <p>{{ lang.home_hero_desc_1 or 'Green Rich（金瑞治）专注复印机感光鼓芯研发二十余载，凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。' }}</p>
           <div class="hero-btns">
-            <a href="/c105p1.html" class="btn">浏览产品目录 →</a>
-            <a href="/c109p1.html" class="btn btn-white">加盟合作</a>
+            <a href="{{ LANG_PREFIX }}/c105p1.html" class="btn">{{ lang.home_hero_btn_products or '浏览产品目录 →' }}</a>
+            <a href="{{ LANG_PREFIX }}/c109p1.html" class="btn btn-white">{{ lang.home_hero_btn_partner or '加盟合作' }}</a>
           </div>
           <div class="hero-badges">
-            <span class="hero-badge">✅ 100% 出货全检</span>
-            <span class="hero-badge">🌍 出口 50+ 国家</span>
-            <span class="hero-badge">⚡ 48h 极速发货</span>
+            <span class="hero-badge">{{ lang.home_hero_badge_1 or '100% 出货全检' }}</span>
+            <span class="hero-badge">{{ lang.home_hero_badge_2 or '出口 50+ 国家' }}</span>
+            <span class="hero-badge">{{ lang.home_hero_badge_3 or '48h 极速发货' }}</span>
           </div>
         </div>
         <div class="hero-visual">
           <div class="hero-card">
             <div class="drum-icon">🖨️</div>
-            <h3>高品质感光鼓芯</h3>
-            <p>覆盖 8 大品牌 · 上千种型号一站式采购</p>
+            <h3>{{ lang.home_hero_card_title or '高品质感光鼓芯' }}</h3>
+            <p>{{ lang.home_hero_card_desc or '覆盖 8 大品牌 · 上千种型号一站式采购' }}</p>
             <div class="spec">
-              <div class="spec-item"><b>8万+</b><span>超长寿命(页)</span></div>
-              <div class="spec-item"><b>&lt;0.1%</b><span>不良率</span></div>
-              <div class="spec-item"><b>27年</b><span>行业经验</span></div>
+              <div class="spec-item"><b>{{ lang.home_hero_card_spec_1 or '8万+' }}</b><span>{{ lang.home_hero_card_spec_1_label or '超长寿命(页)' }}</span></div>
+              <div class="spec-item"><b>{{ lang.home_hero_card_spec_2 or '<0.1%' }}</b><span>{{ lang.home_hero_card_spec_2_label or '不良率' }}</span></div>
+              <div class="spec-item"><b>{{ lang.home_hero_card_spec_3 or '27年' }}</b><span>{{ lang.home_hero_card_spec_3_label or '行业经验' }}</span></div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Slide 2: 品牌故事（整合原独立区块内容） -->
+    <!-- Slide 2: 品牌故事 -->
     <div class="hero-slide">
       <div class="container hero-grid">
         <div>
-          <span class="hero-tag">🏭 品牌故事 · 始于 1997</span>
-          <h1>印迹不凡，始于 1997<em>专注复印机感光鼓芯研发二十余载</em></h1>
-          <p>Green Rich（金瑞治）凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。持续创新，只为每一次清晰、稳定的复印输出表现。</p>
+          <span class="hero-tag">{{ lang.home_hero_tag_2 or '品牌故事 · 始于 1997' }}</span>
+          <h1>{{ (lang.home_hero_headline_2 or '印迹不凡，始于 1997<em>专注复印机感光鼓芯研发二十余载</em>')|safe }}</h1>
+          <p>{{ lang.home_hero_desc_2 or 'Green Rich（金瑞治）凭借高感度、高耐用性产品，广泛应用于激光复印机、数码复合机等领域。持续创新，只为每一次清晰、稳定的复印输出表现。' }}</p>
           <div class="hero-btns">
-            <a href="/c108p1.html" class="btn">了解更多 →</a>
-            <a href="/c105p1.html" class="btn btn-white">浏览产品</a>
+            <a href="{{ LANG_PREFIX }}/c108p1.html" class="btn">{{ lang.home_hero_btn_learn or '了解更多 →' }}</a>
+            <a href="{{ LANG_PREFIX }}/c105p1.html" class="btn btn-white">{{ lang.home_hero_btn_products_alt or '浏览产品' }}</a>
           </div>
           <div class="hero-badges">
-            <span class="hero-badge">🏭 源头工厂</span>
-            <span class="hero-badge">🔬 自主研发</span>
-            <span class="hero-badge">⚙️ 智能制造</span>
+            <span class="hero-badge">{{ lang.home_hero_badge_4 or '源头工厂' }}</span>
+            <span class="hero-badge">{{ lang.home_hero_badge_5 or '自主研发' }}</span>
+            <span class="hero-badge">{{ lang.home_hero_badge_6 or '智能制造' }}</span>
           </div>
         </div>
         <div class="hero-visual">
-          <!-- 四个要点卡片：替代原来的独立品牌故事视觉区 -->
           <div class="hero-brand-visual">
             <div class="hero-brand-item">
               <div class="vi-icon">🏭</div>
-              <h4>源头工厂</h4>
-              <p>20余年自主研发制造</p>
+              <h4>{{ lang.home_brand_1 or '源头工厂' }}</h4>
+              <p>{{ lang.home_brand_1_desc or '20余年自主研发制造' }}</p>
             </div>
             <div class="hero-brand-item">
               <div class="vi-icon">🔬</div>
-              <h4>自主研发</h4>
-              <p>绿色鼓芯涂层技术</p>
+              <h4>{{ lang.home_brand_2 or '自主研发' }}</h4>
+              <p>{{ lang.home_brand_2_desc or '绿色鼓芯涂层技术' }}</p>
             </div>
             <div class="hero-brand-item">
               <div class="vi-icon">🌍</div>
-              <h4>全球布局</h4>
-              <p>出口50+国家</p>
+              <h4>{{ lang.home_brand_3 or '全球布局' }}</h4>
+              <p>{{ lang.home_brand_3_desc or '出口50+国家' }}</p>
             </div>
             <div class="hero-brand-item">
               <div class="vi-icon">⚙️</div>
-              <h4>智能制造</h4>
-              <p>全自动产线投产</p>
+              <h4>{{ lang.home_brand_4 or '智能制造' }}</h4>
+              <p>{{ lang.home_brand_4_desc or '全自动产线投产' }}</p>
             </div>
           </div>
         </div>
@@ -98,19 +97,19 @@
 <!-- ===== 信任条 ===== -->
 <div class="trust-bar">
   <div class="container trust-grid">
-    <div class="trust-item"><i>🏭</i> 源头工厂直供</div>
-    <div class="trust-item"><i>✅</i> 100% 出货全检</div>
-    <div class="trust-item"><i>🌍</i> 出口 50+ 国家</div>
-    <div class="trust-item"><i>🛡️</i> 12 个月质保</div>
+    <div class="trust-item"><i>🏭</i> {{ lang.trust_factory_direct or '源头工厂直供' }}</div>
+    <div class="trust-item"><i>✅</i> {{ lang.trust_100_qc or '100% 出货全检' }}</div>
+    <div class="trust-item"><i>🌍</i> {{ lang.trust_50_countries or '出口 50+ 国家' }}</div>
+    <div class="trust-item"><i>🛡️</i> {{ lang.trust_12_month or '12 个月质保' }}</div>
   </div>
 </div>
 
-<!-- ===== 适用品牌型号（只展示中文） ===== -->
+<!-- ===== 适用品牌型号 ===== -->
 <section class="section section-alt">
   <div class="container">
     <div class="sec-header">
-      <h2>适用<span>品牌型号</span></h2>
-      <p>兼容全球主流复印机品牌，上千种型号一站式采购</p>
+      <h2>{{ (lang.brand_title or '适用<span>品牌型号</span>')|safe }}</h2>
+      <p>{{ lang.brand_subtitle or '兼容全球主流复印机品牌，上千种型号一站式采购' }}</p>
     </div>
     <div class="brand-grid">
       {% set brands = index_data.get_specials(parent_id="6852c97a9d0e112569a8cbf9",top=7) %}
@@ -120,14 +119,13 @@
         {% endfor %}
       {% else %}
         <div>
-          no brand
+          {{ lang.brand_no_data or 'no brand' }}
         </div>
 
       {% endif %}
     </div>
-    <!-- 更多引导按钮 -->
     <div class="brand-more">
-      <a href="/c105p1.html" class="btn btn-outline">查看全部品牌型号 →</a>
+      <a href="{{ LANG_PREFIX }}/c105p1.html" class="btn btn-outline">{{ lang.brand_btn or '查看全部品牌型号 →' }}</a>
     </div>
   </div>
 </section>
@@ -136,8 +134,8 @@
 <section id="products" class="section">
   <div class="container">
     <div class="sec-header">
-      <h2>热销<span>商品</span></h2>
-      <p>工厂直供 · 高性价比之选</p>
+      <h2>{{ (lang.hot_products_title or '热销<span>商品</span>')|safe }}</h2>
+      <p>{{ lang.hot_products_subtitle or '工厂直供 · 高性价比之选' }}</p>
     </div>
     <div class="prod-grid">
 
@@ -145,7 +143,7 @@
       {% for item in hot_products %}
       <a href="{{ item.get_url() }}" class="card">
         <div class="thumb">
-          {% if loop.first %}<span class="badge">热销</span>{% endif %}
+          {% if loop.first %}<span class="badge">{{ lang.hot_badge or '热销' }}</span>{% endif %}
           <img src="{{ item.small_pic or '/static/images/default_product.jpg' }}" alt="{{ item.title }}">
         </div>
         <div class="card-body">
@@ -160,8 +158,8 @@
             </div>
 
           <div class="card-foot">
-            <span class="price"><span class="ln">¥***</span> <small>/ 支</small></span>
-            <button class="add-btn" >去询价</button>
+            <span class="price"><span class="ln">{{ lang.product_price_placeholder or '¥***' }}</span> <small>{{ lang.product_per_unit or '/ 支' }}</small></span>
+            <button class="add-btn" >{{ lang.product_inquire or '去询价' }}</button>
           </div>
         </div>
       </a>
@@ -169,7 +167,7 @@
 
     </div>
     <div style="text-align:center;margin-top:44px;">
-      <a href="/c105p1.html" class="btn btn-outline">查看全部产品 →</a>
+      <a href="{{ LANG_PREFIX }}/c105p1.html" class="btn btn-outline">{{ lang.product_btn_all or '查看全部产品 →' }}</a>
     </div>
   </div>
 </section>
@@ -179,50 +177,50 @@
   <div class="container">
     <div class="why">
       <div class="sec-header">
-        <h2>为什么选择 Green Rich</h2>
-        <p>您值得信赖的复印机耗材合作伙伴</p>
+        <h2>{{ lang.why_title or '为什么选择 Green Rich' }}</h2>
+        <p>{{ lang.why_subtitle or '您值得信赖的复印机耗材合作伙伴' }}</p>
       </div>
       <div class="feat-grid">
         <div class="feat">
           <div class="icon">🏭</div>
           <div>
-            <h4>源头工厂</h4>
-            <p>20余年自主研发制造经验，无中间商，价格更具竞争力</p>
+            <h4>{{ lang.why_factory or '源头工厂' }}</h4>
+            <p>{{ lang.why_factory_desc or '20余年自主研发制造经验，无中间商，价格更具竞争力' }}</p>
           </div>
         </div>
         <div class="feat">
           <div class="icon">✅</div>
           <div>
-            <h4>品质承诺</h4>
-            <p>出货前100%全检，不良率严格控制在0.1%以内</p>
+            <h4>{{ lang.why_quality or '品质承诺' }}</h4>
+            <p>{{ lang.why_quality_desc or '出货前100%全检，不良率严格控制在0.1%以内' }}</p>
           </div>
         </div>
         <div class="feat">
           <div class="icon">🌍</div>
           <div>
-            <h4>广泛兼容</h4>
-            <p>覆盖8大主流品牌，上千种型号一站式采购</p>
+            <h4>{{ lang.why_compatibility or '广泛兼容' }}</h4>
+            <p>{{ lang.why_compatibility_desc or '覆盖8大主流品牌，上千种型号一站式采购' }}</p>
           </div>
         </div>
         <div class="feat">
           <div class="icon">🚀</div>
           <div>
-            <h4>极速交付</h4>
-            <p>常规型号48小时内发货，支持OEM/ODM定制</p>
+            <h4>{{ lang.why_delivery or '极速交付' }}</h4>
+            <p>{{ lang.why_delivery_desc or '常规型号48小时内发货，支持OEM/ODM定制' }}</p>
           </div>
         </div>
         <div class="feat">
           <div class="icon">🛒</div>
           <div>
-            <h4>一站式采购</h4>
-            <p>全系列复印机配件，省时省心</p>
+            <h4>{{ lang.why_one_stop or '一站式采购' }}</h4>
+            <p>{{ lang.why_one_stop_desc or '全系列复印机配件，省时省心' }}</p>
           </div>
         </div>
         <div class="feat">
           <div class="icon">🛡️</div>
           <div>
-            <h4>无忧售后</h4>
-            <p>12个月质保，退换货保障</p>
+            <h4>{{ lang.why_warranty or '无忧售后' }}</h4>
+            <p>{{ lang.why_warranty_desc or '12个月质保，退换货保障' }}</p>
           </div>
         </div>
       </div>
@@ -230,50 +228,50 @@
   </div>
 </section>
 
-<!-- ===== 品牌信任模块（认证 + 客户 + 工厂） ===== -->
+<!-- ===== 品牌信任模块 ===== -->
 <section id="trust" class="trust-section">
   <div class="container">
     <div class="sec-header">
-      <h2>品牌<span>实力见证</span></h2>
-      <p>认证资质 · 客户信赖 · 工厂实拍，用事实说话</p>
+      <h2>{{ (lang.trust_brand_title or '品牌<span>实力见证</span>')|safe }}</h2>
+      <p>{{ lang.trust_brand_subtitle or '认证资质 · 客户信赖 · 工厂实拍，用事实说话' }}</p>
     </div>
 
     <div class="trust-tabs">
-      <button class="trust-tab active" data-panel="cert">🏅 资质认证</button>
-      <button class="trust-tab" data-panel="case">🤝 客户案例</button>
-      <button class="trust-tab" data-panel="factory">🏭 工厂实拍</button>
+      <button class="trust-tab active" data-panel="cert">{{ lang.trust_tab_cert or '资质认证' }}</button>
+      <button class="trust-tab" data-panel="case">{{ lang.trust_tab_case or '客户案例' }}</button>
+      <button class="trust-tab" data-panel="factory">{{ lang.trust_tab_factory or '工厂实拍' }}</button>
     </div>
 
     <div class="trust-panel active" id="panel-cert">
       <div class="cert-grid">
-        <div class="cert-card"><span class="cert-icon">🏅</span><h4>ISO 9001</h4><p>质量管理体系认证</p></div>
-        <div class="cert-card"><span class="cert-icon">✅</span><h4>CE 认证</h4><p>欧盟市场准入认证</p></div>
-        <div class="cert-card"><span class="cert-icon">🔬</span><h4>RoHS 认证</h4><p>有害物质限制指令</p></div>
-        <div class="cert-card"><span class="cert-icon">🏆</span><h4>实用新型专利</h4><p>鼓芯涂层技术专利</p></div>
+        <div class="cert-card"><span class="cert-icon">🏅</span><h4>{{ lang.cert_iso or 'ISO 9001' }}</h4><p>{{ lang.cert_iso_desc or '质量管理体系认证' }}</p></div>
+        <div class="cert-card"><span class="cert-icon">✅</span><h4>{{ lang.cert_ce or 'CE 认证' }}</h4><p>{{ lang.cert_ce_desc or '欧盟市场准入认证' }}</p></div>
+        <div class="cert-card"><span class="cert-icon">🔬</span><h4>{{ lang.cert_rohs or 'RoHS 认证' }}</h4><p>{{ lang.cert_rohs_desc or '有害物质限制指令' }}</p></div>
+        <div class="cert-card"><span class="cert-icon">🏆</span><h4>{{ lang.cert_patent or '实用新型专利' }}</h4><p>{{ lang.cert_patent_desc or '鼓芯涂层技术专利' }}</p></div>
       </div>
     </div>
 
     <div class="trust-panel" id="panel-case">
       <div class="case-grid">
         <div class="case-card">
-          <p class="quote">"Green Rich 的鼓芯寿命稳定，打印清晰度媲美原装，我们的客户投诉率下降了 40%。"</p>
+          <p class="quote">{{ lang.case_1_quote or '"Green Rich 的鼓芯寿命稳定，打印清晰度媲美原装，我们的客户投诉率下降了 40%。"' }}</p>
           <div class="client">
-            <div class="client-avatar">李</div>
-            <div class="client-info"><h5>李经理</h5><span>深圳某办公设备经销商</span></div>
+            <div class="client-avatar">{{ (lang.case_1_name or '李')[0] }}</div>
+            <div class="client-info"><h5>{{ lang.case_1_name or '李经理' }}</h5><span>{{ lang.case_1_title or '深圳某办公设备经销商' }}</span></div>
           </div>
         </div>
         <div class="case-card">
-          <p class="quote">"合作 5 年，从单一型号扩展到全系列采购，品质和交期都让人放心。"</p>
+          <p class="quote">{{ lang.case_2_quote or '"合作 5 年，从单一型号扩展到全系列采购，品质和交期都让人放心。"' }}</p>
           <div class="client">
-            <div class="client-avatar">王</div>
-            <div class="client-info"><h5>王总</h5><span>广州某耗材批发商</span></div>
+            <div class="client-avatar">{{ (lang.case_2_name or '王')[0] }}</div>
+            <div class="client-info"><h5>{{ lang.case_2_name or '王总' }}</h5><span>{{ lang.case_2_title or '广州某耗材批发商' }}</span></div>
           </div>
         </div>
         <div class="case-card">
-          <p class="quote">"出口东南亚市场，Green Rich 的包装和品质完全符合我们的要求，复购率很高。"</p>
+          <p class="quote">{{ lang.case_3_quote or '"出口东南亚市场，Green Rich 的包装和品质完全符合我们的要求，复购率很高。"' }}</p>
           <div class="client">
-            <div class="client-avatar">陈</div>
-            <div class="client-info"><h5>陈先生</h5><span>东南亚某贸易公司</span></div>
+            <div class="client-avatar">{{ (lang.case_3_name or '陈')[0] }}</div>
+            <div class="client-info"><h5>{{ lang.case_3_name or '陈先生' }}</h5><span>{{ lang.case_3_title or '东南亚某贸易公司' }}</span></div>
           </div>
         </div>
       </div>
@@ -282,16 +280,16 @@
     <div class="trust-panel" id="panel-factory">
       <div class="factory-grid">
         <div class="factory-item">
-          <div class="factory-img">🏭</div>
-          <div class="factory-info"><h4>全自动生产线</h4><p>年产能突破 500 万支，品质稳定可控</p></div>
+          <div class="factory-img"><img src="/images/sp1.png" alt="{{ lang.factory_1_title or '全自动生产线' }}"></div>
+          <div class="factory-info"><h4>{{ lang.factory_1_title or '全自动生产线' }}</h4><p>{{ lang.factory_1_desc or '年产能突破 500 万支，品质稳定可控' }}</p></div>
         </div>
         <div class="factory-item">
-          <div class="factory-img">🔬</div>
-          <div class="factory-info"><h4>研发实验室</h4><p>自主研发绿色鼓芯涂层技术</p></div>
+          <div class="factory-img"><img src="/images/sp2.png" alt="{{ lang.factory_2_title or '研发实验室' }}"></div>
+          <div class="factory-info"><h4>{{ lang.factory_2_title or '研发实验室' }}</h4><p>{{ lang.factory_2_desc or '自主研发绿色鼓芯涂层技术' }}</p></div>
         </div>
         <div class="factory-item">
-          <div class="factory-img">📦</div>
-          <div class="factory-info"><h4>品质检测中心</h4><p>出货前 100% 全检，不良率 &lt;0.1%</p></div>
+          <div class="factory-img"><img src="/images/sp3.png" alt="{{ lang.factory_3_title or '品质检测中心' }}"></div>
+          <div class="factory-info"><h4>{{ lang.factory_3_title or '品质检测中心' }}</h4><p>{{ lang.factory_3_desc or '出货前 100% 全检，不良率 <0.1%' }}</p></div>
         </div>
       </div>
     </div>
@@ -303,29 +301,29 @@
 <section id="timeline" class="timeline-section">
   <div class="container">
     <div class="sec-header">
-      <h2>品牌<span>发展历程</span></h2>
-      <p>从深圳小厂到全球化耗材供应商，我们始终坚守品质初心</p>
+      <h2>{{ (lang.timeline_title or '品牌<span>发展历程</span>')|safe }}</h2>
+      <p>{{ lang.timeline_subtitle or '从深圳小厂到全球化耗材供应商，我们始终坚守品质初心' }}</p>
     </div>
     <div class="timeline">
       <div class="timeline-item">
         <div class="timeline-dot">1997</div>
-        <h4>品牌创立</h4>
-        <p>Green Rich 在深圳成立<br>专注 OPC 鼓芯研发</p>
+        <h4>{{ lang.timeline_1997_title or '品牌创立' }}</h4>
+        <p>{{ (lang.timeline_1997_desc or 'Green Rich 在深圳成立<br>专注 OPC 鼓芯研发')|safe }}</p>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot">2005</div>
-        <h4>技术突破</h4>
-        <p>自主研发绿色鼓芯涂层<br>寿命提升 30%</p>
+        <h4>{{ lang.timeline_2005_title or '技术突破' }}</h4>
+        <p>{{ (lang.timeline_2005_desc or '自主研发绿色鼓芯涂层<br>寿命提升 30%')|safe }}</p>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot">2015</div>
-        <h4>全球布局</h4>
-        <p>产品出口 50+ 国家<br>建立海外仓储中心</p>
+        <h4>{{ lang.timeline_2015_title or '全球布局' }}</h4>
+        <p>{{ (lang.timeline_2015_desc or '产品出口 50+ 国家<br>建立海外仓储中心')|safe }}</p>
       </div>
       <div class="timeline-item">
         <div class="timeline-dot">2024</div>
-        <h4>智能制造</h4>
-        <p>全自动产线投产<br>年产能突破 500 万支</p>
+        <h4>{{ lang.timeline_2024_title or '智能制造' }}</h4>
+        <p>{{ (lang.timeline_2024_desc or '全自动产线投产<br>年产能突破 500 万支')|safe }}</p>
       </div>
     </div>
   </div>

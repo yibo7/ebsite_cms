@@ -7,6 +7,7 @@
 """
 
 import hashlib
+import re
 import time
 import uuid
 import logging
@@ -284,6 +285,175 @@ def verify_site_key_md5(f: Callable) -> Callable:
         return f(*args, **kwargs)
 
     return decorated_function
+
+
+# ===================================================================
+# 6b. 网站 Key HMAC 签名验证（请求头 + 时间戳防重放）
+# ===================================================================
+
+def verify_site_key_hmac(f: Callable) -> Callable:
+    """
+    验证请求头的 HMAC-SHA256 签名。
+
+    客户端需在请求头中提供：
+      - ``X-Timestamp``: 当前 Unix 时间戳（秒），服务端允许 ±300 秒偏差
+      - ``X-Sign``: HMAC-SHA256 十六进制摘要
+
+    签名消息体构成::
+
+        timestamp + ":" + request_body（原始请求体字符串）
+
+    服务端使用配置的 ``SiteKey`` 重新计算 HMAC 并恒定时间比对。
+
+    使用示例（Python 客户端）::
+
+        import hmac, hashlib, time
+        import requests
+
+        site_key = "你的SiteKey"
+        timestamp = str(int(time.time()))
+        body = "title=Hello&info=World"
+        message = f"{timestamp}:{body}"
+        sign = hmac.new(site_key.encode(), message.encode(), hashlib.sha256).hexdigest()
+
+        r = requests.post(
+            "http://localhost/auto_post_content/1/5",
+            headers={"X-Timestamp": timestamp, "X-Sign": sign},
+            data=body,
+        )
+    """
+    import hmac as hmac_module
+
+    _TIME_WINDOW = 300  # ±5 分钟
+
+    @wraps(f)
+    def decorated_function(*args: Any, **kwargs: Any) -> Any:
+        site_key = current_app.config.get('SiteKey')
+        if not site_key:
+            return jsonify(api_err_permission("SiteKey not configured on server"))
+
+        timestamp_str = request.headers.get('X-Timestamp')
+        signature = request.headers.get('X-Sign')
+
+        if not timestamp_str or not signature:
+            return jsonify(api_err_permission("Missing X-Timestamp or X-Sign header"))
+
+        # 验证时间戳格式
+        try:
+            timestamp = int(timestamp_str)
+        except ValueError:
+            return jsonify(api_err_permission("X-Timestamp must be a Unix timestamp"))
+
+        # 检查时间窗口（防重放攻击）
+        now = time.time()
+        if abs(now - timestamp) > _TIME_WINDOW:
+            logger.warning(
+                "HMAC 时间戳超限 | timestamp=%s | now=%s | ip=%s",
+                timestamp_str, int(now), http_helper.get_ip(),
+            )
+            return jsonify(api_err_permission("X-Timestamp is out of allowed window (±5min)"))
+
+        # 构建签名消息：timestamp + ":" + 原始请求体
+        body = request.get_data(as_text=True)
+        message = f"{timestamp_str}:{body}"
+
+        # 计算期望签名
+        expected = hmac_module.new(
+            site_key.encode('utf-8'),
+            message.encode('utf-8'),
+            hashlib.sha256,
+        ).hexdigest()
+
+        # 恒定时间比较，防止时序攻击
+        if not hmac_module.compare_digest(expected, signature):
+            logger.warning(
+                "HMAC 签名不匹配 | ip=%s | path=%s",
+                http_helper.get_ip(), request.path,
+            )
+            return jsonify(api_err_permission("Invalid HMAC signature"))
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+# ===================================================================
+# 6c. 危险输入校验（模板语法 + 脚本注入）
+# ===================================================================
+
+_JINJA2_RE = re.compile(r'\{\{.*?\}\}|\{%.*?\}|{#.*?#}', re.DOTALL)
+_SCRIPT_RE = re.compile(r'<script[\s>]', re.IGNORECASE)
+_EVENT_RE = re.compile(r'\bon\w+\s*=', re.IGNORECASE)
+_DANGEROUS_SCHEME_RE = re.compile(r'^\s*(?:javascript|data|vbscript|file):', re.IGNORECASE)
+
+
+def reject_dangerous_input(f: Callable) -> Callable:
+    """
+    校验 POST 参数中是否包含危险内容，若发现则直接返回错误。
+
+    检查项：
+      1. Jinja2 模板语法  ``{{ }}`` / ``{% %}`` / ``{# #}``
+      2. ``<script>`` 标签
+      3. ``on*`` 事件处理属性（onclick、onerror 等）
+      4. ``javascript:`` / ``data:`` 等危险 URI 协议
+
+    用法::
+
+        @api_blue.route('some_route', methods=['POST'])
+        @reject_dangerous_input
+        def some_handler():
+            ...
+    """
+    @wraps(f)
+    def decorated_function(*args: Any, **kwargs: Any) -> Any:
+        # 只校验 POST 请求的参数
+        if request.method not in ('POST', 'PUT', 'PATCH'):
+            return f(*args, **kwargs)
+
+        # 从 form 和 json body 中提取字符串值
+        values_to_check: list[str] = []
+
+        # form 参数
+        for v in request.form.values():
+            if isinstance(v, str):
+                values_to_check.append(v)
+
+        # JSON body
+        if request.is_json:
+            _collect_json_strings(request.get_json(silent=True) or {}, values_to_check)
+
+        for value in values_to_check:
+            if _JINJA2_RE.search(value):
+                logger.warning("输入校验失败 | 包含模板语法 | ip=%s", http_helper.get_ip())
+                return jsonify(api_err_permission("输入包含禁止的模板语法"))
+
+            if _SCRIPT_RE.search(value):
+                logger.warning("输入校验失败 | 包含 script 标签 | ip=%s", http_helper.get_ip())
+                return jsonify(api_err_permission("输入包含禁止的脚本标签"))
+
+            if _EVENT_RE.search(value):
+                logger.warning("输入校验失败 | 包含事件处理器 | ip=%s", http_helper.get_ip())
+                return jsonify(api_err_permission("输入包含禁止的事件属性"))
+
+            if _DANGEROUS_SCHEME_RE.search(value):
+                logger.warning("输入校验失败 | 包含危险 URI 协议 | ip=%s", http_helper.get_ip())
+                return jsonify(api_err_permission("输入包含禁止的 URI 协议"))
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def _collect_json_strings(data, result: list[str]):
+    """递归收集 JSON 中的字符串值"""
+    if isinstance(data, str):
+        result.append(data)
+    elif isinstance(data, dict):
+        for v in data.values():
+            _collect_json_strings(v, result)
+    elif isinstance(data, (list, tuple)):
+        for item in data:
+            _collect_json_strings(item, result)
 
 
 # ===================================================================

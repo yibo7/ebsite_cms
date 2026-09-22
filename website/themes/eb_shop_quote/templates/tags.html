@@ -1,13 +1,13 @@
 {% extends 'base_site.html' %}
 {% block title %}
-所有标签-{{SiteName}}
+{% set tp_title = lang.tags_page_title or '所有标签-{site}' %}{{ tp_title.replace('{site}', SiteName) }}
 {% endblock %}
 
 {% block content %}
 
 <div class="container mt-3">
     <div class="title">
-        <div class="title-txt">所有标签</div>
+        <div class="title-txt">{{ lang.tags_title or '所有标签' }}</div>
     </div>
 </div>
 <div style="padding-bottom: 20px;" class="container mt-20 ">

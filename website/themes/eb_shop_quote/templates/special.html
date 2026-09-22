@@ -48,7 +48,7 @@
                                 </div>
 
                                 {% else %}
-                                    <div class="p-5 text-center">暂无数据</div>
+                                    <div class="p-5 text-center">{{ lang.special_no_data or '暂无数据' }}</div>
                                 {% endif %}
 
                                 {% include 'loading_more.html' %}

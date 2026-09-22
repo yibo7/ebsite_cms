@@ -372,13 +372,24 @@
 
 ## 6. 内容发布（签名验证）
 
-### `POST /api/auto_post_content/<int:user_id>/<int:class_id>/<md5:site_key_md5>`
+### `POST /api/auto_post_content/<int:user_id>/<int:class_id>`
 
-自动发布内容（通过网站密钥验证）。
+自动发布内容。采用 **HMAC-SHA256 签名 + 时间戳** 鉴权，密钥不在 URL 中传递，防止日志泄露和重放攻击。
 
-- `user_id`：用户的整数 ID
-- `class_id`：分类 ID
-- `site_key_md5`：网站密钥 APP_KEY 的 MD5 值
+**鉴权方式（请求头）：**
+
+| 请求头 | 类型 | 说明 |
+|--------|------|------|
+| `X-Timestamp` | string | 当前 Unix 时间戳（秒），服务端允许 ±5 分钟偏差 |
+| `X-Sign` | string | HMAC-SHA256 十六进制摘要 |
+
+**签名算法：**
+
+```
+sign = HMAC-SHA256(SiteKey, timestamp + ":" + 原始请求体)
+```
+
+> `SiteKey` 为服务端配置的网站密钥，`原始请求体` 为 POST 的原始 form 字符串（如 `title=xxx&info=yyy`）。
 
 **可 POST 的参数（字段白名单）：**
 
@@ -390,20 +401,114 @@
 
 - `tagstr`：标签字符串，多个标签用英文逗号分隔（不能直接传 `tag`）
 
-**调用示例：**
-
-```
-POST /api/auto_post_content/21/7/4224d63787d56b5a200bbfbc8eb8f3d9
-Content-Type: application/x-www-form-urlencoded
-
-title=我的标题&info=内容详情&tagstr=标签1,标签2
-```
+**安全特性：**
+- ✅ 频率限制：同一 IP 每分钟最多 30 次
+- ✅ XSS 防护：`info` 和 `column_*` 字段自动净化 HTML，移除 `<script>`、`<iframe>`、事件处理器等
+- ✅ SSTI 防护：自动过滤 Jinja2 模板语法
+- ✅ 操作审计：每次调用记录 IP、User-Agent、标题等信息
 
 **返回示例：**
 
 ```json
 { "code": 0, "data": "发布成功", "msg": "succesful" }
 ```
+
+---
+
+#### Python 示例
+
+```python
+import hmac
+import hashlib
+import time
+
+import requests
+
+# ── 配置 ──
+BASE_URL = "https://your-cms.com"
+USER_ID = 21        # 用户整数 ID
+CLASS_ID = 7        # 分类整数 ID
+SITE_KEY = "你的网站密钥SiteKey"  # 与服务器配置一致
+
+# ── 构造请求体 ──
+body = "title=我的标题&info=<p>内容详情</p>&tagstr=标签1,标签2"
+
+# ── 生成签名 ──
+timestamp = str(int(time.time()))
+message = f"{timestamp}:{body}"
+sign = hmac.new(
+    SITE_KEY.encode("utf-8"),
+    message.encode("utf-8"),
+    hashlib.sha256,
+).hexdigest()
+
+# ── 发送请求 ──
+resp = requests.post(
+    f"{BASE_URL}/api/auto_post_content/{USER_ID}/{CLASS_ID}",
+    headers={
+        "X-Timestamp": timestamp,
+        "X-Sign": sign,
+        "Content-Type": "application/x-www-form-urlencoded",
+    },
+    data=body,
+)
+
+print(resp.json())
+# 输出: {'code': 0, 'data': '发布成功', 'msg': 'succesful'}
+```
+
+---
+
+#### C# 示例
+
+```csharp
+using System;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // ── 配置 ──
+        string baseUrl = "https://your-cms.com";
+        int userId = 21;
+        int classId = 7;
+        string siteKey = "你的网站密钥SiteKey";  // 与服务器配置一致
+
+        // ── 构造请求体 ──
+        string body = "title=我的标题&info=<p>内容详情</p>&tagstr=标签1,标签2";
+
+        // ── 生成签名 ──
+        string timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+        string message = $"{timestamp}:{body}";
+
+        string sign;
+        using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(siteKey)))
+        {
+            byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+            sign = BitConverter.ToString(hash).Replace("-", "").ToLower();
+        }
+
+        // ── 发送请求 ──
+        using var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Timestamp", timestamp);
+        httpClient.DefaultRequestHeaders.Add("X-Sign", sign);
+
+        var content = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
+        HttpResponseMessage response = await httpClient.PostAsync(
+            $"{baseUrl}/api/auto_post_content/{userId}/{classId}", content);
+
+        string json = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(json);
+        // 输出: {"code": 0, "data": "发布成功", "msg": "succesful"}
+    }
+}
+```
+
+---
 
 ### `GET|POST /api/get_content/<int:content_id>/<md5:site_key_md5>`
 

@@ -10,12 +10,12 @@
 <section class="page-banner">
   <div class="container banner-content">
     <div class="breadcrumb">
-      <a href="index.html">首页</a>
+      <a href="{{ LANG_PREFIX }}/">{{ lang.breadcrumb_home or '首页' }}</a>
       <span>/</span>
-      <span>行业资讯</span>
+      <span>{{ lang.nav_news or '行业资讯' }}</span>
     </div>
-    <h1>行业<span>资讯</span></h1>
-    <p>聚焦复印机耗材行业前沿动态，分享技术干货与市场洞察，助力合作伙伴把握商机。</p>
+    <h1>{{ (lang.article_title or '行业<span>资讯</span>')|safe }}</h1>
+    <p>{{ lang.article_subtitle or '聚焦复印机耗材行业前沿动态，分享技术干货与市场洞察，助力合作伙伴把握商机。' }}</p>
   </div>
 </section>
 
@@ -31,11 +31,8 @@
         {% for item in data_list %}
         <article class="news-card">
           <div class="news-thumb">
-            {% if item.small_pic %}
-            <img src="{{ item.small_pic }}" alt="{{ item.title }}">
-            {% else %}
-            <img src="/static/images/default_news.jpg" alt="{{ item.title }}">
-            {% endif %}
+            <img src="{{ item.small_pic }}" alt="{{ item.title }}" onerror="this.src='/nopic.gif';this.onerror=null;">
+
             {% if item.class_name %}
             <span class="news-cat">{{ item.class_name }}</span>
             {% endif %}
@@ -46,7 +43,7 @@
               <span class="news-date">📅 {{ item.add_time }}</span>
               {% endif %}
               {% if item.hits %}
-              <span class="news-views">👁️ {{ item.hits }} 次阅读</span>
+              <span class="news-views">👁️ {{ item.hits }} {{ lang.article_views or '次阅读' }}</span>
               {% endif %}
             </div>
             <h3><a href="{{ item.get_url() }}" style="color:inherit;text-decoration:none;">{{ item.title }}</a></h3>
@@ -60,15 +57,15 @@
               {% endfor %}
             </div>
             {% endif %}
-            <a href="{{ item.get_url() }}" class="news-readmore">阅读全文 →</a>
+            <a href="{{ item.get_url() }}" class="news-readmore">{{ lang.article_read_more or '阅读全文 →' }}</a>
           </div>
         </article>
         {% endfor %}
         {% else %}
         <div class="empty-state">
           <div class="empty-icon">📄</div>
-          <h3>暂无资讯</h3>
-          <p>敬请期待更多行业资讯与技术文章。</p>
+          <h3>{{ lang.article_empty_title or '暂无资讯' }}</h3>
+          <p>{{ lang.article_empty_desc or '敬请期待更多行业资讯与技术文章。' }}</p>
         </div>
         {% endif %}
 
@@ -82,17 +79,17 @@
       <!-- ---------- 右侧：侧边栏 ---------- -->
       <aside class="news-sidebar">
         <div class="sidebar-widget">
-          <h3>🔍 搜索文章</h3>
+          <h3>{{ lang.article_search_title or '搜索文章' }}</h3>
           <form class="sidebar-search" method="get" action="/search.html">
             <input type="hidden" name="t" value="2">
-            <input type="text" name="k" placeholder="输入关键词..." required>
-            <button type="submit">搜索</button>
+            <input type="text" name="k" placeholder="{{ lang.article_search_placeholder or '输入关键词...' }}" required>
+            <button type="submit">{{ lang.search_btn or '搜索' }}</button>
           </form>
         </div>
 
         <!-- 热门文章 -->
         <div class="sidebar-widget">
-          <h3>🔥 热门文章</h3>
+          <h3>🔥 {{ lang.article_hot_title or '热门文章' }}</h3>
           <div class="sidebar-hot">
             {% set hot_articles = temp_data.getHotDatas(12, class_id="6852685a0a8b42f2df14147b") %}
             {% if hot_articles %}
@@ -101,7 +98,7 @@
               <span class="hot-num">{{ loop.index }}</span>
               <div class="hot-content">
                 <a href="{{ item.get_url() }}">{{ item.title }}</a>
-                <span class="hot-meta">{{ item.add_time | to_time_name }} · {{ item.hits }} 次阅读</span>
+                <span class="hot-meta">{{ item.add_time | to_time_name }} · {{ item.hits }} {{ lang.article_views or '次阅读' }}</span>
               </div>
             </div>
             {% endfor %}
@@ -110,11 +107,11 @@
         </div>
 
         <div class="sidebar-widget sidebar-subscribe">
-          <h3>📬 订阅资讯</h3>
-          <p>第一时间获取 Green Rich 最新产品资讯与行业动态。</p>
+          <h3>📬 {{ lang.article_subscribe_title or '订阅资讯' }}</h3>
+          <p>{{ lang.article_subscribe_desc or '第一时间获取 Green Rich 最新产品资讯与行业动态。' }}</p>
           <div class="subscribe-box">
-            <input type="email" placeholder="输入您的邮箱">
-            <button>订阅</button>
+            <input type="email" placeholder="{{ lang.article_subscribe_email_placeholder or '输入您的邮箱' }}">
+            <button>{{ lang.article_subscribe_btn or '订阅' }}</button>
           </div>
         </div>
 

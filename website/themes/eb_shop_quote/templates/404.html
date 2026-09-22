@@ -1,6 +1,6 @@
 {% extends 'base_site.html' %}
 {% block title %}
-404 - Page Not Found
+{{ lang.get('404_title', '404 - Page Not Found') }}
 {% endblock %}
 
 {% block content %}
@@ -37,8 +37,8 @@
     <div style="padding:30px;" class="container">
         <div class="error-code">{{code}}</div>
         <div class="error-message">
-          {{errinfo}}
+          {{errinfo or lang.get('404_message', '抱歉，找不到当前页面！')}}
         </div>
-        <a href="/" class="btn btn-primary btn-back">返回首页</a>
+        <a href="{{ LANG_PREFIX }}/" class="btn btn-primary btn-back">{{ lang.get('404_back', '返回首页') }}</a>
     </div>
 {% endblock %}

@@ -252,7 +252,7 @@ class NewsContent(BllBase[NewsContentModel]):
                 self.del_article_by_id(data_id)
             # self.delete_by_ids(a_id)
 
-    def save_content(self, model: NewsContentModel):
+    def save_content(self, model: NewsContentModel) -> NewsContentModel:
 
         results =  content_saving.send(model) # 保存前触发事件
         for receiver, result in results:  # 遍历所有接收者的返回结果
@@ -280,6 +280,7 @@ class NewsContent(BllBase[NewsContentModel]):
                         tag_bll.increment_tags(tags_to_add)
                     if tags_to_remove:
                         tag_bll.decrement_tags(tags_to_remove)
+            return model
         else:
             raise Exception("标题为能为空！")
 
