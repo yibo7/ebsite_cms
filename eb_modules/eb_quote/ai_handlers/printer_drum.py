@@ -151,6 +151,7 @@ class PrinterDrumHandler(AiHandlerBase):
                 "market_price": mp,
                 "class_name": "打印耗材",
                 "sku": str(p._id),
+                "column_10": p.column_10 or "[]",
                 "url": url,
                 "remarks": p.column_7 or "",
             })

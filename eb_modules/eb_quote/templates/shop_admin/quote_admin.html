@@ -110,17 +110,9 @@
         {% endif %}
 
         <div>
-          <div class="order-fin-row">
-            <span>原价合计</span>
-            <span>¥{{ "%.2f"|format(item.total_original) }}</span>
-          </div>
-          <div class="order-fin-row">
-            <span>折扣（{{ item.discount_percent }}%）</span>
-            <span style="color:#16a34a;">-¥{{ "%.2f"|format(item.total_discount) }}</span>
-          </div>
           <div class="order-fin-row total">
             <span>报价合计</span>
-            <span>¥{{ "%.2f"|format(item.total_final) }}</span>
+            <span>¥{{ "%.2f"|format(item.total_original) }}</span>
           </div>
         </div>
 

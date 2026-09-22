@@ -1,7 +1,7 @@
 /* ===================================================================
-   ===== 固定折扣 =====
+   ===== 固定折扣（已废弃，按用户组定价，不再打折） =====
    =================================================================== */
-const FIXED_DISCOUNT = 0.10;
+const FIXED_DISCOUNT = 0;
 
 /* ===================================================================
    ===== 会话管理（无需登录，浏览器生成 UUID） =====
@@ -57,9 +57,9 @@ function loadQuoteItems() {
       quoteItems = JSON.parse(saved) || [];
       // 兼容旧版 localStorage 数据：将 price 迁移到 unit_price
       quoteItems.forEach(item => {
-        if (item.unit_price === undefined && item.price !== undefined) {
-          item.unit_price = item.price;
-        }
+        // 旧版数据有价格，新版不存储价格（提交时后端按用户组定价）
+        item.unit_price = 0;
+        item.market_price = 0;
         if (!item.class_name && item.life) {
           item.class_name = item.life;
         }
@@ -170,16 +170,17 @@ async function sendMessage() {
     if (matches.length > 0) {
       if (!window.PRODUCT_MAP) window.PRODUCT_MAP = {};
       matches.forEach(m => {
-        const sku = m.sku || m.title || '';
+        const contentId = m.content_id || m.sku || m.title || '';
+        const displaySku = m.sku || m.title || '';
         // 存入 PRODUCT_MAP，供 "添加到询价篮" 按钮查找
-        window.PRODUCT_MAP[sku] = {
-          _id: sku,
+        window.PRODUCT_MAP[contentId] = {
+          _id: contentId,
           title: m.title || '',
           unit_price: m.unit_price || 0,
           market_price: m.market_price || 0,
           small_pic: m.small_pic || '',
           class_name: m.class_name || '',
-          sku: sku,
+          sku: displaySku,
           url: m.url || '',
           remarks: m.remarks || ''
         };
@@ -187,13 +188,13 @@ async function sendMessage() {
           ? `<img src="${m.small_pic}" alt="${m.title}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`
           : '🖨️';
         matchedProducts.push({
-          id: sku,
+          id: contentId,
           name: m.title || '',
           unit_price: m.unit_price || 0,
           market_price: m.market_price || 0,
           qty: m.qty || 1,
           class_name: m.class_name || '',
-          sku: sku,
+          sku: displaySku,
           url: m.url || '',
           icon: thumbHtml
         });
@@ -291,8 +292,6 @@ function appendMessage(role, html, products, timeStr) {
     productsHtml = '<div class="chat-products">';
     products.forEach(p => {
       const up = p.unit_price || 0;
-      const dp = calcDiscountPrice(up);
-      const saved = up - dp;
       const productUrl = p.url || '#';
       const productLinkAttrs = p.url ? `href="${p.url}" target="_blank" rel="noopener"` : `href="#" onclick="event.stopPropagation();"`;
       productsHtml += `
@@ -304,10 +303,6 @@ function appendMessage(role, html, products, timeStr) {
               <span class="tag">${p.sku || p.id}</span>
               <span class="tag">${p.class_name || ''}</span>
             </div>
-          </div>
-          <div class="cp-price">
-            <b>¥${dp.toFixed(2)}</b>
-            ${saved > 0 ? `<small>¥${up.toFixed(2)}</small><span class="save">省¥${saved.toFixed(2)}</span>` : ''}
           </div>
           <div class="cp-action">
             <button class="cp-add-btn" onclick="addToQuote('${p.id}', this)" title="加入询价单">+</button>
@@ -470,21 +465,23 @@ function renderQuote() {
   if (hasItems) {
     quoteItems.forEach(item => {
       const up = item.unit_price || 0;
+      const hasPrice = up > 0;
       const dp = calcDiscountPrice(up);
-      const subtotal = dp * item.qty;
+      const subtotal = hasPrice ? dp * item.qty : 0;
+      const priceDisplay = hasPrice ? `<span class="qi-original">¥${up.toFixed(2)}</span><span class="qi-level-price">¥${dp.toFixed(2)}</span>` : ``;
       const itemUrl = item.url || '';
       const itemLinkAttrs = itemUrl ? `href="${itemUrl}" target="_blank" rel="noopener"` : `href="#" onclick="event.stopPropagation();return false;"`;
       const thumbLink = itemUrl
         ? `<a href="${itemUrl}" target="_blank" rel="noopener" class="qi-thumb-link">${item.small_pic ? `<img src="${item.small_pic}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</a>`
         : `<div class="qi-thumb">${item.small_pic ? `<img src="${item.small_pic}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</div>`;
+      const subtotalDisplay = hasPrice ? `¥${subtotal.toFixed(2)}` : ``;
       itemsHtml += `
         <div class="quote-item">
           ${thumbLink}
           <div class="qi-info">
             <h4><a ${itemLinkAttrs} class="qi-title-link">${item.name}</a></h4>
             <div class="qi-meta">
-              <span class="qi-original">¥${up.toFixed(2)}</span>
-              <span class="qi-level-price">¥${dp.toFixed(2)}</span>
+              ${priceDisplay}
             </div>
             <div class="qi-qty">
               <button onclick="changeQuoteQty('${item.id}', -1)">−</button>
@@ -493,7 +490,7 @@ function renderQuote() {
             </div>
           </div>
           <div class="qi-right">
-            <div class="qi-subtotal">¥${subtotal.toFixed(2)}<small>${item.qty} 支</small></div>
+            <div class="qi-subtotal">${subtotalDisplay}<small>${item.qty} 支</small></div>
             <button class="qi-remove" onclick="removeFromQuote('${item.id}')">✕ 移除</button>
           </div>
         </div>
@@ -513,21 +510,29 @@ function renderQuote() {
 
   let totalCount = quoteItems.length;
   let totalQty = quoteItems.reduce((s, i) => s + i.qty, 0);
-  let originalTotal = quoteItems.reduce((s, i) => s + (i.unit_price || 0) * i.qty, 0);
-  let discountTotal = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.unit_price || 0) * i.qty, 0);
+  let hasAnyPrice = quoteItems.some(i => (i.unit_price || 0) > 0);
+  let originalTotal = hasAnyPrice ? quoteItems.reduce((s, i) => s + (i.unit_price || 0) * i.qty, 0) : 0;
+  let discountTotal = hasAnyPrice ? quoteItems.reduce((s, i) => s + calcDiscountPrice(i.unit_price || 0) * i.qty, 0) : 0;
   let discountAmount = originalTotal - discountTotal;
+  let totalDisplay = hasAnyPrice ? formatMoney(discountTotal) : '';
 
   document.getElementById('qfCountDesktop').textContent = totalCount;
   document.getElementById('qfQtyDesktop').textContent = totalQty;
-  document.getElementById('qfOriginalDesktop').textContent = formatMoney(originalTotal);
-  document.getElementById('qfDiscountDesktop').textContent = `-¥${formatMoney(discountAmount)}`;
-  document.getElementById('qfTotalDesktop').textContent = formatMoney(discountTotal);
+  document.getElementById('qfOriginalDesktop').textContent = hasAnyPrice ? formatMoney(originalTotal) : '—';
+  document.getElementById('qfDiscountDesktop').textContent = hasAnyPrice ? `-¥${formatMoney(discountAmount)}` : '—';
+  document.getElementById('qfTotalDesktop').textContent = totalDisplay;
 
   document.getElementById('qfCountMobile').textContent = totalCount;
   document.getElementById('qfQtyMobile').textContent = totalQty;
-  document.getElementById('qfOriginalMobile').textContent = formatMoney(originalTotal);
-  document.getElementById('qfDiscountMobile').textContent = `-¥${formatMoney(discountAmount)}`;
-  document.getElementById('qfTotalMobile').textContent = formatMoney(discountTotal);
+  document.getElementById('qfOriginalMobile').textContent = hasAnyPrice ? formatMoney(originalTotal) : '—';
+  document.getElementById('qfDiscountMobile').textContent = hasAnyPrice ? `-¥${formatMoney(discountAmount)}` : '—';
+  document.getElementById('qfTotalMobile').textContent = totalDisplay;
+
+  // 显示/隐藏价格区域（未定价时不展示任何金额）
+  const priceDesktop = document.getElementById('qfPriceDesktop');
+  const priceMobile = document.getElementById('qfPriceMobile');
+  if (priceDesktop) priceDesktop.style.display = hasAnyPrice ? '' : 'none';
+  if (priceMobile) priceMobile.style.display = hasAnyPrice ? '' : 'none';
 
   quoteFooterDesktop.style.display = hasItems ? 'block' : 'none';
   quoteFooterMobile.style.display = hasItems ? 'block' : 'none';
@@ -585,6 +590,7 @@ async function submitToCart() {
   }
 
   const items = quoteItems.map(item => ({
+    id: item.id,
     content_id: item.id,
     qty: item.qty,
     title: item.name,
@@ -641,10 +647,12 @@ function saveQuoteRecord() {
     body: JSON.stringify({
       sessionId: SESSION_ID,
       items: quoteItems.map(i => ({
+        id: i.id,
         content_id: i.id,
         product_id: i.id,
         qty: i.qty,
         title: i.name,
+        sku: i.sku || '',
         unit_price: i.unit_price || 0
       })),
       summary: summary,

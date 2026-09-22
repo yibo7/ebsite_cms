@@ -139,17 +139,9 @@
   <div class="qr-section">
     <h3>💰 价格汇总</h3>
     <div class="qr-summary">
-      <div class="qr-s-row">
-        <span class="label">💰 原价合计</span>
-        <span class="value">¥{{ "%.2f"|format(quote.total_original) }}</span>
-      </div>
-      <div class="qr-s-row">
-        <span class="label">🎉 优惠折扣（{{ (quote.discount_rate * 100)|int }}%）</span>
-        <span class="value" style="color:#16a34a;">-¥{{ "%.2f"|format(quote.total_discount) }}</span>
-      </div>
       <div class="qr-s-row total">
-        <span class="label">🔥 报价合计</span>
-        <span class="value">¥{{ "%.2f"|format(quote.total_final) }}</span>
+        <span class="label">📋 报价合计</span>
+        <span class="value">¥{{ "%.2f"|format(quote.total_original) }}</span>
       </div>
     </div>
   </div>

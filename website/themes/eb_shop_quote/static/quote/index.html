@@ -75,7 +75,7 @@
 
     <div class="quote-header">
       <h3><span class="dot"></span>🛒 询价篮</h3>
-      <div class="sub-info">已享 <strong style="color:#15803d;">10% 优惠折扣</strong></div>
+      <div class="sub-info">提交报价单可获取批发价格</div>
     </div>
 
     <div class="quote-body" id="quoteBodyDesktop"></div>
@@ -83,9 +83,11 @@
     <div class="quote-footer" id="quoteFooterDesktop" style="display:none;">
       <div class="qf-row"><span>商品款数</span><b><span id="qfCountDesktop">0</span> 款</b></div>
       <div class="qf-row"><span>总数量</span><b><span id="qfQtyDesktop">0</span> 支</b></div>
+      <div id="qfPriceDesktop">
       <div class="qf-row"><span>原价合计</span><b>¥<span id="qfOriginalDesktop">0.00</span></b></div>
       <div class="qf-row discount"><span>优惠折扣</span><b id="qfDiscountDesktop">-¥0.00</b></div>
       <div class="qf-row total"><span>报价合计</span><b>¥<span id="qfTotalDesktop">0.00</span></b></div>
+      </div>
       <div class="qf-actions">
         <button class="btn btn-accent" onclick="submitToCart()">📄 生成报价单</button>
       </div>
@@ -109,15 +111,17 @@
   </div>
   <div class="offcanvas-body">
     <div class="sub-info" style="padding:12px 20px 0;font-size:12px;color:var(--muted);">
-      已享 <strong style="color:#15803d;">10% 优惠折扣</strong>
+      提交报价单可获取批发价格
     </div>
     <div class="quote-body" id="quoteBodyMobile"></div>
     <div class="quote-footer" id="quoteFooterMobile" style="display:none;">
       <div class="qf-row"><span>商品款数</span><b><span id="qfCountMobile">0</span> 款</b></div>
       <div class="qf-row"><span>总数量</span><b><span id="qfQtyMobile">0</span> 支</b></div>
+      <div id="qfPriceMobile">
       <div class="qf-row"><span>原价合计</span><b>¥<span id="qfOriginalMobile">0.00</span></b></div>
       <div class="qf-row discount"><span>优惠折扣</span><b id="qfDiscountMobile">-¥0.00</b></div>
       <div class="qf-row total"><span>报价合计</span><b>¥<span id="qfTotalMobile">0.00</span></b></div>
+      </div>
       <div class="qf-actions">
         <button class="btn btn-accent" >📄 生成报价单</button>
       </div>

@@ -92,15 +92,10 @@
 
           <!-- 操作按钮 -->
           <div class="detail-actions">
-            <div class="dropdown d-inline-block">
-            <button class="btn btn-accent dropdown-toggle" id="addToBasketBtn" data-bs-toggle="dropdown" aria-expanded="false">
-              🛒 采购此商品
-            </button>
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" target="_blank" :href="'https://wa.me/8615910983264?text=' + encodeURIComponent('Hi, I would like to inquire about product SKU: ' + (SelProduct ? SelProduct.sku : '') + '. Are you free to talk?')" >💬 WhatsApp</a></li>
-              <li><a class="dropdown-item" target="_blank" href="https://work.weixin.qq.com/kfid/kfc6eb832d6d25c857f" >✉️ 微信客服</a></li>
-            </ul>
-          </div>
+            <button class="btn btn-accent" id="addToBasketBtn"
+  onclick="addToQuoteBasket('{{ model._id }}','{{ model.title|replace("'","\\'") }}','{{ model.small_pic }}',0,'{{ model.get_url() }}')">
+  🛒 加入询价篮
+</button>
             <button id="favorit-btn" class="btn btn-outline favorit-btn" data-faved="false" onclick="fav_content('{{ model._id }}')">
               ☆ 收藏
             </button>

@@ -127,8 +127,8 @@ def quote_chat():
         current_app.logger.warning(f"[⏱ 总耗时] {(time.time()-t0)*1000:.0f}ms")
         return jsonify({"reply": handler.no_result_reply(extract_result), "matches": []})
 
-    # ── Step 3: AI 写文案 ──
-    found_lines = [f"- {p['title']} | ¥{p['unit_price']}" for p in matched_products]
+    # ── Step 3: AI 写文案（不透露具体价格）──
+    found_lines = [f"- {p['title']}" for p in matched_products]
     found_text = "\n".join(found_lines)
 
     ci = handler.build_custom_instruction(extract_result, bool(extract_result.get("ok")))
@@ -150,13 +150,25 @@ def quote_chat():
 
     matches = []
     for p in matched_products:
+        # 从 column_10 提取第一个真实 SKU 码（用于前端显示）
+        raw_skus = p.get("column_10", "[]")
+        if isinstance(raw_skus, str):
+            try: skus_list = json.loads(raw_skus)
+            except: skus_list = []
+        elif isinstance(raw_skus, list):
+            skus_list = raw_skus
+        else:
+            skus_list = []
+        first_sku = skus_list[0].get("sku", "") if skus_list else ""
+
         matches.append({
             "title": p.get("title", ""),
             "small_pic": p.get("small_pic", ""),
-            "unit_price": p.get("unit_price", 0),
-            "market_price": p.get("market_price", 0),
+            "unit_price": 0,                       # 不透露价格，提交后后端按用户组定价
+            "market_price": 0,
             "class_name": p.get("class_name", ""),
-            "sku": p.get("sku", ""),
+            "content_id": p.get("sku", ""),        # MongoDB ObjectId，供后端定价查找
+            "sku": first_sku or p.get("sku", ""),  # 真实 SKU 码，无则回退 ObjectId
             "url": p.get("url", ""),
             "remarks": p.get("remarks", ""),
             "qty": 1,
@@ -165,7 +177,7 @@ def quote_chat():
     if not sales_result.get("reply"):
         sales_result["reply"] = (
             f"<p>为您找到以下产品：</p>"
-            + "".join(f"<p>• {p['title']} <strong>¥{p['unit_price']}</strong></p>"
+            + "".join(f"<p>• {p['title']}</p>"
                      for p in matched_products[:3])
             + "<p>点击 <strong>[+]</strong> 加入询价单，可在其中修改数量。</p>"
         )
@@ -257,6 +269,105 @@ def quote_submit_order(user_token: UserToken):
     return jsonify({"code": 0, "msg": "已加入购物车，请前往结算"})
 
 
+# ═════════════════════════════════════════════════════════════════
+#  按用户组定价 — 从 SKU group_prices 获取对应用户组的价格
+# ═════════════════════════════════════════════════════════════════
+
+def _resolve_user_group() -> tuple:
+    """
+    获取当前用户的 group_id 与 group_name。
+    未登录用户返回 ("", "vip")，即默认 VIP 价。
+    """
+    from eb_cache import login_utils
+    token = login_utils.get_token()
+    if token and token.group_id:
+        return token.group_id, token.group_name or "vip"
+    return "", "vip"
+
+
+def _lookup_group_price(skus: list, target_group_id: str) -> float | None:
+    """
+    在 SKU 的 group_prices 数组中查找对应用户组的价格。
+    1) 优先匹配 group_id；2) 回退匹配 group_name=='vip'；3) 取第一个 group_price。
+    """
+    if not skus or not isinstance(skus, list):
+        return None
+    for s in skus:
+        gps = s.get("group_prices") or []
+        if not isinstance(gps, list):
+            continue
+        # 精确匹配 group_id
+        if target_group_id:
+            for gp in gps:
+                if gp.get("group_id") == target_group_id:
+                    return float(gp.get("price", 0))
+        # 未登录/无匹配 → 找 VIP
+        for gp in gps:
+            if gp.get("group_name", "").lower() == "vip":
+                return float(gp.get("price", 0))
+        # 兜底：取第一个
+        for gp in gps:
+            return float(gp.get("price", 0))
+    return None
+
+
+def _resolve_item_price(item: dict, user_group_id: str) -> float:
+    """
+    根据提交的 item 信息，从数据库查询并返回对应用户组的价格。
+    item 中必须包含 id（MongoDB _id 字符串）和可选的 sku 字段。
+    """
+    from bll.new_content import NewsContent
+    from entity.news_content_model import NewsContentModel
+    import json
+
+    content_id = item.get("id") or item.get("content_id", "")
+    if not content_id:
+        current_app.logger.warning(f"[定价] item 缺少 id，使用提交的 unit_price")
+        return float(item.get("unit_price", item.get("price", 0)))
+
+    try:
+        bll = NewsContent()
+        product = bll.find_one_by_id(content_id)
+        if not product:
+            current_app.logger.warning(f"[定价] 未找到产品 {content_id}")
+            return float(item.get("unit_price", item.get("price", 0)))
+
+        raw_skus = product.column_10 or "[]"
+        if isinstance(raw_skus, str):
+            try:
+                skus = json.loads(raw_skus)
+            except json.JSONDecodeError:
+                skus = []
+        elif isinstance(raw_skus, list):
+            skus = raw_skus
+        else:
+            skus = []
+
+        # 优先匹配当前选中 SKU
+        sku_code = item.get("sku", "")
+        if sku_code:
+            matched = [s for s in skus if s.get("sku") == sku_code]
+            if matched:
+                price = _lookup_group_price(matched, user_group_id)
+                if price is not None:
+                    return price
+
+        # 无 SKU 匹配 → 在所有 SKU 中查找
+        price = _lookup_group_price(skus, user_group_id)
+        if price is not None:
+            return price
+
+        # 最终兜底：marketPrice → column_11
+        mp = float(item.get("market_price", 0))
+        if mp:
+            return mp
+        return float(product.column_11 or 0)
+
+    except Exception as e:
+        current_app.logger.error(f"[定价] 异常: {e}")
+        return float(item.get("unit_price", item.get("price", 0)))
+
+
 @bp_quote_apis.route('quote/submit', methods=['POST'])
 def quote_submit():
     """
@@ -266,12 +377,13 @@ def quote_submit():
     {
         "sessionId": "...",
         "items": [
-            {"content_id": "...", "qty": 10, "title": "...", "price": 20.0, "spec": ""}
+            {"id": "...", "qty": 10, "title": "...", "sku": "..."}
         ],
+        "contact": {},
         "discount_rate": 0.10
     }
 
-    返回：{"code": 0, "record_id": "QRxxxxxx", "url": "/shop/quote/QRxxxxxx"}
+    返回：{"code": 0, "record_id": "QRxxxxxx", "url": ".../quote/QRxxxxxx"}
     """
     from .datas.quote_record import ShopQuoteRecord
     from eb_cache import login_utils
@@ -281,8 +393,12 @@ def quote_submit():
     if not items_raw:
         return jsonify({"code": -1, "msg": "询价单为空"})
 
-    discount_rate = float(data.get("discount_rate", 0.10))
+    discount_rate = float(data.get("discount_rate", 0))
     session_id = data.get("sessionId", "")
+
+    # 获取用户组信息（用于定价）
+    user_group_id, user_group_name = _resolve_user_group()
+    current_app.logger.warning(f"[定价] 用户组: {user_group_name} ({user_group_id})")
 
     # 尝试获取登录用户信息
     user_token = login_utils.get_token()
@@ -293,11 +409,11 @@ def quote_submit():
         user_id = ""
         user_account = session_id
 
-    # 构建产品明细（统一使用标准化数据结构）
+    # 构建产品明细 —— 根据用户组自动定价
     items = []
     total_original = 0.0
     for item in items_raw:
-        unit_price = float(item.get("unit_price", item.get("price", 0)))
+        unit_price = _resolve_item_price(item, user_group_id)
         qty = int(item.get("qty", 1))
         subtotal = round(unit_price * qty, 2)
         total_original += subtotal
@@ -330,6 +446,7 @@ def quote_submit():
     model.total_discount = total_discount
     model.total_final = total_final
     model.discount_rate = discount_rate
+    model.user_group_name = user_group_name
 
     record_id = bll.save_record(model)
 

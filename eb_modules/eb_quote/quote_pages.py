@@ -56,7 +56,7 @@ def quote_view(record_id: str):
         "total_original": _to_float(getattr(model, "total_original", 0)),
         "total_discount": _to_float(getattr(model, "total_discount", 0)),
         "total_final": _to_float(getattr(model, "total_final", 0)),
-        "discount_rate": float(getattr(model, "discount_rate", 0.10)),
+        "discount_rate": float(getattr(model, "discount_rate", 0)),
         "add_time_str": _fmt_time(getattr(model, "add_time", None)),
         "contact": getattr(model, "contact", None) or {},
         "user_account": getattr(model, "user_account", ""),

@@ -35,13 +35,13 @@ class ProductSku(ControlBase):
       <thead>
         <tr>
           <th style="width: 120px;">规格图片</th>
-          <th style="width: 33%;">规格名称</th>
-          <th style="width: 100px;">市场价格</th>
-          <th style="width: 100px;">成本价</th>
+          <th>规格名称</th>
+          <th style="width: 120px;">市场价格</th>
+          <th style="width: 120px;">成本价</th>
           <th style="width: 120px;">库存量</th>
-          <th style="width: 150px;">货号</th>
-          <th style="width: 100px;">重量(g)</th>
-          <th style="width: 150px;">操作</th>
+          <th style="width: 200px;">货号</th>
+          <th style="width: 120px;">重量(g)</th>
+          <th style="width: 180px;">操作</th>
         </tr>
       </thead>
       <tbody>
@@ -64,10 +64,8 @@ class ProductSku(ControlBase):
             <td><input type="text" v-model="spec.sku" class="form-control" /></td>
            <td><input type="number" v-model.number="spec.weight" class="form-control" min="0" step="0.01" /></td>
            <td>
-             <div class="d-flex gap-1">
-             <button type="button" class="btn btn-outline-info btn-sm" @click="openGroupPriceModal(index)"><i class="fa fa-users"></i> 会员价</button>
-             <button type="button" class="btn btn-outline-danger btn-sm" @click="deleteSpec(index)"><i class="fa fa-trash-o"></i> 删除</button>
-             </div>
+            <button type="button" class="btn btn-info btn-sm me-1" @click="openGroupPriceModal(index)">设置用户组价格</button>
+            <button type="button" class="btn btn-danger btn-sm" @click="deleteSpec(index)">删除</button>
            </td>
          </tr>
          <tr>
@@ -88,10 +86,10 @@ class ProductSku(ControlBase):
             <td><input type="text" v-model="newSpec.sku" placeholder="货号" class="form-control" /></td>
            <td><input type="number" v-model.number="newSpec.weight" placeholder="重量" class="form-control" min="0" step="0.01" /></td>
            <td>
-            <button type="button" class="btn btn-primary btn-sm" @click="addSpec"><i class="fa fa-plus"></i> 添加</button>
+            <button type="button" class="btn btn-primary btn-sm" @click="addSpec">添加</button>
            </td>
-          </tr>
-       </tbody>
+         </tr>
+      </tbody>
     </table>
 
     <!-- 隐藏 input 用于提交 -->
@@ -217,9 +215,7 @@ class ProductSku(ControlBase):
           };
         },
         deleteSpec(index) {
-          if (confirm('确定要删除该规格吗？')) {
-            this.specs.splice(index, 1);
-          }
+          this.specs.splice(index, 1);
         },
         uploadImage(index, src) {
             OpenUploadImg(index, src);

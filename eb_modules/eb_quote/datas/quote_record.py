@@ -54,9 +54,10 @@ class ShopQuoteRecordModel(ModelBase):
         self.total_original: float = 0.0
         self.total_discount: float = 0.0
         self.total_final: float = 0.0
-        self.discount_rate: float = 0.10
+        self.discount_rate: float = 0.0
         self.item_count: int = 0
         self.total_qty: int = 0
+        self.user_group_name: str = ""  # 定价用的用户组名称（vip/svip 等）
 
 
 class ShopQuoteRecord(BllBase[ShopQuoteRecordModel]):

@@ -8,7 +8,7 @@
     /** 渲染一条产品卡片 HTML */
     function renderProductCard(p, isFirst) {
       var badgeHtml = isFirst ? '<span class="badge hot">热销</span>' : '';
-      var priceHtml = p.column_11 ? '<span class="product-price"><span class="ln">¥' + p.column_11 + '</span> <small>/ 支</small></span>' : '';
+      var priceHtml = p.column_11 ? '<span class="product-price"><span class="ln">¥***</span> <small>/ 支</small></span>' : '';
       var tag3Html = p.column_3 ? '<span class="tag">' + p.column_3 + '</span>' : '';
       var tag4Html = p.column_4 ? '<span class="tag green">' + p.column_4 + '</span>' : '';
       var tag6Html = p.column_6 ? '<span class="tag gray">' + p.column_6 + '</span>' : '';
