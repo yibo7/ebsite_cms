@@ -1,100 +1,6 @@
 {% extends 'base_admin.html' %}
 {% block content %}
 
-<style>
-.settings-wrapper {
-    padding: 24px;
-}
-
-.settings-card {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    overflow: hidden;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.settings-card .boxheader {
-    padding: 20px 28px 16px;
-    border-bottom: 1px solid #f0f0f0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.settings-card .boxheader h3 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1a1a2e;
-    margin: 0;
-}
-
-.settings-card .boxheader h3 i {
-    color: #3b82f6;
-}
-
-.settings-card .content {
-    padding: 24px 28px 28px;
-}
-
-.settings-card .form-label {
-    font-weight: 500;
-    color: #444;
-    font-size: 13px;
-    margin-bottom: 4px;
-}
-
-.settings-card .form-control,
-.settings-card select.form-control {
-    border-radius: 6px;
-    border: 1.5px solid #e0e0e0;
-    padding: 8px 12px;
-    font-size: 13px;
-    transition: all 0.25s ease;
-    background: #fafafa;
-    max-width: 400px;
-}
-
-.settings-card .form-control:focus,
-.settings-card select.form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-    background: #fff;
-}
-
-.settings-card .input-group {
-    max-width: 400px;
-}
-
-.settings-card .input-group .btn {
-    border-radius: 0 6px 6px 0;
-}
-
-.settings-card .btn-primary {
-    height: 40px;
-    padding: 0 28px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: 8px;
-    background: #3b82f6;
-    border: none;
-    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
-    transition: all 0.3s;
-    margin-top: 8px;
-}
-
-.settings-card .btn-primary:hover {
-    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
-    transform: translateY(-1px);
-    background: #2563eb;
-}
-
-.settings-card .mb-3 {
-    margin-bottom: 20px !important;
-}
-</style>
-
 <div class="settings-wrapper">
     <div class="settings-card">
         <div class="block-flat">
@@ -216,6 +122,13 @@
                             </select>
                             <button type="button" onclick="send_test_email()" class="btn btn-primary">测试发送</button>
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa fa-robot" style="color:#3b82f6;margin-right:4px;"></i>AI 提供者</label>
+                        <select name="ai_provider_id" style="max-width:300px" class="form-control">
+                            {{build_sel_item(ai_providers,'id','name',model.ai_provider_id)}}
+                        </select>
                     </div>
 
                     <div class="mb-3">

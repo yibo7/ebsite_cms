@@ -8,19 +8,19 @@ from signals import content_saving, pay_saved_successful
 from .datas.quote_record import ShopQuoteRecord
 from .. import module_attribute, ModuleInfo
 
-module_url_prefix = "/eb_quote"
+module_url_prefix = "/ai_cart"
 # 模块扩展前台页面蓝图
-bp_quote_pages = Blueprint('bp_quote_pages', __name__,
+bp_ai_cart_pages = Blueprint('bp_ai_cart_pages', __name__,
                template_folder='templates',
                static_folder='static',
                static_url_path='/',
                url_prefix=module_url_prefix)
 
 # 模块扩展API蓝图
-bp_quote_apis = Blueprint('bp_quote_apis', __name__, url_prefix=f"{module_url_prefix}/api/")
+bp_ai_cart_apis = Blueprint('bp_ai_cart_apis', __name__, url_prefix=f"{module_url_prefix}/api/")
 
 
-@bp_quote_pages.context_processor
+@bp_ai_cart_pages.context_processor
 def inject_site_name():
     """
     使用context_processor上下文件处理器，注入pages_blue下所有模板的公共变量
@@ -29,24 +29,14 @@ def inject_site_name():
     return {'SiteName': current_app.config['site_name'] or 'ebsite'}
 
 
-# AI 供应商设置（不含品类下拉，品类在模块底部的导入之后动态构建）
+# AI 供应商设置已迁移至插件系统
+# 请在「系统设置 → AI 提供者」中选择默认插件，并在「插件管理 → AI 提供者」中配置密钥
 _SETTINGS_AI = '''
-<div class="mb-3">
-    <label>选择AI供应商</label>
-    <select name="ai_provider" class="form-control" style="max-width:500px" required>
-        <option value="deepseek" {% if model.ai_provider == 'deepseek' %}selected{% endif %}>DeepSeek</option>
-        <option value="joyagent" {% if model.ai_provider == 'joyagent' %}selected{% endif %}>京东Joyagent</option>
-        <option value="qwen" {% if model.ai_provider == 'qwen' %}selected{% endif %}>阿里千问</option>
-    </select>
-</div> 
-<div class="mb-3">
-    <label>AI供应商密钥</label>
-    <input name="ai_key" value="{{model.ai_key}}"   style="max-width:500px" class="form-control" >            
-</div> 
-<div class="mb-3">
-    <label>模型名称</label>
-    <input name="ai_model" value="{{model.ai_model}}"   style="max-width:500px" class="form-control" >            
-</div> 
+<div class="alert alert-info">
+    AI 提供者已迁移至系统级插件管理。
+    请在 <strong>系统设置</strong> 中选择默认 AI 插件，
+    并在 <strong>插件管理 → AI 提供者</strong> 中配置对应的 API Key。
+</div>
 '''
 
 
@@ -59,9 +49,8 @@ def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
 # ═════════════════════════════════════════════════════════════════
 #  模块内部导入（触发 AI 供应商 & Handler 注册）
 # ═════════════════════════════════════════════════════════════════
-from . import quote_pages
-from . import quote_apis
-from . import ai_providers  # AI 供应商注册: deepseek / joyagent / qwen
+from . import ai_cart_pages
+from . import ai_cart_apis
 from . import ai_handlers      # 品类 Handler 注册: printer_drum 等
 
 # 此时 ai_handlers 已全部导入，_HANDLER_REGISTRY 已填充
@@ -102,17 +91,17 @@ def module_init(app:Flask, model:ModuleInfo):
     """
     module_configs = model.get_configs()
 
-    bp_quote_pages.config = module_configs
-    bp_quote_apis.config = module_configs  # API 蓝图同样需要配置（AI 供应商选择）
+    bp_ai_cart_pages.config = module_configs
+    bp_ai_cart_apis.config = module_configs  # API 蓝图同样需要配置（AI 供应商选择）
 
     # 注册配置热更新
     def refresh_config(saved_config):
-        bp_quote_pages.config = saved_config
-        bp_quote_apis.config = saved_config
+        bp_ai_cart_pages.config = saved_config
+        bp_ai_cart_apis.config = saved_config
     model.on_config_changed(refresh_config)
 
-    app.register_blueprint(bp_quote_pages)
-    app.register_blueprint(bp_quote_apis)
+    app.register_blueprint(bp_ai_cart_pages)
+    app.register_blueprint(bp_ai_cart_apis)
 
     # content_saving.connect(on_content_saving)
     pay_saved_successful.connect(on_pay_saved_successful)

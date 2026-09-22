@@ -1,12 +1,14 @@
 import hashlib
 from abc import ABC, abstractmethod
 from typing import Tuple, Union
-from urllib.parse import quote
 
 from flask import Request, request
 
+import eb_cache
+import eb_utils
 from entity.file_model import FileModel
 from entity.pay_back_model import PayBackInfo
+from entity.pay_link_result import PayLinkResult
 from entity.user_call_back_model import UserCallBackModel
 
 def plugin_attribute(description, version, author, priority=999):
@@ -173,31 +175,79 @@ class Uploader(PluginBase):
 
 
 '''
-三方登录
+第三方登录基类
+
+子类需实现：
+  - login()        : 发起 OAuth 授权，返回第三方平台的授权页 URL
+  - call_back()    : 处理第三方回调，返回标准化的用户信息
+
+基类提供：
+  - _generate_state()  : 生成防 CSRF 的 state 参数
+  - _verify_state()    : 验证回调中的 state
+  - get_call_back_url(): 构造当前插件的回调地址（子类可覆写）
 '''
 class OpenLoginBase(PluginBase):
+
     @abstractmethod
     def login(self) -> Tuple[bool, str]:
         """
-        发起一个登录操作
-        :return: 是否成功，错误信息或如果成功是引导用户登录的重定向URL
+        发起一个登录操作（OAuth 第一步）。
+
+        成功时返回 (True, 第三方授权页 URL)，前端将用户浏览器重定向到该 URL。
+        失败时返回 (False, 错误信息)。
         """
         pass
 
     @abstractmethod
     def call_back(self, request: Request) -> Tuple[bool, str, UserCallBackModel]:
         """
-        登录通用页面的回调方法
-        :return: 是否成功|错误信息或如果成功是引导用户登录的重定向URL|如果成功，返回用户的信息
+        处理第三方登录回调（OAuth 第二步）。
+
+        校验 state、用 code 换取 access_token、获取用户信息都在此完成。
+        :return: (是否成功, 错误信息, 标准化的用户信息模型)
         """
         pass
 
-    def get_call_back_url(self):
+    # ------------------------------------------------------------------
+    # 基类提供的通用能力
+    # ------------------------------------------------------------------
+
+    def _generate_state(self, expire_seconds: int = 300) -> str:
         """
-        获取当前插件的回调地址
-        :return:
+        生成防 CSRF 攻击的 state 参数，并缓存。
+
+        子类在 login() 中构造授权 URL 时调用此方法，
+        将返回值作为 state 参数附加到授权 URL 中。
+
+        :param expire_seconds: state 有效期（秒），默认 5 分钟
+        :return: 安全的随机 state 字符串
         """
-        return quote(f'{request.host}/api/open_login_back?plugin={self.id}')
+        safe_code = eb_utils.get_uuid()
+        eb_cache.set_data('1', expire_seconds, safe_code)
+        return safe_code
+
+    def _verify_state(self, state: str) -> bool:
+        """
+        校验回调请求中的 state 参数是否合法。
+
+        子类在 call_back() 中首先调用此方法验证 state，
+        防止 CSRF 攻击。
+
+        :param state: 用户回调时携带的 state 值
+        :return: True 表示 state 有效，False 表示无效/已过期
+        """
+        return eb_cache.get(state) == '1'
+
+    def get_call_back_url(self) -> str:
+        """
+        获取当前插件的回调地址（原始 URL，未编码）。
+
+        第三方平台授权后会重定向到此地址，服务端在此处理回调逻辑。
+        子类可覆写此方法以适配特殊平台要求（如 Apple 要求固定 HTTPS 回调地址）。
+
+        :return: 完整的回调 URL 字符串（如需嵌入查询参数，调用方自行 URL 编码）
+        """
+        return f'{request.host_url}api/app/open_login_back?plugin={self.id}'
 
 
 '''
@@ -215,38 +265,175 @@ class SearchBase(PluginBase):
         :param class_name: 是否指定查询某个分类下的内容
         :return: 数据列表|总共有多少条数据
         """
+        pass
+
 
 '''
-在线支付
+AI 提供者插件基类
+
+子类必须实现：
+  - chat()         : 通用 AI 对话，返回文本回复
+
+子类可选实现：
+  - chat_stream()  : 流式对话，逐块 yield 文本
+
+配置在子类 __init__ 中声明（如 api_key, model），
+由插件管理后台统一填写，各消费模块无需单独配置。
+'''
+class AIProviderBase(PluginBase):
+    """AI 提供者插件基类"""
+
+    @abstractmethod
+    def chat(
+        self,
+        messages: list,
+        system_prompt: str = "",
+        **kwargs,
+    ) -> dict:
+        """
+        通用 AI 对话接口。
+
+        :param messages: 对话历史
+            [{"role": "user", "content": "你好"},
+             {"role": "assistant", "content": "你好！有什么可以帮助你的？"}]
+        :param system_prompt: 系统提示词
+        :param kwargs: 扩展参数
+            temperature=0.7, max_tokens=2048, response_format=None
+        :return:
+            {"reply": "AI 回复文本",
+             "finish_reason": "stop",       # stop / length / null
+             "usage": {"prompt_tokens": 100, "completion_tokens": 50}}
+        """
+        pass
+
+    def chat_stream(
+        self,
+        messages: list,
+        system_prompt: str = "",
+        **kwargs,
+    ):
+        """
+        流式对话（可选实现）。
+
+        默认回退到 chat() 一次性返回全部文本。
+        支持流式的子类应 yield 每个文本块。
+
+        :param messages: 对话历史
+        :param system_prompt: 系统提示词
+        :param kwargs: 扩展参数
+        :yield: str，每次 yield 一个文本块
+        """
+        result = self.chat(messages, system_prompt, **kwargs)
+        yield result.get("reply", "")
+
+'''
+在线支付基类
+
+子类必须实现：
+  - create_pay_link()   : 创建支付凭证，返回 PayLinkResult
+  - call_back()         : 处理支付平台异步回调，返回 PayBackInfo
+  - notify_response()   : 返回支付平台要求的确认响应
+
+子类可选实现：
+  - query_order()       : 查询订单状态
+  - refund_order()      : 申请退款
+  - close_order()       : 关闭订单
 '''
 
 class PaymentBase(PluginBase):
     def __init__(self, current_app):
         super().__init__(current_app)
+        # 支付平台回调通知地址（子类可覆写，或在配置中设置完整 URL）
         self.notify_url = f"/pay/notify_url/{self.id}"
         self.return_url = f"/pay/return_url/{self.id}"
 
+    # ==================== 必选接口 ====================
+
     @abstractmethod
-    def create_pay_link(self, order_id: str, amount: float, **kwargs) -> Tuple[bool, str]:
+    def create_pay_link(
+        self,
+        order_id: str,
+        amount: float,
+        **kwargs,
+    ) -> Tuple[bool, str, PayLinkResult]:
         """
-        构建一个支付连接串,根据不同的支付平台构建一个支付连接地址，用户选择此插件开始支付会跳转到这个连接地址完成支付操作。
-        :return: 是否成功，错误信息或如果成功是引导用户登录的重定向URL
+        创建支付凭证。
+
+        不同支付场景返回不同凭证类型，PayLinkResult 的三个字段互斥：
+          - pay_url      : URL 跳转（支付宝 / PayPal / 微信 H5）
+          - qr_code_url  : 二维码扫码（微信 NATIVE）
+          - trade_params : JSAPI 参数（微信 JSAPI / 小程序）
+
+        前端根据哪个字段非空来决定处理方式。
+
+        :param order_id: 本系统订单号
+        :param amount:   支付金额（元）
+        :param kwargs:   扩展参数（如 subject, description, openid, client_ip 等）
+        :return: (是否成功, 错误信息, 支付凭证)
         """
         pass
 
     @abstractmethod
-    def call_back(self, request: Request) -> Tuple[bool, str, PayBackInfo]:
+    def call_back(
+        self,
+        request: Request,
+    ) -> Tuple[bool, str, PayBackInfo]:
         """
-        支付完成后，在通知地址服务里会调用到这个方法，并获取这个方法处理结果，发出发送给监听程序更新订单状态。
-        开发时应该严格返回标准的PayBackInfo数据
-        :return: 是否成功|错误信息|如果成功，返回支付信息
-        data = request.form.to_dict() or request.args.to_dict()
+        处理支付平台的异步回调通知。
+
+        此方法由 /pay/notify_url/<plugin_id> 路由调用。
+        必须返回标准化的 PayBackInfo，业务代码只依赖 PayBackInfo 处理订单。
+
+        :param request: Flask 请求对象（含支付平台 POST 的数据）
+        :return: (是否成功, 错误信息, 标准化的支付结果)
         """
         pass
 
     @abstractmethod
-    def notify_response(self,notify_data:PayBackInfo):
+    def notify_response(self, notify_data: PayBackInfo) -> str:
         """
-        根据当前支付平台要求，在通知页面返回处理的结果，notify_data中有通知处理后的结果数据，但不同的平台可能对通知结果格式有不一样的要求
+        返回支付平台要求的通知确认响应。
+
+        微信返回 "success"（XML），支付宝返回 "success"（纯文本），
+        各平台格式要求不同，子类自行处理。
+
+        :param notify_data: call_back 处理后的支付结果
+        :return: 支付平台要求的确认字符串
         """
         pass
+
+    # ==================== 可选扩展接口 ====================
+
+    def query_order(self, order_id: str) -> Tuple[bool, str, PayBackInfo]:
+        """
+        查询订单状态（可选实现）。
+
+        :param order_id: 本系统订单号
+        :return: (是否成功, 错误信息, 订单状态信息)
+        """
+        return False, '此插件未实现查询订单功能', PayBackInfo()
+
+    def refund_order(
+        self,
+        order_id: str,
+        amount: float,
+        reason: str = "",
+    ) -> Tuple[bool, str, PayBackInfo]:
+        """
+        申请退款（可选实现）。
+
+        :param order_id: 本系统订单号
+        :param amount:   退款金额（元）
+        :param reason:   退款原因
+        :return: (是否成功, 错误信息, 退款结果)
+        """
+        return False, '此插件未实现退款功能', PayBackInfo()
+
+    def close_order(self, order_id: str) -> Tuple[bool, str]:
+        """
+        关闭订单（可选实现）。
+
+        :param order_id: 本系统订单号
+        :return: (是否成功, 错误信息)
+        """
+        return False, '此插件未实现关闭订单功能'

@@ -3,7 +3,7 @@ from typing import Tuple, Union
 import eb_utils.flask_utils
 from bll.send_msg_data import SendMsgData
 from entity.file_model import FileModel
-from plugins.plugin_base import PluginBase, SMSSender, EmailSender, Uploader, OpenLoginBase, SearchBase, PaymentBase
+from plugins.plugin_base import PluginBase, SMSSender, EmailSender, Uploader, OpenLoginBase, SearchBase, PaymentBase, AIProviderBase
 from temp_expand import reg_temp_expand
 
 
@@ -17,7 +17,8 @@ class PluginManager:
             {"name":"文件上传","ClassName":"Uploader"},
             {"name": "三方登录", "ClassName": "OpenLoginBase"},
             {"name": "在线支付", "ClassName": "PaymentBase"},
-            {"name": "内容搜索", "ClassName": "SearchBase"}
+            {"name": "内容搜索", "ClassName": "SearchBase"},
+            {"name": "AI 提供者", "ClassName": "AIProviderBase"}
         ]
 
     def reg_plugin(self, plugin_class:PluginBase):
@@ -64,6 +65,23 @@ class PluginManager:
         """
         return self.get_by_type(EmailSender) # [plugin for plugin in self.plugins if isinstance(plugin, EmailSender)]
 
+    def get_by_ai_plugins(self):
+        """
+        获取所有AI提供者插件
+        :return:
+        """
+        return self.get_by_type(AIProviderBase)
+
+    def get_default_ai(self):
+        """
+        获取系统配置的默认AI提供者插件
+        :return: AIProviderBase 实例，如果未配置则返回 None
+        """
+        provider_id = self.app.config.get('ai_provider_id')
+        if provider_id:
+            return self.get_by_id(provider_id)
+        return None
+
     def get_by_type(self, type_class):
         """
         获取所有EMAIL发送类的插件
@@ -96,6 +114,8 @@ class PluginManager:
             obj_name = PaymentBase
         elif type_class_name == 'SearchBase':
             obj_name = SearchBase
+        elif type_class_name == 'AIProviderBase':
+            obj_name = AIProviderBase
         return self.get_by_type(obj_name)
 
 

@@ -191,6 +191,7 @@ def admin_settings():
     sms_senders = current_app.pm.get_by_sms_plugins()
     email_senders = current_app.pm.get_by_email_plugins()
     uploaders = current_app.pm.get_by_uploader_plugins()
+    ai_providers = current_app.pm.get_by_ai_plugins()
     theme_names = get_theme_folders()
     # print(theme_names)
     baseSettings = current_app.config['base_settings']
@@ -220,7 +221,7 @@ def admin_settings():
                     '保存系统设置时发生错误，无法将主题保存到setting.json，你可能正在使用无状态服务平台，请手动修改setting.json的主题')
                 print(f'错误信息：{e}')
 
-    return render_template("configs/settings.html",theme_names=theme_names,theme_selected=currentTheme, uploaders=uploaders,sms_senders=sms_senders,email_senders=email_senders, model=settings_model,
+    return render_template("configs/settings.html",theme_names=theme_names,theme_selected=currentTheme, uploaders=uploaders,sms_senders=sms_senders,email_senders=email_senders, ai_providers=ai_providers, model=settings_model,
                            group=UserGroup().find_all())
 
 @admin_blue.route('test_email', methods=['POST'])

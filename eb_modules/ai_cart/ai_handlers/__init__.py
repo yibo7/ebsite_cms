@@ -49,8 +49,8 @@ class AiHandlerBase(ABC):
 
 
 def get_ai_handler() -> AiHandlerBase:
-    from .. import bp_quote_apis
-    config = bp_quote_apis.config or {}
+    from .. import bp_ai_cart_apis
+    config = bp_ai_cart_apis.config or {}
     name = config.get('product_type', 'printer_drum')
     cls = _HANDLER_REGISTRY.get(name)
     if not cls:

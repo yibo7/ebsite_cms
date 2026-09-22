@@ -1,11 +1,8 @@
-
 from typing import Tuple
+from urllib.parse import quote
 
 import requests
 from flask import Request
-
-import eb_cache
-import eb_utils
 from entity.user_call_back_model import UserCallBackModel
 from plugins.plugin_base import Uploader, OpenLoginBase, plugin_attribute
 
@@ -20,57 +17,87 @@ class OpenLoginWixin(OpenLoginBase):
         super().__init__(current_app)
 
     def login(self) -> Tuple[bool, str]:
+        """
+        发起微信扫码登录（OAuth 第一步）。
 
-        back_url = self.get_call_back_url()
-        safe_code = eb_utils.get_uuid()
-        eb_cache.set_data('1',60,safe_code)  # 缓存1分钟
-        Login_url = f"https://open.weixin.qq.com/connect/qrconnect?appid={self.app_id}&redirect_uri={back_url}&response_type=code&scope=snsapi_login&state={safe_code}"
-
-        return True,Login_url
+        构造微信开放平台的二维码授权 URL，引导用户扫码授权。
+        """
+        back_url = quote(self.get_call_back_url())
+        # 使用基类提供的 state 生成方法（自动缓存防 CSRF）
+        safe_code = self._generate_state(expire_seconds=60)
+        login_url = (
+            f"https://open.weixin.qq.com/connect/qrconnect"
+            f"?appid={self.app_id}"
+            f"&redirect_uri={back_url}"
+            f"&response_type=code"
+            f"&scope=snsapi_login"
+            f"&state={safe_code}"
+        )
+        return True, login_url
 
     def call_back(self, request: Request) -> Tuple[bool, str, UserCallBackModel]:
+        """
+        处理微信扫码后的回调（OAuth 第二步）。
+
+        1. 校验 state 防止 CSRF
+        2. 用 code 换取 access_token
+        3. 用 access_token 获取微信用户信息
+        """
         code = request.args.get('code')
         state = request.args.get('state')
         user_info = UserCallBackModel()
-        if eb_cache.get(state) != '1':
-            return False, 'state不是安全的', user_info
 
-        is_ok = False
-        error_msg = "未知错误"
-
+        # 使用基类提供的 state 校验方法
+        if not self._verify_state(state):
+            return False, 'state 校验失败，可能为非法回调或已过期', user_info
 
         if not code:
-            return False, '无效的code', user_info
+            return False, '无效的 code 参数', user_info
 
         weixin_url = "https://api.weixin.qq.com"
-        # 构造获取access_token的URL
-        user_token_url = f"{weixin_url}/sns/oauth2/access_token?appid={self.app_id}&secret={self.app_secret}&code={code}&grant_type=authorization_code"
 
-        response = requests.get(user_token_url)
-        if response.status_code == 200 and 'access_token' in response.json():
-            access_token = response.json()['access_token']
-            open_id = response.json()['openid']
+        # 1. 用 code 换取 access_token
+        token_url = (
+            f"{weixin_url}/sns/oauth2/access_token"
+            f"?appid={self.app_id}"
+            f"&secret={self.app_secret}"
+            f"&code={code}"
+            f"&grant_type=authorization_code"
+        )
+        token_resp = requests.get(token_url)
+        if token_resp.status_code != 200 or 'access_token' not in token_resp.json():
+            return False, '获取 access_token 失败', user_info
 
-            # 构造获取用户信息的URL
-            get_user_info_url = f"{weixin_url}/sns/userinfo?access_token={access_token}&openid={open_id}"
-            response = requests.get(get_user_info_url)
-            if response.status_code == 200 and 'openid' in response.json():
-                data = response.json()
+        token_data = token_resp.json()
+        access_token = token_data['access_token']
+        open_id = token_data['openid']
 
-                user_info.user_ni_name = data.get('nickname')
-                user_info.user_open_id = data.get('openid')
-                user_info.user_ico = data.get('headimgurl')
-                user_info.sex = data.get('sex')
-                user_info.token = access_token
-                user_info.country = data.get('country')
-                user_info.city = data.get('city')
-                user_info.province = data.get('province')
-                is_ok = True
-            else:
-                error_msg = "未能获取用户信息"
-        else:
-            error_msg = "未能获取Token值"
-        return is_ok,error_msg,user_info
+        # 2. 用 access_token 获取用户信息
+        user_info_url = (
+            f"{weixin_url}/sns/userinfo"
+            f"?access_token={access_token}"
+            f"&openid={open_id}"
+        )
+        user_resp = requests.get(user_info_url)
+        if user_resp.status_code != 200 or 'openid' not in user_resp.json():
+            return False, '获取微信用户信息失败', user_info
+
+        wx_user = user_resp.json()
+
+        # 3. 填充标准化的用户信息模型
+        user_info.user_open_id = wx_user.get('openid', '')
+        user_info.user_ni_name = wx_user.get('nickname', '')
+        user_info.avatar_url = wx_user.get('headimgurl', '')
+        user_info.token = access_token
+        # 微信不返回 email，所以 email / email_verified 保持默认空值
+
+        # 微信特有字段
+        user_info.sex = str(wx_user.get('sex', ''))
+        user_info.country = wx_user.get('country', '')
+        user_info.city = wx_user.get('city', '')
+        user_info.province = wx_user.get('province', '')
+
+        return True, '', user_info
 
     def params_temp(self):
         """
@@ -78,12 +105,26 @@ class OpenLoginWixin(OpenLoginBase):
         :return: 模板字符串
         """
         return '''
+        <div class="alert alert-info">
+            <strong>使用说明：</strong><br>
+            1. 在
+            <a href="https://open.weixin.qq.com/" target="_blank">微信开放平台</a>
+            注册开发者账号，创建 <strong>网站应用</strong><br>
+            2. 提交审核通过后，获取 <strong>AppId</strong> 和 <strong>AppSecret</strong><br>
+            3. 在开放平台 → 网站应用 → 接口权限 中设置 <strong>授权回调域</strong> 为：<br>
+            <code>/api/app/open_login_back?plugin=OpenLoginWixin</code>
+            （只需填写域名部分，不要带 http://）<br>
+            4. 用户点击"微信登录"后将弹出微信二维码，扫码完成即自动登录/注册<br>
+            5. 首次登录自动创建账号，之后再次登录自动识别
+        </div>
         <div class="mb-3">
             <label>AppId</label>
             <input name="app_id" value="{{model.app_id}}"  style="max-width:500px" class="form-control" required>
+            <small class="form-text text-muted">在微信开放平台 → 网站应用 中获取</small>
         </div>
         <div class="mb-3">
             <label>AppSecret</label>
             <input name="app_secret" value="{{model.app_secret}}"  style="max-width:500px" class="form-control" required>
+            <small class="form-text text-muted">与 AppId 对应的应用密钥</small>
         </div> 
         '''

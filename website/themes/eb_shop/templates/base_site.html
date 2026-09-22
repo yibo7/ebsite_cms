@@ -9,17 +9,12 @@
   <link rel="icon" href="/favicon.svg" />
   <meta name="keywords" content="鼓芯，复印机鼓芯" />
   <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
-  <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
+  <link rel='stylesheet' href='/css/index.css?ver=0.2' type='text/css' media='all' />
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/js/bootstrap.bundle.min.js" defer></script>
   <script src="/js/comm.js" defer></script>
   <script src="/extensions.js" defer></script>
-  <style>
-    .btn-quote{position:relative;background:#d32f2f;color:#fff;padding:9px 20px;border-radius:999px;font-weight:600;font-size:13px;white-space:nowrap;display:inline-flex;align-items:center;gap:2px;text-decoration:none;}
-    .btn-quote:hover{background:#b71c1c;color:#fff;}
-    .cart-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 8px rgba(239,68,68,.6);line-height:1;}
-    .cart-badge.hidden{display:none;}
-  </style>
+
 </head>
 
 <body>
@@ -34,6 +29,8 @@
       <a cid="106" href="{{ LANG_PREFIX }}/c106p1.html">行业资讯</a>
       <a cid="108" href="{{ LANG_PREFIX }}/c108p1.html">关于我们</a>
       <a cid="109" href="{{ LANG_PREFIX }}/c109p1.html">加盟合作</a>
+      <a cid="109" href="/ai_cart">AI下单</a>
+
     </nav>
     <div class="header-actions">
       <a href="javascript:void(0)" id="search-toggle" class="search-toggle" title="搜索" style="font-size:20px;">
@@ -55,6 +52,16 @@
         <a href="javascript:void(0)" id="search-close" class="search-close" aria-label="关闭">&#10005;</a>
       </form>
     </div>
+  </div>
+  <!-- 移动端菜单 -->
+  <div class="mobile-nav" id="mobileNav">
+    <a href="/" >首页</a>
+    <a href="{{ LANG_PREFIX }}/c105p1.html">产品中心</a>
+    <a href="{{ LANG_PREFIX }}/c106p1.html">行业资讯</a>
+    <a href="{{ LANG_PREFIX }}/c108p1.html">关于我们</a>
+    <a href="{{ LANG_PREFIX }}/c109p1.html">加盟合作</a>
+    <hr>
+    <a href="/user/index">👤 个人中心</a>
   </div>
 </header>
 
@@ -114,6 +121,18 @@
   <span id="toast-text">提示内容</span>
 </div>
 
+<script>
+  // 移动端菜单切换
+  document.addEventListener('DOMContentLoaded', function() {
+    var toggle = document.querySelector('.mobile-toggle');
+    var nav = document.getElementById('mobileNav');
+    if (toggle && nav) {
+      toggle.addEventListener('click', function() {
+        nav.classList.toggle('open');
+      });
+    }
+  });
+</script>
 </body>
 
 </html>

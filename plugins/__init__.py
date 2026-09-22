@@ -6,6 +6,7 @@ import sys
 
 from plugins.email_sender_default import DefaultEmailSender
 from plugins.open_login_weixin import OpenLoginWixin
+from plugins.open_login_google import OpenLoginGoogle
 from plugins.plugin_base import PluginBase
 from plugins.plugin_manager import PluginManager
 from plugins.sms_sender_tencent import TencentSMSSender
@@ -14,6 +15,11 @@ from plugins.uploader_mongodb import UploaderMongoDb
 from plugins.uploader_tencentcos import UploaderTencentCos
 from plugins.payments.payment_alipay import AlipayPlugin
 from plugins.payments.payment_weixin import WechatPayPlugin
+from plugins.payments.payment_paypal import PaypalPlugin
+from plugins.ai_providers.deepseek import DeepSeekProvider
+from plugins.ai_providers.qwen import QwenProvider
+from plugins.ai_providers.joyagent import JoyAgentProvider
+from plugins.ai_providers.openai import OpenAIProvider
 
 def load_plugins(app):
     pm = PluginManager(app)

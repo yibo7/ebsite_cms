@@ -1,20 +1,34 @@
 
-from flask import render_template, current_app, redirect, request
+from flask import render_template, current_app, redirect, request, jsonify
 
 import eb_utils
 from decorators import check_user_login
 from eb_utils import http_helper
 from entity.user_token import UserToken
+from entity.pay_link_result import PayLinkResult
 from plugins.plugin_base import PaymentBase
 from signals import pay_saved_successful
 from website.pages import pages_blue
 
+
 @pages_blue.route('/pay/return_url/<string:plugin_id>', methods=['GET', 'POST'])
 def pay_return_url(plugin_id:str):
     """
-    支付结束后，返回一个恭喜成功的页面，但这里不处理订单结束，订单结束只在pay_notify_url中处理
+    支付结束后，返回一个恭喜成功的页面，但这里不处理订单结束，订单结束只在pay_notify_url中处理。
+
+    特殊处理：PayPal 支付在用户审批后会重定向到此地址并携带 token 参数，
+    此时调用插件 call_back 进行订单捕获。
     """
+    # PayPal 等支付方式：用户从第三方审批页返回，携带 token 参数
+    if request.args.get('token'):
+        payment: PaymentBase = current_app.pm.get_by_id(plugin_id)
+        if payment:
+            is_ok, err_info, pay_info = payment.call_back(request)
+            if is_ok:
+                pay_saved_successful.send(pay_info)
+
     return render_template("pay_return_url.html")
+
 
 @pages_blue.route('/pay/notify_url/<string:plugin_id>', methods=['GET', 'POST'])
 def pay_notify_url(plugin_id:str):
@@ -27,16 +41,16 @@ def pay_notify_url(plugin_id:str):
         print(err)
         raise Exception(err)
 
-    is_ok,err_info,payment_data = payment.call_back(request)
+    is_ok, err_info, pay_info = payment.call_back(request)
     if not is_ok:
         err = f"处理支付订单发生错误:{err_info}!"
         print(err)
         raise Exception(err)
 
-    # 通知监听程序，在你的插件或模块中监听此事件并处理订单的状态(或参考shop中的init)
-    pay_saved_successful.send(payment_data)
-    # 返回插件要求的内容
-    return payment.notify_response(payment_data)
+    # 通知监听程序（如 shop/quote 模块），处理订单状态
+    pay_saved_successful.send(pay_info)
+    # 返回插件要求的确认响应
+    return payment.notify_response(pay_info)
 
 
 @pages_blue.route('/pay/go_pay', methods=['POST'])
@@ -63,7 +77,19 @@ def pay_go_pay(user_token:UserToken):
 
     if not payment:
         raise Exception(f"找不到支付插件:{payment_plugin}!")
-    is_ok, pay_link = payment.create_pay_link(order_id,total_price)
+
+    is_ok, err_msg, pay_result = payment.create_pay_link(
+        order_id, total_price, subject=order_name,
+    )
     if not is_ok:
-        raise Exception(f"构建支付连接出错:{pay_link}!")
-    return redirect(pay_link)
+        raise Exception(f"构建支付连接出错:{err_msg}!")
+
+    # 根据不同的支付凭证类型，前端做不同处理
+    if pay_result.pay_url:
+        return redirect(pay_result.pay_url)
+    if pay_result.qr_code_url:
+        return redirect(pay_result.qr_code_url)
+    if pay_result.trade_params:
+        return jsonify(pay_result.trade_params)
+
+    raise Exception("支付插件未返回有效的支付凭证")

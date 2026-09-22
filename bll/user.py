@@ -326,32 +326,40 @@ class User(BllBase[UserModel]):
         return None
 
 
-    def reg_open_user(self, openid:str, mobile,nickname,avatar) -> tuple[bool,UserModel or str]:
+    def reg_open_user(self, openid:str, mobile, nickname, avatar, email="") -> tuple[bool,UserModel or str]:
         """
-        微信登录的时候，生成一个账号
-        @param openid:
-        @param mobile:
-        @param nickname:
-        @param avatar:
+        微信登录/三方登录的时候，生成一个账号
+        @param openid: 第三方平台用户唯一 ID
+        @param mobile: 手机号
+        @param nickname: 昵称
+        @param avatar: 头像 URL
+        @param email: 邮箱（Google/Apple 等提供）
         @return:
         """
-        if not openid or self.exist_name(openid):
-            return False, '账号已存在或不能为空'
+        if not openid:
+            return False, 'openid 不能为空'
 
         if mobile and self.exist_mobile(mobile):
-            return False, '手机号已存在或不能为空'
+            return False, '手机号已存在'
 
-        account = mobile if mobile else openid
+        if email and self.exist_email(email):
+            return False, '该邮箱已被其他账号使用'
+
+        # 优先用 email 作用户名（更友好），被占用则用 openid
+        if email and not self.exist_name(email):
+            account = email
+        else:
+            account = openid
 
         pass_word = eb_utils.random_string(8) # 随机生成8位密码
 
         model = self.new_instance()
         model.username = account
         model.ni_name = nickname if nickname else account
-        model.avatar = "/images/default_avatar.png"
-        if avatar:
-            model.avatar = avatar
+        model.avatar = avatar if avatar else "/images/default_avatar.png"
         model.mobile_number = mobile
+        if email:
+            model.email_address = email
         model.password = generate_password_hash(pass_word)
         model.group_id = self.configs['reg_group_id']
         model.openid = openid

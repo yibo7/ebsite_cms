@@ -1,7 +1,7 @@
 {
     "MONGODB_SERV": "mongodb://root:112233@172.22.230.70:22015/?authSource=admin&directConnection=true",
     "MONGODB_NAME": "eb_shop",
-    "ThemeName": "eb_shop_quote",
+    "ThemeName": "eb_shop",
     "REDIS_SERV": "",
     "APP_KEY": "a0580f89a93b4a8f81c1a0595609a8dd",
     "IsDebug": true,

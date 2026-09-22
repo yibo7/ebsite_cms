@@ -5,7 +5,7 @@ import pymongo
 from flask import jsonify, current_app, render_template, redirect, request, url_for
 from bll.temp_data_provider import TempDataProvider
 from decorators import check_admin_login, check_user_login
-from . import bp_quote_pages
+from . import bp_ai_cart_pages
 from .datas.quote_record import ShopQuoteRecord, QUOTE_STATUS, STATUS_CLASS
 from eb_utils import http_helper
 from entity.user_token import UserToken
@@ -13,7 +13,12 @@ from entity.user_token import UserToken
 # ═════════════════════════════════════════════════════════════════
 #  报价单页面（无需登录，可分享）
 # ═════════════════════════════════════════════════════════════════
-@bp_quote_pages.route('/quote/<record_id>', methods=['GET'])
+
+@bp_ai_cart_pages.route('/', methods=['GET', 'POST'])
+def credits_index():
+    return redirect('ask/index.html')
+
+@bp_ai_cart_pages.route('/quote/<record_id>', methods=['GET'])
 def quote_view(record_id: str):
     """查看报价单"""
     bll = ShopQuoteRecord()
@@ -84,7 +89,7 @@ def quote_view(record_id: str):
     )
 
 
-@bp_quote_pages.route('/quote/<record_id>/contact', methods=['POST'])
+@bp_ai_cart_pages.route('/quote/<record_id>/contact', methods=['POST'])
 def quote_contact(record_id: str):
     """客户提交联系方式"""
     contact = {
@@ -102,7 +107,7 @@ def quote_contact(record_id: str):
     # 重新渲染页面，保持 session 参数
     s = request.args.get("s", "")
     sep = "&" if s else ""
-    return redirect(url_for('bp_quote_pages.quote_view', record_id=record_id) + f"?s={s}{sep}")
+    return redirect(url_for('bp_ai_cart_pages.quote_view', record_id=record_id) + f"?s={s}{sep}")
 
 
 def _fmt_time(ts):
@@ -117,7 +122,7 @@ def _fmt_time(ts):
 
 # region 管理后台页面
 
-@bp_quote_pages.route('/my_quotes', methods=['GET'])
+@bp_ai_cart_pages.route('/my_quotes', methods=['GET'])
 @check_user_login
 def my_quotes(user_token: UserToken):
     """我的报价单（个人中心）"""
@@ -151,7 +156,7 @@ def my_quotes(user_token: UserToken):
     return render_template("my_quotes.html", items=items, pager=pager,temp_data=temp_data)
 
 
-@bp_quote_pages.route('/shop_quotes', methods=['GET'])
+@bp_ai_cart_pages.route('/shop_quotes', methods=['GET'])
 @check_admin_login
 def shop_quotes(admin_token: UserToken):
     """报价单管理（后台）"""
@@ -202,7 +207,7 @@ def shop_quotes(admin_token: UserToken):
     return render_template("shop_admin/quote_admin.html", items=items, pager=pager)
 
 
-@bp_quote_pages.route('/shop_quote_update_status', methods=['GET'])
+@bp_ai_cart_pages.route('/shop_quote_update_status', methods=['GET'])
 @check_admin_login
 def shop_quote_update_status(admin_token: UserToken):
     """更新报价单状态（后台）"""
@@ -214,10 +219,10 @@ def shop_quote_update_status(admin_token: UserToken):
         bll = ShopQuoteRecord()
         bll.update_status(record_id, status, reason)
 
-    return redirect(url_for('bp_quote_pages.shop_quotes'))
+    return redirect(url_for('bp_ai_cart_pages.shop_quotes'))
 
 
-@bp_quote_pages.route('/shop_quote_prompts', methods=['GET', 'POST'])
+@bp_ai_cart_pages.route('/shop_quote_prompts', methods=['GET', 'POST'])
 @check_admin_login
 def shop_quote_prompts(admin_token: UserToken):
     """AI 提示词配置（后台）"""
@@ -236,7 +241,7 @@ def shop_quote_prompts(admin_token: UserToken):
         }
         bll.save_config(data)
 
-        return redirect(url_for('bp_quote_pages.shop_quote_prompts', saved=1))
+        return redirect(url_for('bp_ai_cart_pages.shop_quote_prompts', saved=1))
 
     saved = bool(request.args.get("saved", False))
 

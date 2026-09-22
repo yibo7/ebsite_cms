@@ -1,14 +1,8 @@
-import os
-import re
-import uuid
-import hashlib
-import base64
-import json
-import pymongo
+
 from flask import jsonify, current_app, send_from_directory, request, url_for
 
 from decorators import check_user_login
-from . import bp_quote_apis
+from . import bp_ai_cart_apis
 
 from entity.user_token import UserToken
 
@@ -43,7 +37,42 @@ def _get_prompt(field: str) -> str:
     return getattr(handler, default_attr, "")
 
 
-@bp_quote_apis.route('quote/welcome', methods=['GET'])
+def _parse_json_reply(raw: dict) -> dict:
+    """
+    解析新插件 AIProviderBase.chat() 的返回值。
+
+    新插件返回 {reply: "JSON字符串", finish_reason: "stop", usage: {...}}
+    需要把 reply 里的 JSON 字符串解析出来，合并回顶层。
+
+    :param raw: chat() 返回的原始 dict
+    :return: 解析后的 dict；解析失败时返回 {"ok": False, "partial": False}
+    """
+    import json
+
+    if not isinstance(raw, dict):
+        return {"ok": False, "partial": False}
+
+    reply = raw.get("reply", "")
+    if not isinstance(reply, str) or not reply.strip():
+        return raw
+
+    # 尝试解析 reply 为 JSON
+    try:
+        parsed = json.loads(reply.strip())
+        if isinstance(parsed, dict):
+            # 合并：parsed 覆盖到 raw 顶层，保留 finish_reason / usage 等字段
+            merged = dict(raw)
+            merged.update(parsed)
+            merged.pop("reply", None)  # 原始 reply 字符串不再需要
+            return merged
+    except (json.JSONDecodeError, TypeError):
+        pass
+
+    # 不是 JSON 就原样返回
+    return raw
+
+
+@bp_ai_cart_apis.route('quote/welcome', methods=['GET'])
 def quote_welcome():
     """返回可配置的欢迎语与店铺名称"""
     welcome = _get_prompt("welcome_message")
@@ -51,7 +80,7 @@ def quote_welcome():
     return jsonify({"welcome": welcome, "shop_name": shop_name})
 
 
-@bp_quote_apis.route('quote/chat', methods=['POST'])
+@bp_ai_cart_apis.route('quote/chat', methods=['POST'])
 def quote_chat():
     """
     AI 智能报价对话（核心 API）— 提取 → 搜索 → 回复
@@ -65,7 +94,12 @@ def quote_chat():
     """
     import json
     import time
-    from .ai_providers import get_provider
+    from flask import current_app
+
+    # 使用系统插件管理器获取默认 AI 提供者
+    provider = current_app.pm.get_default_ai()
+    if not provider:
+        return jsonify({"reply": "AI 服务未配置，请在系统设置中配置默认 AI 提供者。😊", "matches": []})
 
     data = request.get_json() or {}
     messages = data.get('messages', [])
@@ -74,14 +108,15 @@ def quote_chat():
 
     user_msgs = [m["content"] for m in messages if m.get("role") == "user"]
     latest_msg = user_msgs[-1] if user_msgs else ""
-    provider = get_provider()
 
     # ── Step 1: AI 提取产品参数 ──
     t0 = time.time()
     try:
-        extract_result = provider.chat(
+        raw = provider.chat(
             [{"role": "user", "content": latest_msg}], _get_prompt("extract_prompt")
         )
+        # 新插件 chat() 返回 {reply: "JSON字符串", ...}，需要二次解析
+        extract_result = _parse_json_reply(raw)
     except Exception as e:
         current_app.logger.error(f"提取异常: {e}")
         extract_result = {"ok": False, "partial": False}
@@ -106,10 +141,11 @@ def quote_chat():
     if not extract_result.get("ok") and not extract_result.get("partial"):
         try:
             t_guide_start = time.time()
-            guide_result = provider.chat(
+            raw = provider.chat(
                 [{"role": "user", "content": latest_msg}],
                 _get_prompt("guide_prompt").format(user_msg=latest_msg[:300])
             )
+            guide_result = _parse_json_reply(raw)
             current_app.logger.warning(f"[⏱ 引导] {(time.time()-t_guide_start)*1000:.0f}ms")
             if isinstance(guide_result, dict) and guide_result.get("reply"):
                 return jsonify({"reply": guide_result["reply"], "matches": []})
@@ -164,13 +200,12 @@ def quote_chat():
         matches.append({
             "title": p.get("title", ""),
             "small_pic": p.get("small_pic", ""),
-            "unit_price": 0,                       # 不透露价格，提交后后端按用户组定价
-            "market_price": 0,
+            "unit_price": float(p.get("unit_price", 0)),
+            "market_price": float(p.get("market_price", 0)),
             "class_name": p.get("class_name", ""),
             "content_id": p.get("sku", ""),        # MongoDB ObjectId，供后端定价查找
             "sku": first_sku or p.get("sku", ""),  # 真实 SKU 码，无则回退 ObjectId
             "url": p.get("url", ""),
-            "remarks": p.get("remarks", ""),
             "qty": 1,
         })
 
@@ -187,7 +222,7 @@ def quote_chat():
     return jsonify(sales_result)
 
 
-@bp_quote_apis.route('quote/save_record', methods=['POST'])
+@bp_ai_cart_apis.route('quote/save_record', methods=['POST'])
 def quote_save_record():
     """
     保存客户的询价记录（不保存完整对话，只保存最终询价单）
@@ -228,7 +263,7 @@ def quote_save_record():
         return jsonify({"code": -1, "msg": "保存失败"})
 
 
-@bp_quote_apis.route('quote/submit_order', methods=['POST'])
+@bp_ai_cart_apis.route('quote/submit_order', methods=['POST'])
 @check_user_login
 def quote_submit_order(user_token: UserToken):
     """
@@ -368,7 +403,7 @@ def _resolve_item_price(item: dict, user_group_id: str) -> float:
         return float(item.get("unit_price", item.get("price", 0)))
 
 
-@bp_quote_apis.route('quote/submit', methods=['POST'])
+@bp_ai_cart_apis.route('quote/submit', methods=['POST'])
 def quote_submit():
     """
     生成报价单（无需登录）
@@ -450,7 +485,7 @@ def quote_submit():
 
     record_id = bll.save_record(model)
 
-    quote_url = url_for('bp_quote_pages.quote_view', record_id=record_id) + f"?s={session_id}"
+    quote_url = url_for('bp_ai_cart_pages.quote_view', record_id=record_id) + f"?s={session_id}"
 
     return jsonify({"code": 0, "record_id": record_id, "url": quote_url})
 

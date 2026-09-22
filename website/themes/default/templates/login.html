@@ -39,6 +39,8 @@
                     <button onclick="on_post()" type="submit" class="btn btn-primary"> 登 录 </button>
                     <br><br>
                     <a onclick="openlogin('OpenLoginWixin')" > 微信登录 </a>
+                    <span class="mx-2">|</span>
+                    <a onclick="openlogin('OpenLoginGoogle')" > Google 登录 </a>
                     <br><br>
                     {%if err %}
                      <div class="alert alert-danger" role="alert">
