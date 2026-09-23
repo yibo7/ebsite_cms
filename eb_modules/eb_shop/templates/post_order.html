@@ -1,185 +1,494 @@
 {% extends 'base_site.html' %}
 {% block title %}
-确认订单
+订单结算
 {% endblock %}
 
 {% block content %}
 
 <link rel="stylesheet" href="/css/user.css">
 
-<div class="cart-page">
-  <div class="container">
-    <div class="row g-4">
+<style>
+/* ===== 结算页面 - 参照示例页面设计 ===== */
 
-      <!-- ===== 左侧：商品清单 + 收货地址 ===== -->
-      <div class="col-lg-8">
+/* 面包屑 */
+.breadcrumb-checkout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 20px 0;
+  font-size: 13px;
+  color: #8c95a5;
+}
+.breadcrumb-checkout a {
+  color: #8c95a5;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.breadcrumb-checkout a:hover { color: #e63946; }
+.breadcrumb-checkout .sep { margin: 0 6px; }
 
-        {% if shopping_cart %}
+.checkout-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 20px 40px;
+}
+.checkout-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1f2e;
+  margin-bottom: 20px;
+}
+.checkout-layout {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+.checkout-main { flex: 1; min-width: 0; }
+.checkout-side { flex: 0 0 340px; max-width: 340px; position: sticky; top: 84px; }
 
-        <!-- 商品清单 -->
-        <div class="cart-main mb-4">
-          <div class="cart-head">
-            <div class="cart-head-left">
-              <h2>📦 确认商品</h2>
-              <span class="count">共 <b>{{ total_count }}</b> 件</span>
+/* 卡片 */
+.ck-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+.ck-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1f2e;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ck-card-title .icon { color: #e63946; }
+
+/* 地址项 */
+.address-item {
+  display: block;
+  width: 100%;
+  border: 1.5px solid #e5ebf5;
+  border-radius: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  margin-bottom: 12px;
+}
+.address-item:hover { border-color: #c0c9d9; }
+.address-item.active {
+  border-color: #e63946;
+  background: #fff5f5;
+}
+.address-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1f2e;
+  margin-bottom: 6px;
+}
+.address-name .phone {
+  font-weight: 400;
+  color: #8c95a5;
+  margin-left: 12px;
+  font-size: 13px;
+}
+.address-detail {
+  font-size: 13px;
+  color: #5a6478;
+  line-height: 1.6;
+}
+.btn-add-address {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px dashed #d9dfe8;
+  border-radius: 12px;
+  background: transparent;
+  color: #8c95a5;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.18s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn-add-address:hover { border-color: #e63946; color: #e63946; }
+
+/* 地址表单 */
+.address-form { margin-top: 18px; padding-top: 20px; border-top: 1px solid #eef1f6; }
+.form-row { display: flex; gap: 24px; margin-bottom: 18px; flex-wrap: wrap; }
+.form-group { flex: 1; min-width: 200px; }
+.form-group.full-width { flex: 1 1 100%; min-width: 100%; }
+.form-label { display: block; font-size: 14px; font-weight: 600; color: #1a1f2e; margin-bottom: 8px; }
+.form-input {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid #d9dfe8; border-radius: 8px;
+  font-size: 14px; color: #1a1f2e;
+  outline: none; transition: border-color 0.18s; background: #fff;
+}
+.form-input:focus { border-color: #e63946; }
+.form-input::placeholder { color: #b8c0cc; }
+.btn-save-address {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px; border: none; border-radius: 8px;
+  background: #1e3a8a; color: #fff;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; margin-top: 4px;
+}
+.btn-save-address:hover { background: #1e40af; box-shadow: 0 4px 14px rgba(30,58,138,0.3); }
+.addr-actions {
+  position: absolute; top: 12px; right: 12px;
+  display: flex; gap: 4px;
+}
+.btn-edit-addr, .btn-del-addr {
+  background: none; border: none; color: #c0c9d9;
+  cursor: pointer; padding: 4px 6px; border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.btn-edit-addr:hover { color: #4c6fff; background: #eef2ff; }
+.btn-del-addr:hover { color: #e63946; background: #fef2f2; }
+
+/* 商品清单 */
+.order-item {
+  display: flex; gap: 14px;
+  padding: 16px 0; border-bottom: 1px solid #eef1f6;
+}
+.order-item:last-child { border-bottom: none; }
+.order-item-image {
+  width: 72px; height: 72px; border-radius: 10px;
+  border: 1px solid #eef1f6; object-fit: cover;
+  background: #f8faff; flex-shrink: 0;
+}
+.order-item-info { flex: 1; min-width: 0; }
+.order-item-name { font-size: 14px; font-weight: 600; color: #1a1f2e; line-height: 1.4; margin-bottom: 4px; }
+.order-item-sku { font-size: 12px; color: #8c95a5; margin-bottom: 8px; }
+.order-item-price-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.order-item-price { font-size: 14px; font-weight: 600; color: #e63946; }
+.price-source-tag {
+  font-size: 11px; color: #4c6fff; background: #eef2ff;
+  padding: 1px 7px; border-radius: 10px; margin-left: 6px; font-weight: 500;
+}
+.order-item-qty { font-size: 13px; color: #8c95a5; }
+.order-item-subtotal { font-size: 14px; font-weight: 700; color: #1a1f2e; text-align: right; min-width: 80px; }
+
+/* 订单备注 */
+.remark-input {
+  width: 100%; padding: 12px 14px;
+  border: 1.5px solid #d9dfe8; border-radius: 10px;
+  font-size: 14px; color: #1a1f2e;
+  outline: none; transition: border-color 0.18s;
+  resize: vertical; min-height: 80px; font-family: inherit;
+}
+.remark-input:focus { border-color: #e63946; }
+.remark-input::placeholder { color: #b8c0cc; }
+
+/* 右侧汇总 */
+.summary-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; color: #5a6478; padding: 8px 0;
+}
+.summary-row .value { color: #1a1f2e; font-weight: 500; }
+.summary-row.shipping .free { color: #0e9f6e; font-weight: 600; }
+.summary-divider { height: 1px; background: #eef1f6; margin: 12px 0; }
+.summary-total {
+  display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0;
+}
+.summary-total .label { font-size: 14px; color: #3b4358; }
+.summary-total .amount { font-size: 26px; font-weight: 800; color: #e63946; letter-spacing: -0.02em; }
+.shipping-hint {
+  font-size: 12px; color: #d97706; background: #fffbeb;
+  border: 1px solid #fde68a; border-radius: 8px;
+  padding: 8px 12px; margin-top: 10px; line-height: 1.5;
+}
+.summary-actions .btn-checkout {
+  width: 100%; padding: 16px; border: none; border-radius: 12px;
+  background: #e63946; color: #fff;
+  font-size: 16px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s; box-shadow: 0 4px 14px rgba(230,57,70,0.3);
+  display: block; text-align: center; text-decoration: none;
+}
+.summary-actions .btn-checkout:hover { background: #d62839; box-shadow: 0 6px 20px rgba(230,57,70,0.4); }
+.summary-actions .btn-back {
+  display: block; text-align: center; margin-top: 12px;
+  font-size: 13px; color: #8c95a5; text-decoration: none;
+}
+.summary-actions .btn-back:hover { color: #e63946; }
+.submit-agreement { font-size: 12px; color: #8c95a5; text-align: center; margin-top: 12px; line-height: 1.6; }
+.submit-agreement a { color: #4c6fff; text-decoration: none; }
+
+/* 响应式 */
+@media (max-width: 1024px) {
+  .checkout-layout { flex-direction: column; }
+  .checkout-side { flex: 1 1 auto; max-width: 100%; width: 100%; position: static; }
+}
+@media (max-width: 720px) {
+  .checkout-page { padding: 16px 16px 28px; }
+  .checkout-title { font-size: 18px; }
+  .ck-card { padding: 18px 16px; border-radius: 12px; }
+  .ck-card-title { font-size: 15px; }
+  .form-row { gap: 14px; margin-bottom: 14px; }
+  .form-group { min-width: 100%; }
+  .order-item { gap: 10px; padding: 14px 0; }
+  .order-item-image { width: 60px; height: 60px; }
+  .order-item-name { font-size: 13px; }
+  .summary-total .amount { font-size: 22px; }
+}
+</style>
+
+<div class="breadcrumb-checkout">
+  <a href="/">首页</a>
+  <span class="sep">/</span>
+  <a href="/shop/cart">购物车</a>
+  <span class="sep">/</span>
+  <span>订单结算</span>
+</div>
+
+<div class="checkout-page">
+  <h1 class="checkout-title">订单结算</h1>
+
+  <div class="checkout-layout">
+
+    <!-- ===== 左侧主内容 ===== -->
+    <div class="checkout-main">
+
+      {% if shopping_cart %}
+
+      <!-- 收货地址 -->
+      <div class="ck-card">
+        <div class="ck-card-title">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+          </span>
+          收货地址
+        </div>
+
+        <form action="/shop/post_order" method="post" id="form_post">
+        {% if addr_datas %}
+          {% for addr in addr_datas %}
+          <div class="address-item" data-addr-id="{{ addr._id }}"
+             data-name="{{ addr.user_name }}"
+             data-phone="{{ addr.phone }}"
+             data-email="{{ addr.email }}"
+             data-postcode="{{ addr.post_code }}"
+             data-address="{{ addr.address_info }}">
+            <input type="radio" name="address" id="radioAddress{{ addr._id }}"
+                   value="{{ addr._id }}" style="display:none;"
+                   {% if loop.first %}checked{% endif %}>
+            <div class="address-name">
+              {{ addr.user_name }}
+              <span class="phone">{{ addr.phone }}</span>
             </div>
-            <a href="/shop/cart" class="tool-link" style="text-decoration:none;">编辑购物车 →</a>
-          </div>
-          {% for item in shopping_cart %}
-          <div class="order-confirm-item">
-            <div class="order-confirm-thumb">
-              {% if item.small_pic %}
-              <img src="{{ item.small_pic }}" alt="{{ item.content_title }}" style="width:100%;height:100%;object-fit:cover;">
-              {% else %}
-              📦
-              {% endif %}
-            </div>
-            <div class="order-confirm-info">
-              <h3>{{ item.content_title }}</h3>
-              <span class="tag">{{ item.product_name }}</span>
-            </div>
-            <div class="order-confirm-qty">
-              <span class="price">¥{{ item.total_price }}</span>
-              × {{ item.quantity }}
+            <div class="address-detail">{{ addr.address_info }}</div>
+            <div class="addr-actions">
+              <button type="button" class="btn-edit-addr" title="编辑">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button type="button" class="btn-del-addr" onclick="del_address('{{ addr._id }}')" title="删除">✕</button>
             </div>
           </div>
           {% endfor %}
-        </div>
-
-        <!-- 收货地址 -->
-        <div class="cart-main">
-          <div class="cart-head">
-            <div class="cart-head-left">
-              <h2>📍 收货地址</h2>
-            </div>
-          </div>
-
-          <form action="/shop/post_order" method="post" id="form_post">
-            {% if addr_datas %}
-            <div class="order-addr-list">
-              {% for addr in addr_datas %}
-              <label class="order-addr-card" for="radioAddress{{ addr._id }}">
-                <input class="form-check-input"
-                       name="address"
-                       id="radioAddress{{ addr._id }}"
-                       value="{{ addr._id }}"
-                       type="radio"
-                       {% if loop.first %}checked{% endif %}>
-                <div class="order-addr-body">
-                  <div class="addr-name">
-                    {{ addr.user_name }}
-                    <span class="phone">{{ addr.phone }}</span>
-                  </div>
-                  <div class="addr-detail">{{ addr.address_info }}</div>
-                </div>
-                <button type="button" class="order-addr-del" onclick="del_address('{{ addr._id }}')" title="删除地址">✕</button>
-              </label>
-              {% endfor %}
-            </div>
-            {% else %}
-            <div class="text-center py-4" style="color:var(--muted,#64748b);font-size:0.88rem;">
-              还没有收货地址，请添加
-            </div>
-            {% endif %}
-          </form>
-
-          <!-- 添加新地址 -->
-          <div class="order-addr-new">
-            <button type="button" class="btn-new-addr" data-bs-toggle="collapse" data-bs-target="#newAddrForm">＋ 添加新地址</button>
-          </div>
-          <div class="collapse" id="newAddrForm">
-            <div class="order-addr-form">
-              <form id="form_address">
-                <div class="row g-3">
-                  <div class="col-md-6">
-                    <label class="form-label">联系人</label>
-                    <input name="user_name" class="form-control" required placeholder="姓名">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">联系电话</label>
-                    <input name="phone" class="form-control" required placeholder="手机号">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label">收货地址</label>
-                    <input name="address_info" type="text" class="form-control" placeholder="省/市/区 详细地址" required>
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">邮编</label>
-                    <input name="post_code" class="form-control" placeholder="邮编">
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label">邮箱</label>
-                    <input name="email" type="email" class="form-control" placeholder="Email">
-                  </div>
-                  <div class="col-12">
-                    <button type="submit" class="btn-save-addr">💾 保存地址</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-
-        </div>
-
         {% else %}
-        <div class="cart-main">
-          <div class="cart-empty">
-            <div class="empty-icon">📭</div>
-            <h3>没有待结算的商品</h3>
-            <p>您的购物车是空的</p>
-            <a href="/" class="btn btn-accent" style="border-radius:999px;padding:13px 30px;font-size:15px;text-decoration:none;">去逛逛</a>
+          <div style="text-align:center;padding:24px 0;color:#8c95a5;font-size:14px;">
+            还没有收货地址，请添加
           </div>
+        {% endif %}
+
+        <!-- 隐藏 remark 字段 -->
+        <input type="hidden" name="remark" id="remarkField" value="">
+
+        </form>
+
+        <button type="button" class="btn-add-address" id="btnToggleAddrForm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          新增收货地址
+        </button>
+
+        <div class="address-form" id="newAddrForm" style="display:none;">
+          <div class="address-form">
+            <form id="form_address">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">联系人</label>
+                  <input name="user_name" class="form-input" required placeholder="姓名">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">联系电话</label>
+                  <input name="phone" class="form-input" required placeholder="手机号">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group full-width">
+                  <label class="form-label">收货地址</label>
+                  <input name="address_info" class="form-input" required placeholder="省/市/区 详细地址">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">邮编</label>
+                  <input name="post_code" class="form-input" placeholder="邮编">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">邮箱</label>
+                  <input name="email" class="form-input" type="email" placeholder="Email">
+                </div>
+              </div>
+              <input type="hidden" id="editAddrId" value="">
+              <button type="submit" class="btn-save-address">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                <span class="btn-save-address-text">保存地址</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商品清单 -->
+      <div class="ck-card">
+        <div class="ck-card-title">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+          </span>
+          商品清单
+        </div>
+
+        {% for item in shopping_cart %}
+        <div class="order-item">
+          <div class="order-item-image">
+            {% if item.small_pic %}
+            <img src="{{ item.small_pic }}" alt="{{ item.content_title }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+            {% else %}📦{% endif %}
+          </div>
+          <div class="order-item-info">
+            <div class="order-item-name">{{ item.content_title }}</div>
+            <div class="order-item-sku">SKU: {{ item.product_sku }}</div>
+            <div class="order-item-price-row">
+              <div>
+                <span class="order-item-price">¥{{ item.price | decimal128 }}</span>
+                {% if item.price_source and item.price_source != '零售价' %}
+                <span class="price-source-tag">{{ item.price_source }}</span>
+                {% endif %}
+              </div>
+              <span class="order-item-qty">× {{ item.quantity }}</span>
+            </div>
+          </div>
+          <div class="order-item-subtotal">¥{{ item.total_price }}</div>
+        </div>
+        {% endfor %}
+
+        {% if tier_hints %}
+        <div style="margin-top:12px;padding:10px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:12px;color:#92400e;line-height:1.6;">
+          {% for hint in tier_hints %}
+          <div>💡 「{{ hint.name }}」再买 <strong>{{ hint.diff }}</strong> 件可享批发价 <strong>¥{{ hint.tier_price }}</strong> /件</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- 订单备注 -->
+      <div class="ck-card">
+        <div class="ck-card-title">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </span>
+          订单备注
+        </div>
+        <textarea id="remarkText" class="remark-input" placeholder="如有特殊要求，请在此备注（选填）"></textarea>
+      </div>
+
+      {% else %}
+      <div class="ck-card" style="text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;">📭</div>
+        <h3 style="margin-bottom:10px;">没有待结算的商品</h3>
+        <p style="color:#8c95a5;margin-bottom:24px;">您的购物车是空的</p>
+        <a href="/" class="btn btn-accent" style="border-radius:999px;padding:13px 30px;text-decoration:none;">去逛逛</a>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- ===== 右侧汇总 ===== -->
+    {% if shopping_cart %}
+    <div class="checkout-side">
+      <div class="ck-card">
+        <div class="ck-card-title">
+          <span class="icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </span>
+          订单汇总
+        </div>
+
+        <div class="summary-row">
+          <span>商品总价</span>
+          <span class="value">¥{{ total_price }}</span>
+        </div>
+
+        <div class="summary-row shipping">
+          <span>运费</span>
+          {% if shipping_fee == 0 %}
+            {% if free_shipping_threshold == 0 %}
+            <span class="value free">免运费</span>
+            {% else %}
+            <span class="value free">包邮（满 ¥{{ free_shipping_threshold }} 包邮）</span>
+            {% endif %}
+          {% else %}
+          <span class="value">¥{{ shipping_fee }}
+            <small style="color:#8c95a5;font-weight:400;">未满 ¥{{ free_shipping_threshold }}</small>
+          </span>
+          {% endif %}
+        </div>
+
+        {% if shipping_fee > 0 %}
+        <div class="shipping-hint">
+          再买 <strong>¥{{ free_shipping_threshold | int - total_price | int }}</strong> 元即可享受包邮
         </div>
         {% endif %}
 
-      </div>
+        <div class="summary-divider"></div>
 
-      <!-- ===== 右侧：订单摘要 ===== -->
-      <div class="col-lg-4">
-        <div class="cart-summary">
-          <div class="summary-head">
-            <h3><span class="dot"></span> 订单摘要</h3>
-          </div>
-          <div class="summary-body">
-            <div class="summary-amounts">
-              <div class="summary-row">
-                <span>商品数量</span>
-                <b>{{ total_count }} 件</b>
-              </div>
-              <div class="summary-row">
-                <span>商品金额</span>
-                <b>¥{{ total_price }}</b>
-              </div>
-              <div class="summary-row">
-                <span>运费</span>
-                <span class="free">运费到付</span>
-              </div>
-              <div class="summary-row total">
-                <span>应付总额</span>
-                <b>¥{{ total_price }}</b>
-              </div>
-            </div>
+        <div class="summary-total">
+          <span class="label">应付总额 <small style="font-size:12px;color:#8c95a5;font-weight:400;">（含运费）</small></span>
+          <span class="amount">¥{{ total_amount }}</span>
+        </div>
 
-            <div class="summary-actions">
-              <a href="javascript:post_order()" class="btn btn-accent" style="border-radius:999px;padding:15px 24px;font-size:15px;text-decoration:none;text-align:center;">
-                ✅ 提交订单
-              </a>
-              <a href="/shop/cart" class="btn btn-outline" style="border-radius:999px;padding:13px 24px;font-size:14px;text-decoration:none;text-align:center;">
-                ← 返回购物车
-              </a>
-            </div>
+        <div class="summary-actions">
+          <a href="javascript:post_order()" class="btn-checkout">提交订单</a>
+          <a href="/shop/cart" class="btn-back">← 返回购物车</a>
+        </div>
 
-            <div class="summary-trust">
-              <div class="trust-row"><span class="ti">🔒</span> 安全支付</div>
-              <div class="trust-row"><span class="ti">🚚</span> 全国配送</div>
-              <div class="trust-row"><span class="ti">🛡️</span> 品质保障</div>
-              <div class="trust-row"><span class="ti">💬</span> 售后无忧</div>
-            </div>
-          </div>
+        <div class="submit-agreement">
+          点击提交订单即表示同意 <a href="#">《购买协议》</a>
         </div>
       </div>
-
     </div>
+    {% endif %}
+
   </div>
 </div>
 

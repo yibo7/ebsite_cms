@@ -176,26 +176,47 @@ def check_sub():
 @rate_limit_ip(3,1) # 一分钟只允许调用3次
 def add_address():
     """
-    收藏内容
+    新增 / 修改 / 删除收货地址
+    删除：仅传 data_id
+    新增：不传 data_id，传 user_name/phone/email/post_code/address_info
+    修改：传 data_id + 上述字段
     :return:
     """
     user_token: UserToken = g.u
     data_id = http_helper.get_prams("data_id")
 
-    if user_token and data_id:
-        bll = Address()
+    if not user_token:
+        return jsonify(api_msg.api_err("请先登录"))
+
+    bll = Address()
+
+    # 删除：仅传 data_id
+    if data_id and not http_helper.get_prams("user_name"):
         bll.delete_by_id(data_id)
         return jsonify(api_msg.api_succesful("删除成功!"))
-    elif user_token:
-        bll = Address()
+
+    # 新增或修改
+    user_name = http_helper.get_prams("user_name")
+    phone = http_helper.get_prams("phone")
+    if not user_name or not phone:
+        return jsonify(api_msg.api_err("联系人和联系电话不能为空"))
+
+    if data_id:
+        # 修改
+        model = bll.find_one_by_id(data_id)
+        if not model:
+            return jsonify(api_msg.api_err("地址不存在"))
+    else:
+        # 新增
         model = bll.new_instance()
         model.user_id = user_token.id
-        model.user_name = http_helper.get_prams("user_name")
-        model.phone = http_helper.get_prams("phone")
-        model.email = http_helper.get_prams("email")
-        model.post_code = http_helper.get_prams("post_code")
-        model.address_info = http_helper.get_prams("address_info")
-        bll.save(model)
 
-        return jsonify(api_msg.api_succesful("添加成功!"))
-    return jsonify(api_msg.api_err("传入的参数不正确"))
+    model.user_name = user_name
+    model.phone = phone
+    model.email = http_helper.get_prams("email")
+    model.post_code = http_helper.get_prams("post_code")
+    model.address_info = http_helper.get_prams("address_info")
+    bll.save(model)
+
+    msg = "修改成功!" if data_id else "添加成功!"
+    return jsonify(api_msg.api_succesful(msg))

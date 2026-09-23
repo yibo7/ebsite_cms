@@ -41,7 +41,8 @@ class ShopOrderModel(ModelBase):
         self.payment_free:Decimal128  = Decimal128("0.0") # 支付手续费
 
         self.total_market_price:Decimal128  = Decimal128("0.0") # 市场价格
-        self.total_price:Decimal128  = Decimal128("0.0") # 实际销售价格
+        self.total_price:Decimal128  = Decimal128("0.0") # 实际销售价格（含运费前）
+        self.total_amount:Decimal128  = Decimal128("0.0") # 应付总额（含运费）
         self.discount:Decimal128  = Decimal128("0.0") # 折扣率（百分比）
         self.discount_info:str = "" # 折扣原因
         self.total_cost_price:Decimal128 = Decimal128("0.0") # 成本价格

@@ -41,7 +41,7 @@ class ProductSku(ControlBase):
           <th style="width: 120px;">库存量</th>
           <th style="width: 150px;">货号</th>
           <th style="width: 100px;">重量(g)</th>
-          <th style="width: 150px;">操作</th>
+          <th style="width: 200px;">操作</th>
         </tr>
       </thead>
       <tbody>
@@ -64,8 +64,9 @@ class ProductSku(ControlBase):
             <td><input type="text" v-model="spec.sku" class="form-control" /></td>
            <td><input type="number" v-model.number="spec.weight" class="form-control" min="0" step="0.01" /></td>
            <td>
-             <div class="d-flex gap-1">
+             <div class="d-flex gap-1 flex-wrap">
              <button type="button" class="btn btn-outline-info btn-sm" @click="openGroupPriceModal(index)"><i class="fa fa-users"></i> 会员价</button>
+             <button type="button" class="btn btn-outline-warning btn-sm" @click="openQtyPriceModal(index)"><i class="fa fa-layer-group"></i> 阶梯价</button>
              <button type="button" class="btn btn-outline-danger btn-sm" @click="deleteSpec(index)"><i class="fa fa-trash-o"></i> 删除</button>
              </div>
            </td>
@@ -131,6 +132,56 @@ class ProductSku(ControlBase):
       </div>
     </div>
 
+    <!-- 阶梯价设置模态框 -->
+    <div class="modal fade" id="qtyPriceModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">设置阶梯价 - ${ currentSpecName }</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted small mb-3">设置不同采购数量区间的批发价格。未在任何区间的采购量将以其他价格规则为准。</p>
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th style="width:100px;">最小数量</th>
+                  <th style="width:100px;">最大数量</th>
+                  <th style="width:100px;">价格</th>
+                  <th style="width:60px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(tier, idx) in qtyPricesList" :key="idx">
+                  <td>
+                    <input type="number" v-model.number="tier.min_qty" class="form-control" min="1" step="1" placeholder="最小" />
+                  </td>
+                  <td>
+                    <input type="number" v-model.number="tier.max_qty" class="form-control" min="0" step="1" placeholder="最大(留空不限)" />
+                  </td>
+                  <td>
+                    <input type="number" v-model.number="tier.price" class="form-control" min="0" step="0.01" placeholder="价格" />
+                  </td>
+                  <td class="text-center">
+                    <button type="button" class="btn btn-outline-danger btn-sm" @click="deleteQtyPrice(idx)" title="删除此行">
+                      <i class="fa fa-trash-o"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <button type="button" class="btn btn-outline-primary btn-sm" @click="addQtyPriceRow">
+              <i class="fa fa-plus"></i> 添加阶梯
+            </button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="button" class="btn btn-primary" @click="saveQtyPrices">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/vue@2.4.1/dist/vue.js"></script> 
@@ -152,13 +203,18 @@ class ProductSku(ControlBase):
             stock: 0,
             sku: '',
             weight: 0.0,
-            group_prices: []
+            group_prices: [],
+            group_qty_prices: []
           },
           placeholder: '/nopic.gif',
           currentSpecIndex: -1,
           currentSpecName: '',
+          // 会员价
           groupPricesList: [],
-          modalInstance: null
+          groupModalInstance: null,
+          // 阶梯价
+          qtyPricesList: [],
+          qtyModalInstance: null
         };
       },
       mounted() {
@@ -172,6 +228,9 @@ class ProductSku(ControlBase):
                 if (!spec.group_prices) {
                   spec.group_prices = [];
                 }
+                if (!spec.group_qty_prices) {
+                  spec.group_qty_prices = [];
+                }
               });
             }
           }
@@ -179,9 +238,13 @@ class ProductSku(ControlBase):
           console.warn('初始化 SKU 数据失败：', e);
         }
 
-        const modalElement = document.getElementById('groupPriceModal');
-        if (modalElement) {
-          this.modalInstance = new bootstrap.Modal(modalElement);
+        const groupModalElement = document.getElementById('groupPriceModal');
+        if (groupModalElement) {
+          this.groupModalInstance = new bootstrap.Modal(groupModalElement);
+        }
+        const qtyModalElement = document.getElementById('qtyPriceModal');
+        if (qtyModalElement) {
+          this.qtyModalInstance = new bootstrap.Modal(qtyModalElement);
         }
       },
       watch: {
@@ -209,11 +272,14 @@ class ProductSku(ControlBase):
           if (!newSpecData.group_prices) {
             newSpecData.group_prices = [];
           }
+          if (!newSpecData.group_qty_prices) {
+            newSpecData.group_qty_prices = [];
+          }
 
           this.specs.push(newSpecData);
           this.newSpec = {
             name: '', image: '/nopic.gif', marketPrice: null, costPrice: null, 
-            stock: null, sku: '', weight: null, group_prices: []
+            stock: null, sku: '', weight: null, group_prices: [], group_qty_prices: []
           };
         },
         deleteSpec(index) {
@@ -224,6 +290,7 @@ class ProductSku(ControlBase):
         uploadImage(index, src) {
             OpenUploadImg(index, src);
         },
+        // ── 会员价 ──
         openGroupPriceModal(index) {
           this.currentSpecIndex = index;
           const spec = this.specs[index];
@@ -242,8 +309,8 @@ class ProductSku(ControlBase):
             };
           });
 
-          if (this.modalInstance) {
-            this.modalInstance.show();
+          if (this.groupModalInstance) {
+            this.groupModalInstance.show();
           }
         },
         saveGroupPrices() {
@@ -259,8 +326,62 @@ class ProductSku(ControlBase):
             this.$set(this.specs[this.currentSpecIndex], 'group_prices', groupPricesToSave);
           }
 
-          if (this.modalInstance) {
-            this.modalInstance.hide();
+          if (this.groupModalInstance) {
+            this.groupModalInstance.hide();
+          }
+        },
+        // ── 阶梯价 ──
+        openQtyPriceModal(index) {
+          this.currentSpecIndex = index;
+          const spec = this.specs[index];
+          this.currentSpecName = spec.name || '未命名规格';
+
+          if (!spec.group_qty_prices) {
+            spec.group_qty_prices = [];
+          }
+
+          // 深拷贝当前阶梯价数据到编辑列表（与会员价保持一致的初始化方式）
+          this.qtyPricesList = spec.group_qty_prices.map(tier => ({
+            min_qty: tier.min_qty,
+            max_qty: tier.max_qty,
+            price: tier.price
+          }));
+
+          if (this.qtyModalInstance) {
+            this.qtyModalInstance.show();
+          }
+        },
+        addQtyPriceRow() {
+          this.qtyPricesList.push({
+            min_qty: null,
+            max_qty: null,
+            price: null
+          });
+        },
+        deleteQtyPrice(idx) {
+          this.qtyPricesList.splice(idx, 1);
+        },
+        // 参考会员价 saveGroupPrices 的简洁模式重构
+        saveQtyPrices() {
+          // 过滤掉无效行（与会员价一样只做基本的 null/'' 过滤）
+          const validTiers = this.qtyPricesList.filter(
+            tier => tier.min_qty !== null && tier.min_qty !== '' && tier.price !== null && tier.price !== ''
+          );
+
+          // 直接映射保存，不做 parseInt 转换（会员价也只做 parseFloat，保持数据原始类型）
+          const qtyPricesToSave = validTiers.map(tier => ({
+            min_qty: tier.min_qty,
+            max_qty: (tier.max_qty !== null && tier.max_qty !== '') ? tier.max_qty : null,
+            price: parseFloat(tier.price)
+          }));
+
+          // 与会员价一样：始终执行 $set，不提前返回，空数组也保存
+          if (this.currentSpecIndex !== -1 && this.specs[this.currentSpecIndex]) {
+            this.$set(this.specs[this.currentSpecIndex], 'group_qty_prices', qtyPricesToSave);
+          }
+
+          if (this.qtyModalInstance) {
+            this.qtyModalInstance.hide();
           }
         }
       }

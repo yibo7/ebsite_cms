@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单结算 · Green Rich</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #1a1f2e;
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* ============================================================
+           顶部导航
+           ============================================================ */
+        .site-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #1a1f2e;
+            font-weight: 700;
+            font-size: 17px;
+            flex-shrink: 0;
+        }
+
+        .brand-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: #e63946;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .brand-logo .brand-sub {
+            font-weight: 400;
+            font-size: 12px;
+            color: #8c95a5;
+            margin-left: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+            flex: 1;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #1a1f2e;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: #e63946;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-shrink: 0;
+        }
+
+        .header-actions .icon-btn {
+            color: #6b7280;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: color 0.15s;
+            text-decoration: none;
+        }
+
+        .header-actions .icon-btn:hover {
+            color: #e63946;
+        }
+
+        .btn-cart-header {
+            background: #e63946;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 7px 18px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+            text-decoration: none;
+        }
+
+        .btn-cart-header:hover {
+            background: #d62839;
+            color: #fff;
+        }
+
+        .btn-cart-header .cart-badge {
+            background: #fff;
+            color: #e63946;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 1px 6px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* ============================================================
+           面包屑
+           ============================================================ */
+        .breadcrumb {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 20px 0;
+            font-size: 13px;
+            color: #8c95a5;
+        }
+
+        .breadcrumb a {
+            color: #8c95a5;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .breadcrumb a:hover {
+            color: #e63946;
+        }
+
+        .breadcrumb span {
+            margin: 0 6px;
+        }
+
+        /* ============================================================
+           主容器
+           ============================================================ */
+        .checkout-container {
+            max-width: 1200px;
+            margin: 20px auto 40px;
+            padding: 0 20px;
+        }
+
+        .checkout-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a1f2e;
+            margin-bottom: 20px;
+        }
+
+        .checkout-layout {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .checkout-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .checkout-side {
+            flex: 0 0 340px;
+            max-width: 340px;
+            position: sticky;
+            top: 84px;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 24px 28px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1f2e;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .icon {
+            color: #e63946;
+        }
+
+        /* ============================================================
+           收货地址
+           ============================================================ */
+        .address-item {
+            border: 1.5px solid #e5ebf5;
+            border-radius: 12px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.18s;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .address-item:hover {
+            border-color: #c0c9d9;
+        }
+
+        .address-item.active {
+            border-color: #e63946;
+            background: #fff5f5;
+        }
+
+        .address-item.active::after {
+            content: "✓";
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            color: #e63946;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .address-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1f2e;
+            margin-bottom: 6px;
+        }
+
+        .address-name .phone {
+            font-weight: 400;
+            color: #8c95a5;
+            margin-left: 12px;
+            font-size: 13px;
+        }
+
+        .address-detail {
+            font-size: 13px;
+            color: #5a6478;
+            line-height: 1.6;
+        }
+
+        .address-tag {
+            display: inline-block;
+            font-size: 11px;
+            color: #e63946;
+            border: 1px solid #fecaca;
+            background: #fef2f2;
+            border-radius: 4px;
+            padding: 1px 6px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .btn-add-address {
+            width: 100%;
+            padding: 12px;
+            border: 1.5px dashed #d9dfe8;
+            border-radius: 12px;
+            background: transparent;
+            color: #8c95a5;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-add-address:hover {
+            border-color: #e63946;
+            color: #e63946;
+        }
+
+        /* ============================================================
+           新增地址表单
+           ============================================================ */
+        .address-form {
+            margin-top: 18px;
+            padding-top: 20px;
+            border-top: 1px solid #eef1f6;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .form-group.full-width {
+            flex: 1 1 100%;
+            min-width: 100%;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1f2e;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #d9dfe8;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1a1f2e;
+            outline: none;
+            transition: border-color 0.18s;
+            background: #ffffff;
+        }
+
+        .form-input:focus {
+            border-color: #e63946;
+        }
+
+        .form-input::placeholder {
+            color: #b8c0cc;
+        }
+
+        .btn-save-address {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            background: #1e3a8a;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+
+        .btn-save-address:hover {
+            background: #1e40af;
+            box-shadow: 0 4px 14px rgba(30, 58, 138, 0.3);
+        }
+
+        .btn-save-address:active {
+            transform: scale(0.99);
+        }
+
+        /* ============================================================
+           商品清单
+           ============================================================ */
+        .order-item {
+            display: flex;
+            gap: 14px;
+            padding: 16px 0;
+            border-bottom: 1px solid #eef1f6;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-item-image {
+            width: 72px;
+            height: 72px;
+            border-radius: 10px;
+            border: 1px solid #eef1f6;
+            object-fit: cover;
+            background: #f8faff;
+            flex-shrink: 0;
+        }
+
+        .order-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .order-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1f2e;
+            line-height: 1.4;
+            margin-bottom: 4px;
+        }
+
+        .order-item-sku {
+            font-size: 12px;
+            color: #8c95a5;
+            margin-bottom: 8px;
+        }
+
+        .order-item-price-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .order-item-price {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e63946;
+        }
+
+        .order-item-price-source {
+            font-size: 11px;
+            color: #4c6fff;
+            background: #eef2ff;
+            padding: 1px 7px;
+            border-radius: 10px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        .order-item-qty {
+            font-size: 13px;
+            color: #8c95a5;
+        }
+
+        .order-item-subtotal {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1f2e;
+            text-align: right;
+            min-width: 80px;
+        }
+
+        /* ============================================================
+           订单备注
+           ============================================================ */
+        .remark-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #d9dfe8;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #1a1f2e;
+            outline: none;
+            transition: border-color 0.18s;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .remark-input:focus {
+            border-color: #e63946;
+        }
+
+        .remark-input::placeholder {
+            color: #b8c0cc;
+        }
+
+        /* ============================================================
+           右侧汇总
+           ============================================================ */
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #5a6478;
+            padding: 8px 0;
+        }
+
+        .summary-row .value {
+            color: #1a1f2e;
+            font-weight: 500;
+        }
+
+        .summary-row.shipping .free {
+            color: #0e9f6e;
+            font-weight: 600;
+        }
+
+        .summary-divider {
+            height: 1px;
+            background: #eef1f6;
+            margin: 12px 0;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 4px 0;
+        }
+
+        .summary-total .label {
+            font-size: 14px;
+            color: #3b4358;
+        }
+
+        .summary-total .amount {
+            font-size: 26px;
+            font-weight: 800;
+            color: #e63946;
+            letter-spacing: -0.02em;
+        }
+
+        .shipping-hint {
+            font-size: 12px;
+            color: #d97706;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .btn-submit-order {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: #e63946;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(230, 57, 70, 0.3);
+            margin-top: 18px;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-submit-order:hover {
+            background: #d62839;
+            box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+        }
+
+        .btn-submit-order:active {
+            transform: scale(0.99);
+        }
+
+        .btn-submit-order:disabled {
+            background: #c0c9d9;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-agreement {
+            font-size: 12px;
+            color: #8c95a5;
+            text-align: center;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        .submit-agreement a {
+            color: #4c6fff;
+            text-decoration: none;
+        }
+
+        /* ============================================================
+           Toast
+           ============================================================ */
+        .toast {
+            position: fixed;
+            top: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            background-color: #1a1f2e;
+            color: #ffffff;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: #0e9f6e;
+        }
+
+        .toast.warning {
+            background-color: #d97706;
+        }
+
+        /* ============================================================
+           响应式
+           ============================================================ */
+        @media (max-width: 1024px) {
+            .checkout-layout {
+                flex-direction: column;
+            }
+
+            .checkout-side {
+                flex: 1 1 auto;
+                max-width: 100%;
+                width: 100%;
+                position: static;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .nav-links {
+                display: none;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .header-inner {
+                height: 56px;
+                padding: 0 16px;
+            }
+
+            .brand-logo {
+                font-size: 15px;
+            }
+
+            .brand-logo .logo-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+
+            .brand-logo .brand-sub {
+                display: none;
+            }
+
+            .header-actions .lang-text,
+            .header-actions .icon-btn.d-none-mobile {
+                display: none;
+            }
+
+            .breadcrumb {
+                padding: 16px 16px 0;
+                font-size: 12px;
+            }
+
+            .checkout-container {
+                margin: 16px auto 28px;
+                padding: 0 16px;
+            }
+
+            .checkout-title {
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .card {
+                padding: 18px 16px;
+                border-radius: 12px;
+            }
+
+            .card-title {
+                font-size: 15px;
+                margin-bottom: 14px;
+            }
+
+            .form-row {
+                gap: 14px;
+                margin-bottom: 14px;
+            }
+
+            .form-group {
+                min-width: 100%;
+            }
+
+            .order-item {
+                gap: 10px;
+                padding: 14px 0;
+            }
+
+            .order-item-image {
+                width: 60px;
+                height: 60px;
+            }
+
+            .order-item-name {
+                font-size: 13px;
+            }
+
+            .summary-total .amount {
+                font-size: 22px;
+            }
+
+            .btn-submit-order {
+                padding: 15px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card {
+                padding: 16px 14px;
+            }
+
+            .address-item {
+                padding: 12px 14px;
+            }
+
+            .order-item-image {
+                width: 52px;
+                height: 52px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 顶部导航 -->
+    <header class="site-header">
+        <div class="header-inner">
+            <a href="#" class="brand-logo">
+                <div class="logo-icon">G</div>
+                <span>Green Rich<span class="brand-sub">金瑞治</span></span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#">首页</a></li>
+                <li><a href="#">产品中心</a></li>
+                <li><a href="#">行业资讯</a></li>
+                <li><a href="#">关于我们</a></li>
+                <li><a href="#">加盟合作</a></li>
+                <li><a href="#">AI下单</a></li>
+            </ul>
+
+            <div class="header-actions">
+                <a href="#" class="icon-btn" title="搜索">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </a>
+                <a href="#" class="icon-btn d-none-mobile" title="个人中心">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <button class="btn-cart-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle>
+                        <circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <span>购物车</span>
+                    <span class="cart-badge">{{ totalQuantity }}</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 面包屑 -->
+    <div class="breadcrumb">
+        <a href="#">首页</a>
+        <span>/</span>
+        <a href="#">购物车</a>
+        <span>/</span>
+        <span>订单结算</span>
+    </div>
+
+    <!-- 结算主区域 -->
+    <main class="checkout-container">
+        <h1 class="checkout-title">订单结算</h1>
+
+        <div class="checkout-layout">
+            <!-- 左侧主内容 -->
+            <div class="checkout-main">
+                <!-- 收货地址 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </span>
+                        收货地址
+                    </div>
+
+                    <!-- 已有地址列表 -->
+                    <div
+                        v-for="address in addresses"
+                        :key="address.id"
+                        class="address-item"
+                        :class="{ active: selectedAddressId === address.id }"
+                        @click="selectAddress(address.id)"
+                    >
+                        <div class="address-name">
+                            {{ address.name }}
+                            <span class="phone">{{ address.phone }}</span>
+                            <span v-if="address.isDefault" class="address-tag">默认</span>
+                        </div>
+                        <div class="address-detail">
+                            {{ address.province }}{{ address.city }}{{ address.district }}{{ address.detail }}
+                        </div>
+                    </div>
+
+                    <!-- 新增地址按钮 -->
+                    <button
+                        v-if="!showAddressForm"
+                        class="btn-add-address"
+                        @click="showAddressForm = true"
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        新增收货地址
+                    </button>
+
+                    <!-- 新增地址表单 -->
+                    <div v-if="showAddressForm" class="address-form">
+                        <!-- 第一行：联系人 + 联系电话 -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">联系人</label>
+                                <input
+                                    v-model="newAddress.name"
+                                    class="form-input"
+                                    type="text"
+                                    placeholder="姓名"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">联系电话</label>
+                                <input
+                                    v-model="newAddress.phone"
+                                    class="form-input"
+                                    type="tel"
+                                    placeholder="手机号"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- 第二行：收货地址（全宽） -->
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label class="form-label">收货地址</label>
+                                <input
+                                    v-model="newAddress.detail"
+                                    class="form-input"
+                                    type="text"
+                                    placeholder="省/市/区 详细地址"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- 第三行：邮编 + 邮箱 -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">邮编</label>
+                                <input
+                                    v-model="newAddress.zipcode"
+                                    class="form-input"
+                                    type="text"
+                                    placeholder="邮编"
+                                >
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">邮箱</label>
+                                <input
+                                    v-model="newAddress.email"
+                                    class="form-input"
+                                    type="email"
+                                    placeholder="Email"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- 保存按钮 -->
+                        <button class="btn-save-address" @click="saveAddress">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                            保存地址
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 商品清单 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                        </span>
+                        商品清单
+                    </div>
+
+                    <div
+                        v-for="item in cartItems"
+                        :key="item.id"
+                        class="order-item"
+                    >
+                        <img class="order-item-image" :src="item.image" :alt="item.name">
+                        <div class="order-item-info">
+                            <div class="order-item-name">{{ item.name }}</div>
+                            <div class="order-item-sku">SKU: {{ item.sku }}</div>
+                            <div class="order-item-price-row">
+                                <div>
+                                    <span class="order-item-price">¥{{ formatMoney(getItemPrice(item).price) }}</span>
+                                    <span
+                                        v-if="getItemPrice(item).source !== '零售价'"
+                                        class="order-item-price-source"
+                                    >{{ getItemPrice(item).source }}</span>
+                                </div>
+                                <div class="order-item-qty">× {{ item.quantity }}</div>
+                            </div>
+                        </div>
+                        <div class="order-item-subtotal">
+                            ¥{{ formatMoney(getItemPrice(item).price * item.quantity) }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 订单备注 -->
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </span>
+                        订单备注
+                    </div>
+                    <textarea
+                        v-model="remark"
+                        class="remark-input"
+                        placeholder="如有特殊要求，请在此备注（选填）"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- 右侧汇总 -->
+            <div class="checkout-side">
+                <div class="card">
+                    <div class="card-title">
+                        <span class="icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </span>
+                        订单汇总
+                    </div>
+
+                    <div class="summary-row">
+                        <span>商品总价</span>
+                        <span class="value">¥{{ formatMoney(goodsTotal) }}</span>
+                    </div>
+
+                    <div class="summary-row shipping">
+                        <span>运费</span>
+                        <span v-if="shippingFee === 0" class="value free">包邮</span>
+                        <span v-else class="value">¥{{ formatMoney(shippingFee) }}</span>
+                    </div>
+
+                    <div v-if="shippingHint" class="shipping-hint">
+                        {{ shippingHint }}
+                    </div>
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-total">
+                        <span class="label">应付总额</span>
+                        <span class="amount">¥{{ formatMoney(totalAmount) }}</span>
+                    </div>
+
+                    <button
+                        class="btn-submit-order"
+                        :disabled="!selectedAddress || cartItems.length === 0"
+                        @click="submitOrder"
+                    >
+                        提交订单
+                    </button>
+
+                    <div class="submit-agreement">
+                        点击提交订单即表示同意 <a href="#">《购买协议》</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" :class="[toastType, { show: toastVisible }]">{{ toastMessage }}</div>
+</div>
+
+<script>
+    const { createApp, ref, computed } = Vue;
+
+    createApp({
+        setup() {
+            // ============================================================
+            // 当前登录用户
+            // ============================================================
+            const currentUser = {
+                isLoggedIn: true,
+                groupId: 'svip',
+                groupName: 'svip'
+            };
+
+            // ============================================================
+            // 运费配置
+            // ============================================================
+            const shippingConfig = {
+                free_shipping_threshold: 500,
+                flat_shipping_fee: 20
+            };
+
+            // ============================================================
+            // 收货地址
+            // ============================================================
+            const addresses = ref([
+                {
+                    id: 'addr_001',
+                    name: '张三',
+                    phone: '138****8888',
+                    province: '广东省',
+                    city: '深圳市',
+                    district: '南山区',
+                    detail: '科技园路 100 号 A 栋 1201 室',
+                    isDefault: true
+                },
+                {
+                    id: 'addr_002',
+                    name: '李四',
+                    phone: '139****6666',
+                    province: '北京市',
+                    city: '北京市',
+                    district: '朝阳区',
+                    detail: '建国路 88 号 SOHO 现代城 B 座 1503',
+                    isDefault: false
+                }
+            ]);
+
+            const selectedAddressId = ref('addr_001');
+
+            const selectedAddress = computed(() => {
+                return addresses.value.find(a => a.id === selectedAddressId.value) || null;
+            });
+
+            // ============================================================
+            // 新增地址表单
+            // ============================================================
+            const showAddressForm = ref(false);
+
+            const newAddress = ref({
+                name: '',
+                phone: '',
+                detail: '',
+                zipcode: '',
+                email: ''
+            });
+
+            function saveAddress() {
+                // 简单校验
+                if (!newAddress.value.name.trim()) {
+                    showToast('请填写联系人姓名', 'warning');
+                    return;
+                }
+                if (!newAddress.value.phone.trim()) {
+                    showToast('请填写联系电话', 'warning');
+                    return;
+                }
+                if (!newAddress.value.detail.trim()) {
+                    showToast('请填写收货地址', 'warning');
+                    return;
+                }
+
+                // 生成新地址
+                const newId = 'addr_' + Date.now();
+                addresses.value.push({
+                    id: newId,
+                    name: newAddress.value.name,
+                    phone: newAddress.value.phone,
+                    province: '',
+                    city: '',
+                    district: '',
+                    detail: newAddress.value.detail,
+                    zipcode: newAddress.value.zipcode,
+                    email: newAddress.value.email,
+                    isDefault: false
+                });
+
+                // 自动选中新地址
+                selectedAddressId.value = newId;
+
+                // 重置表单
+                newAddress.value = {
+                    name: '',
+                    phone: '',
+                    detail: '',
+                    zipcode: '',
+                    email: ''
+                };
+                showAddressForm.value = false;
+
+                showToast('收货地址已保存', 'success');
+            }
+
+            // ============================================================
+            // 购物车商品
+            // ============================================================
+            const cartItems = ref([
+                {
+                    id: 'item_001',
+                    sku: 'GX-IR1435-002',
+                    name: 'Original / Green · Approx. 40,000 pages.',
+                    image: 'https://picsum.photos/seed/product1/200/200',
+                    quantity: 1,
+                    marketPrice: 20,
+                    costPrice: 14,
+                    group_prices: [
+                        { group_id: 'svip', group_name: 'svip', price: 16 },
+                        { group_id: 'vip', group_name: 'vip', price: 18 }
+                    ],
+                    group_qty_prices: [
+                        { min_qty: 10, max_qty: 49, price: 16 },
+                        { min_qty: 50, max_qty: 99, price: 12 }
+                    ]
+                },
+                {
+                    id: 'item_002',
+                    sku: 'GX-IR1435-003',
+                    name: 'Compatible / Black · Approx. 20,000 pages.',
+                    image: 'https://picsum.photos/seed/product2/200/200',
+                    quantity: 30,
+                    marketPrice: 18,
+                    costPrice: 10,
+                    group_prices: [
+                        { group_id: 'svip', group_name: 'svip', price: 14 }
+                    ],
+                    group_qty_prices: [
+                        { min_qty: 20, max_qty: 99, price: 13 },
+                        { min_qty: 100, max_qty: null, price: 10 }
+                    ]
+                },
+                {
+                    id: 'item_003',
+                    sku: 'GX-IR1435-004',
+                    name: 'Premium / Blue · Approx. 60,000 pages.',
+                    image: 'https://picsum.photos/seed/product3/200/200',
+                    quantity: 5,
+                    marketPrice: 25,
+                    costPrice: 16,
+                    group_prices: [
+                        { group_id: 'svip', group_name: 'svip', price: 21 }
+                    ],
+                    group_qty_prices: [
+                        { min_qty: 10, max_qty: 49, price: 20 },
+                        { min_qty: 50, max_qty: null, price: 18 }
+                    ]
+                }
+            ]);
+
+            // ============================================================
+            // 订单备注
+            // ============================================================
+            const remark = ref('');
+
+            // ============================================================
+            // Toast
+            // ============================================================
+            const toastVisible = ref(false);
+            const toastMessage = ref('');
+            const toastType = ref('');
+            let toastTimer = null;
+
+            function showToast(message, type = '') {
+                toastMessage.value = message;
+                toastType.value = type;
+                toastVisible.value = true;
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    toastVisible.value = false;
+                }, 2600);
+            }
+
+            // ============================================================
+            // 工具函数
+            // ============================================================
+            function formatMoney(value) {
+                const num = Number(value);
+                if (isNaN(num)) return '0.00';
+                return num.toFixed(2);
+            }
+
+            // ============================================================
+            // 价格计算
+            // ============================================================
+            function calculatePrice(sku, qty, user) {
+                const candidates = [];
+
+                if (user.isLoggedIn && sku.group_prices) {
+                    const memberPrice = sku.group_prices.find(gp => gp.group_id === user.groupId);
+                    if (memberPrice) {
+                        candidates.push({ price: memberPrice.price, source: '会员价' });
+                    }
+                }
+
+                if (sku.group_qty_prices) {
+                    for (let i = 0; i < sku.group_qty_prices.length; i++) {
+                        const tier = sku.group_qty_prices[i];
+                        const minOk = qty >= tier.min_qty;
+                        const maxOk = (tier.max_qty === null || tier.max_qty === undefined || tier.max_qty === '') || qty <= tier.max_qty;
+                        if (minOk && maxOk) {
+                            candidates.push({
+                                price: tier.price,
+                                source: '阶梯价 ' + tier.min_qty + '-' + (tier.max_qty || '∞') + ' 件档'
+                            });
+                            break;
+                        }
+                    }
+                }
+
+                candidates.push({ price: sku.marketPrice, source: '零售价' });
+
+                let best = candidates[0];
+                for (let i = 1; i < candidates.length; i++) {
+                    if (candidates[i].price < best.price) {
+                        best = candidates[i];
+                    }
+                }
+
+                let finalPrice = best.price;
+                let finalSource = best.source;
+                if (finalPrice < sku.costPrice) {
+                    finalPrice = sku.costPrice;
+                    finalSource = '成本价';
+                }
+
+                return { price: finalPrice, source: finalSource };
+            }
+
+            function getItemPrice(item) {
+                return calculatePrice(item, item.quantity, currentUser);
+            }
+
+            // ============================================================
+            // 计算属性
+            // ============================================================
+            const totalQuantity = computed(() => {
+                return cartItems.value.reduce((sum, item) => sum + item.quantity, 0);
+            });
+
+            const goodsTotal = computed(() => {
+                let total = 0;
+                cartItems.value.forEach(item => {
+                    const result = calculatePrice(item, item.quantity, currentUser);
+                    total += result.price * item.quantity;
+                });
+                return total;
+            });
+
+            const shippingFee = computed(() => {
+                if (goodsTotal.value <= 0) return 0;
+                return goodsTotal.value >= shippingConfig.free_shipping_threshold
+                    ? 0
+                    : shippingConfig.flat_shipping_fee;
+            });
+
+            const shippingHint = computed(() => {
+                if (goodsTotal.value <= 0) return '';
+                if (goodsTotal.value >= shippingConfig.free_shipping_threshold) {
+                    return '已满 ¥' + formatMoney(shippingConfig.free_shipping_threshold) + '，包邮';
+                }
+                const diff = shippingConfig.free_shipping_threshold - goodsTotal.value;
+                return '再买 ¥' + formatMoney(diff) + ' 可包邮';
+            });
+
+            const totalAmount = computed(() => {
+                return goodsTotal.value + shippingFee.value;
+            });
+
+            // ============================================================
+            // 方法
+            // ============================================================
+            function selectAddress(id) {
+                selectedAddressId.value = id;
+            }
+
+            function submitOrder() {
+                if (!selectedAddress.value) {
+                    showToast('请先选择收货地址', 'warning');
+                    return;
+                }
+
+                if (cartItems.value.length === 0) {
+                    showToast('订单中没有商品', 'warning');
+                    return;
+                }
+
+                const orderData = {
+                    address: selectedAddress.value,
+                    items: cartItems.value.map(item => ({
+                        sku: item.sku,
+                        name: item.name,
+                        quantity: item.quantity,
+                        unitPrice: getItemPrice(item).price,
+                        priceSource: getItemPrice(item).source,
+                        subtotal: getItemPrice(item).price * item.quantity
+                    })),
+                    goodsTotal: goodsTotal.value,
+                    shippingFee: shippingFee.value,
+                    totalAmount: totalAmount.value,
+                    remark: remark.value
+                };
+
+                console.log('提交订单:', orderData);
+
+                showToast('订单已提交，应付 ¥' + formatMoney(totalAmount.value), 'success');
+            }
+
+            // ============================================================
+            // 返回
+            // ============================================================
+            return {
+                addresses,
+                selectedAddressId,
+                selectedAddress,
+                showAddressForm,
+                newAddress,
+                saveAddress,
+                cartItems,
+                remark,
+                totalQuantity,
+                goodsTotal,
+                shippingFee,
+                shippingHint,
+                totalAmount,
+                toastVisible,
+                toastMessage,
+                toastType,
+                formatMoney,
+                getItemPrice,
+                selectAddress,
+                submitOrder,
+                showToast
+            };
+        }
+    }).mount('#app');
+</script>
+
+</body>
+</html>

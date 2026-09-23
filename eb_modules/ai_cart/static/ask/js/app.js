@@ -57,9 +57,11 @@ function loadQuoteItems() {
       quoteItems = JSON.parse(saved) || [];
       // 兼容旧版 localStorage 数据：将 price 迁移到 unit_price
       quoteItems.forEach(item => {
-        // 旧版数据有价格，新版不存储价格（提交时后端按用户组定价）
-        item.unit_price = 0;
-        item.market_price = 0;
+        // 旧版数据可能有 price 字段，迁移到 unit_price
+        if (item.price && !item.unit_price) {
+          item.unit_price = item.price;
+        }
+        delete item.price;
         if (!item.class_name && item.life) {
           item.class_name = item.life;
         }

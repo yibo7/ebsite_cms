@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单支付 · Green Rich</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --brand-red: #e63946;
+            --brand-red-hover: #d62839;
+            --text-dark: #1a1f2e;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-dark);
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================================
+           顶部导航
+           ============================================================ */
+        .site-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        .brand-logo .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--brand-red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 800;
+            font-size: 16px;
+        }
+
+        .brand-logo .brand-sub {
+            font-weight: 400;
+            font-size: 12px;
+            color: #8c95a5;
+            margin-left: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: var(--brand-red);
+        }
+
+        .header-actions .icon-btn {
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.15s;
+            text-decoration: none;
+        }
+
+        .header-actions .icon-btn:hover {
+            color: var(--brand-red);
+        }
+
+        /* ============================================================
+           面包屑
+           ============================================================ */
+        .breadcrumb-section {
+            padding: 20px 0 0;
+            font-size: 13px;
+            color: #8c95a5;
+        }
+
+        .breadcrumb-section a {
+            color: #8c95a5;
+            text-decoration: none;
+        }
+
+        .breadcrumb-section a:hover {
+            color: var(--brand-red);
+        }
+
+        .breadcrumb-section .separator {
+            margin: 0 6px;
+        }
+
+        /* ============================================================
+           主卡片
+           ============================================================ */
+        .payment-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        /* 成功横幅 */
+        .success-banner {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            padding: 28px 32px 26px;
+            color: #ffffff;
+        }
+
+        .success-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .success-icon svg {
+            width: 28px;
+            height: 28px;
+            stroke: #ffffff;
+            stroke-width: 3;
+            fill: none;
+        }
+
+        .success-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .success-subtitle {
+            font-size: 14px;
+            opacity: 0.92;
+        }
+
+        /* 订单信息 */
+        .order-info {
+            padding: 8px 0;
+            border-bottom: 1px solid #eef1f6;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 16px 32px;
+            gap: 16px;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #5a6478;
+            flex-shrink: 0;
+            min-width: 100px;
+        }
+
+        .info-label i {
+            font-size: 16px;
+            color: #8c95a5;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 500;
+            text-align: right;
+            word-break: break-all;
+        }
+
+        .info-value.order-no {
+            font-family: "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+        }
+
+        .info-value.order-time {
+            font-size: 13px;
+            font-weight: 400;
+            color: #5a6478;
+        }
+
+        .info-value.amount {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--brand-red);
+        }
+
+        /* 倒计时提示 */
+        .countdown-tip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #d97706;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin: 20px 32px 0;
+            line-height: 1.5;
+        }
+
+        .countdown-tip strong {
+            font-weight: 700;
+        }
+
+        /* 支付方式 */
+        .payment-section {
+            padding: 24px 32px 0;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--brand-red);
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .payment-method {
+            border: 1.5px solid #e5ebf5;
+            border-radius: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: relative;
+        }
+
+        .payment-method:hover {
+            border-color: #c0c9d9;
+        }
+
+        .payment-method.active {
+            border-color: var(--brand-red);
+            background: #fff5f5;
+        }
+
+        .payment-method.active::after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            color: var(--brand-red);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .payment-method-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 22px;
+        }
+
+        .payment-method-icon.wechat {
+            background: #e8f8ee;
+            color: #07c160;
+        }
+
+        .payment-method-icon.alipay {
+            background: #e8f0ff;
+            color: #1677ff;
+        }
+
+        .payment-method-icon.bank {
+            background: #f0f4ff;
+            color: #1e3a8a;
+        }
+
+        .payment-method-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .payment-method-desc {
+            font-size: 12px;
+            color: #8c95a5;
+        }
+
+        /* 银行转账信息 */
+        .bank-info {
+            background: #f8faff;
+            border: 1px solid #e5ebf5;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-top: 14px;
+            display: none;
+        }
+
+        .bank-info.show {
+            display: block;
+        }
+
+        .bank-info-row {
+            display: flex;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #eef2fa;
+        }
+
+        .bank-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .bank-info-row .label {
+            color: #8c95a5;
+            width: 100px;
+            flex-shrink: 0;
+        }
+
+        .bank-info-row .value {
+            color: var(--text-dark);
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .bank-info-row .value.highlight {
+            color: var(--brand-red);
+            font-weight: 700;
+        }
+
+        .copy-btn {
+            margin-left: 8px;
+            color: #4c6fff;
+            font-size: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .copy-btn:hover {
+            color: #3b5bef;
+        }
+
+        /* 客服联系方式 */
+        .contact-section {
+            margin-top: 16px;
+            padding: 16px 18px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            display: none;
+        }
+
+        .contact-section.show {
+            display: block;
+        }
+
+        .contact-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 12px;
+        }
+
+        .contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            text-decoration: none;
+            color: var(--text-dark);
+            padding: 8px 10px;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+
+        .contact-link:hover {
+            background: rgba(255, 255, 255, 0.6);
+            color: var(--text-dark);
+        }
+
+        .contact-link .contact-icon {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .contact-link .contact-icon.wechat {
+            color: #07c160;
+        }
+
+        .contact-link .contact-icon.whatsapp {
+            color: #25d366;
+        }
+
+        .contact-link .contact-icon.phone {
+            color: var(--brand-red);
+        }
+
+        .contact-link .contact-label {
+            color: #92400e;
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .contact-link .contact-value {
+            color: var(--text-dark);
+            font-weight: 600;
+            font-family: "SF Mono", "Roboto Mono", Menlo, Consolas, monospace;
+            font-size: 13px;
+            word-break: break-all;
+        }
+
+        .contact-tip {
+            font-size: 12px;
+            color: #92400e;
+            margin-top: 12px;
+            line-height: 1.6;
+        }
+
+        /* 支付汇总 */
+        .pay-footer {
+            padding: 24px 32px 32px;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 20px 0 16px;
+            border-top: 1px solid #eef1f6;
+        }
+
+        .summary-total .label {
+            font-size: 14px;
+            color: #3b4358;
+        }
+
+        .summary-total .amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--brand-red);
+        }
+
+        .btn-pay {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: var(--brand-red);
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 14px rgba(230, 57, 70, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-pay:hover {
+            background: var(--brand-red-hover);
+            box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+        }
+
+        .btn-pay:active {
+            transform: scale(0.99);
+        }
+
+        .btn-pay:disabled {
+            background: #c0c9d9;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .pay-agreement {
+            font-size: 12px;
+            color: #8c95a5;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .pay-agreement a {
+            color: #4c6fff;
+            text-decoration: none;
+        }
+
+        /* 页脚 */
+        .site-footer {
+            background: #1a1f2e;
+            color: #8c95a5;
+            padding: 32px 20px;
+            margin-top: auto;
+            font-size: 13px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: #8c95a5;
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        /* 支付成功弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 31, 46, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .success-modal {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 40px 36px 32px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .success-modal .modal-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #e8f8ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: #0e9f6e;
+            font-size: 36px;
+        }
+
+        .success-modal .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .success-modal .modal-desc {
+            font-size: 14px;
+            color: #8c95a5;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            background-color: #1a1f2e;
+            color: #ffffff;
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            z-index: 3000;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background-color: #0e9f6e;
+        }
+
+        .toast.warning {
+            background-color: #d97706;
+        }
+
+        /* 响应式 */
+        @media (max-width: 720px) {
+            .success-banner {
+                padding: 22px 20px 20px;
+            }
+
+            .success-title {
+                font-size: 17px;
+            }
+
+            .info-row {
+                padding: 14px 20px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 6px;
+            }
+
+            .info-label {
+                min-width: auto;
+            }
+
+            .info-value {
+                text-align: left;
+                width: 100%;
+            }
+
+            .info-value.amount {
+                font-size: 22px;
+            }
+
+            .countdown-tip {
+                margin: 16px 20px 0;
+                font-size: 12px;
+            }
+
+            .payment-section {
+                padding: 20px 20px 0;
+            }
+
+            .bank-info-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .bank-info-row .label {
+                width: auto;
+            }
+
+            .pay-footer {
+                padding: 20px 20px 24px;
+            }
+
+            .summary-total .amount {
+                font-size: 24px;
+            }
+
+            .contact-link .contact-label {
+                width: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部导航 -->
+    <header class="site-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between py-2" style="height:64px;">
+                <a href="#" class="brand-logo">
+                    <div class="logo-icon">G</div>
+                    <span>Green Rich<span class="brand-sub">金瑞治</span></span>
+                </a>
+
+                <ul class="nav-links d-none d-md-flex">
+                    <li><a href="#">首页</a></li>
+                    <li><a href="#">产品中心</a></li>
+                    <li><a href="#">行业资讯</a></li>
+                    <li><a href="#">关于我们</a></li>
+                    <li><a href="#">加盟合作</a></li>
+                    <li><a href="#">AI下单</a></li>
+                </ul>
+
+                <div class="header-actions d-flex align-items-center gap-3">
+                    <a href="#" class="icon-btn" title="搜索"><i class="bi bi-search"></i></a>
+                    <a href="#" class="icon-btn" title="个人中心"><i class="bi bi-person"></i></a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 面包屑 -->
+    <div class="container">
+        <div class="breadcrumb-section">
+            <a href="#">首页</a>
+            <span class="separator">/</span>
+            <a href="#">个人中心</a>
+            <span class="separator">/</span>
+            <a href="#">我的订单</a>
+            <span class="separator">/</span>
+            <span>订单支付</span>
+        </div>
+    </div>
+
+    <!-- 主内容 -->
+    <main class="container my-4 flex-grow-1">
+        <div class="payment-card">
+            <!-- 成功横幅 -->
+            <div class="success-banner">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="success-icon">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="success-title">订单提交成功</div>
+                        <div class="success-subtitle">请尽快完成支付，以免订单被取消</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 订单信息 -->
+            <div class="order-info">
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="bi bi-receipt"></i>
+                        订单编号
+                    </div>
+                    <div class="info-value order-no" id="orderNo">ORD20260923000001</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="bi bi-clock"></i>
+                        下单时间
+                    </div>
+                    <div class="info-value order-time" id="orderTime">2026-09-23 10:30:00</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="bi bi-currency-yen"></i>
+                        应付金额
+                    </div>
+                    <div class="info-value amount">¥400.00</div>
+                </div>
+            </div>
+
+            <!-- 倒计时提示 -->
+            <div class="countdown-tip">
+                <i class="bi bi-clock-history"></i>
+                <div>
+                    请在 <strong id="countdown">24:00:00</strong> 内完成支付，否则订单将被自动取消。
+                </div>
+            </div>
+
+            <!-- 支付方式 -->
+            <div class="payment-section">
+                <div class="section-title">
+                    <i class="bi bi-credit-card"></i>
+                    选择支付方式
+                </div>
+
+                <div class="payment-methods">
+                    <!-- 微信支付 -->
+                    <div class="payment-method active" data-method="wechat" onclick="selectMethod('wechat')">
+                        <div class="payment-method-icon wechat">
+                            <i class="bi bi-wechat"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="payment-method-name">微信支付</div>
+                            <div class="payment-method-desc">推荐使用微信扫码支付</div>
+                        </div>
+                    </div>
+
+                    <!-- 支付宝 -->
+                    <div class="payment-method" data-method="alipay" onclick="selectMethod('alipay')">
+                        <div class="payment-method-icon alipay">
+                            <i class="bi bi-alipay"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="payment-method-name">支付宝</div>
+                            <div class="payment-method-desc">推荐使用支付宝扫码支付</div>
+                        </div>
+                    </div>
+
+                    <!-- 银行转账 -->
+                    <div class="payment-method" data-method="bank" onclick="selectMethod('bank')">
+                        <div class="payment-method-icon bank">
+                            <i class="bi bi-bank"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="payment-method-name">银行转账 / 对公汇款</div>
+                            <div class="payment-method-desc">适合大额批发订单，转账后联系客服确认</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 银行转账信息 -->
+                <div class="bank-info" id="bankInfo">
+                    <div class="bank-info-row">
+                        <div class="label">收款单位</div>
+                        <div class="value">金瑞治（深圳）科技有限公司</div>
+                    </div>
+                    <div class="bank-info-row">
+                        <div class="label">开户银行</div>
+                        <div class="value">中国工商银行深圳科技园支行</div>
+                    </div>
+                    <div class="bank-info-row">
+                        <div class="label">银行账号</div>
+                        <div class="value highlight">
+                            6222 0212 3456 7890 123
+                            <button class="copy-btn" onclick="copyText('6222021234567890123')">复制</button>
+                        </div>
+                    </div>
+                    <div class="bank-info-row">
+                        <div class="label">转账金额</div>
+                        <div class="value highlight">¥400.00</div>
+                    </div>
+                    <div class="bank-info-row">
+                        <div class="label">汇款备注</div>
+                        <div class="value" id="bankOrderNo">ORD20260923000001</div>
+                    </div>
+                </div>
+
+                <!-- 客服联系方式 -->
+                <div class="contact-section" id="contactSection">
+                    <div class="contact-title">转账后请联系客服确认订单</div>
+                    <div class="contact-list">
+                        <!-- 微信客服 -->
+                        <a href="weixin://" class="contact-link">
+                            <span class="contact-icon wechat"><i class="bi bi-wechat"></i></span>
+                            <span class="contact-label">微信客服</span>
+                            <span class="contact-value">GreenRich_Service</span>
+                        </a>
+
+                        <!-- WhatsApp -->
+                        <a href="https://wa.me/8613888888888" target="_blank" class="contact-link">
+                            <span class="contact-icon whatsapp"><i class="bi bi-whatsapp"></i></span>
+                            <span class="contact-label">WhatsApp</span>
+                            <span class="contact-value">+86 138 8888 8888</span>
+                        </a>
+
+                        <!-- 客服电话 -->
+                        <a href="tel:4008888888" class="contact-link">
+                            <span class="contact-icon phone"><i class="bi bi-telephone"></i></span>
+                            <span class="contact-label">客服电话</span>
+                            <span class="contact-value">400-888-8888</span>
+                        </a>
+                    </div>
+                    <div class="contact-tip">
+                        转账完成后，请将汇款凭证发送给客服，我们将在 1 个工作日内确认订单并安排发货。
+                    </div>
+                </div>
+            </div>
+
+            <!-- 支付汇总 -->
+            <div class="pay-footer">
+                <div class="summary-total">
+                    <span class="label">应付总额</span>
+                    <span class="amount">¥400.00</span>
+                </div>
+
+                <button class="btn-pay" id="payBtn" onclick="handlePay()">
+                    <i class="bi bi-credit-card"></i>
+                    立即支付 ¥400.00
+                </button>
+
+                <div class="pay-agreement">
+                    点击支付即表示同意 <a href="#">《支付协议》</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>© 2026 Green Rich 金瑞治. All rights reserved.</div>
+                <ul class="footer-links">
+                    <li><a href="#">关于我们</a></li>
+                    <li><a href="#">联系方式</a></li>
+                    <li><a href="#">隐私政策</a></li>
+                    <li><a href="#">服务条款</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 支付成功弹窗 -->
+    <div class="modal-overlay" id="successModal">
+        <div class="success-modal">
+            <div class="modal-icon">
+                <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="modal-title">支付成功</div>
+            <div class="modal-desc">
+                订单号：<span id="modalOrderNo">ORD20260923000001</span><br>
+                支付金额：¥400.00
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light flex-fill" onclick="goToOrders()">查看订单</button>
+                <button class="btn text-white flex-fill" style="background:var(--brand-red);" onclick="goToHome()">返回首页</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // 订单数据
+            // ============================================================
+            var orderNo = 'ORD' + Date.now() + Math.floor(Math.random() * 1000);
+            var orderTime = new Date().toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).replace(/\//g, '-');
+
+            document.getElementById('orderNo').textContent = orderNo;
+            document.getElementById('orderTime').textContent = orderTime;
+            document.getElementById('bankOrderNo').textContent = orderNo;
+            document.getElementById('modalOrderNo').textContent = orderNo;
+
+            // ============================================================
+            // 倒计时（24 小时）
+            // ============================================================
+            var countdownSeconds = 24 * 60 * 60;
+            var countdownEl = document.getElementById('countdown');
+
+            function formatCountdown(seconds) {
+                var h = Math.floor(seconds / 3600);
+                var m = Math.floor((seconds % 3600) / 60);
+                var s = seconds % 60;
+                return String(h).padStart(2, '0') + ':' +
+                       String(m).padStart(2, '0') + ':' +
+                       String(s).padStart(2, '0');
+            }
+
+            countdownEl.textContent = formatCountdown(countdownSeconds);
+
+            var countdownTimer = setInterval(function() {
+                if (countdownSeconds > 0) {
+                    countdownSeconds--;
+                    countdownEl.textContent = formatCountdown(countdownSeconds);
+                } else {
+                    clearInterval(countdownTimer);
+                    countdownEl.textContent = '00:00:00';
+                    showToast('支付超时，订单已关闭', 'warning');
+                }
+            }, 1000);
+
+            // ============================================================
+            // 支付方式切换
+            // ============================================================
+            var currentMethod = 'wechat';
+            var bankInfo = document.getElementById('bankInfo');
+            var contactSection = document.getElementById('contactSection');
+            var payBtn = document.getElementById('payBtn');
+
+            function selectMethod(method) {
+                currentMethod = method;
+
+                // 切换选中样式
+                document.querySelectorAll('.payment-method').forEach(function(el) {
+                    el.classList.toggle('active', el.dataset.method === method);
+                });
+
+                // 显示/隐藏银行转账信息
+                if (method === 'bank') {
+                    bankInfo.classList.add('show');
+                    contactSection.classList.add('show');
+                    payBtn.innerHTML = '<i class="bi bi-upload"></i> 我已转账，联系客服确认';
+                } else {
+                    bankInfo.classList.remove('show');
+                    contactSection.classList.remove('show');
+                    payBtn.innerHTML = '<i class="bi bi-credit-card"></i> 立即支付 ¥400.00';
+                }
+            }
+
+            // ============================================================
+            // 支付处理
+            // ============================================================
+            function handlePay() {
+                payBtn.disabled = true;
+                payBtn.innerHTML = '处理中...';
+
+                setTimeout(function() {
+                    payBtn.disabled = false;
+
+                    if (currentMethod === 'bank') {
+                        payBtn.innerHTML = '<i class="bi bi-upload"></i> 我已转账，联系客服确认';
+                        showToast('请将汇款凭证发送给客服，我们将在 1 个工作日内确认订单', 'success');
+                    } else {
+                        payBtn.innerHTML = '<i class="bi bi-credit-card"></i> 立即支付 ¥400.00';
+                        document.getElementById('successModal').classList.add('show');
+                        clearInterval(countdownTimer);
+                    }
+                }, 1200);
+            }
+
+            // ============================================================
+            // 复制文本
+            // ============================================================
+            function copyText(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        showToast('已复制到剪贴板', 'success');
+                    }).catch(function() {
+                        showToast('复制失败，请手动复制', 'warning');
+                    });
+                } else {
+                    var textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    try {
+                        document.execCommand('copy');
+                        showToast('已复制到剪贴板', 'success');
+                    } catch (e) {
+                        showToast('复制失败，请手动复制', 'warning');
+                    }
+                    document.body.removeChild(textarea);
+                }
+            }
+
+            // ============================================================
+            // Toast
+            // ============================================================
+            var toastEl = document.getElementById('toast');
+            var toastTimer = null;
+
+            function showToast(message, type) {
+                toastEl.textContent = message;
+                toastEl.className = 'toast';
+                if (type) toastEl.classList.add(type);
+                void toastEl.offsetWidth;
+                toastEl.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(function() {
+                    toastEl.classList.remove('show');
+                }, 2600);
+            }
+
+            // ============================================================
+            // 跳转
+            // ============================================================
+            function goToOrders() {
+                document.getElementById('successModal').classList.remove('show');
+                console.log('跳转我的订单');
+            }
+
+            function goToHome() {
+                document.getElementById('successModal').classList.remove('show');
+                console.log('跳转首页');
+            }
+
+            // ============================================================
+            // 暴露全局
+            // ============================================================
+            window.selectMethod = selectMethod;
+            window.handlePay = handlePay;
+            window.copyText = copyText;
+            window.goToOrders = goToOrders;
+            window.goToHome = goToHome;
+
+        })();
+    </script>
+
+</body>
+</html>

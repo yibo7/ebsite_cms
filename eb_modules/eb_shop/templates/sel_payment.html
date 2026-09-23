@@ -1,56 +1,273 @@
 {% extends 'base_site.html' %}
 {% block title %}
-支付中心
+订单支付
 {% endblock %}
 
 {% block content %}
 
 <link rel="stylesheet" href="/css/user.css">
 
+<style>
+.pay-page { padding: 30px 0; min-height: 70vh; background: #f5f7fa; }
+.pay-container { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+
+/* 卡片通用 */
+.pay-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+/* 成功横幅 */
+.pay-success-banner {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  padding: 28px 32px;
+  color: #fff;
+}
+.pay-success-banner h4 { font-weight: 700; margin-bottom: 4px; }
+.pay-success-banner p { opacity: 0.92; font-size: 14px; margin: 0; }
+
+/* 订单信息行 */
+.pay-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  border-bottom: 1px solid #eef1f6;
+}
+.pay-info-row:last-child { border-bottom: none; }
+.pay-info-row .label { color: #5a6478; font-size: 14px; }
+.pay-info-row .value { font-weight: 500; color: #1a1f2e; font-size: 14px; }
+.pay-info-row .value.price { font-size: 24px; font-weight: 800; color: #e63946; }
+
+/* 倒计时提示 */
+.pay-deadline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #d97706;
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  padding: 12px 32px;
+  line-height: 1.5;
+}
+
+/* 支付方式 */
+.pay-method-title {
+  padding: 24px 32px 0;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1a1f2e;
+}
+.pay-methods {
+  padding: 12px 32px 8px;
+}
+.pay-method-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1.5px solid #e5ebf5;
+  border-radius: 12px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.18s;
+  margin-bottom: 12px;
+  position: relative;
+}
+.pay-method-item:hover { border-color: #c0c9d9; }
+.pay-method-item.selected,
+.pay-method-item.active { border-color: #e63946; background: #fff5f5; }
+.pay-method-item.selected::after,
+.pay-method-item.active::after {
+  content: "✓";
+  position: absolute;
+  top: 50%; right: 20px;
+  transform: translateY(-50%);
+  color: #e63946;
+  font-weight: 700;
+  font-size: 16px;
+}
+.pay-method-item input[type="radio"] { display: none; }
+.method-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.method-icon.wechat { background: #e8f8ee; color: #07c160; }
+.method-icon.alipay { background: #e8f0ff; color: #1677ff; }
+.method-icon.bank { background: #f0f4ff; color: #1e3a8a; }
+.method-label { font-size: 15px; font-weight: 600; color: #1a1f2e; }
+.method-desc { font-size: 12px; color: #8c95a5; margin-top: 2px; }
+
+/* 银行转账信息 */
+.bank-info {
+  background: #f8faff;
+  border: 1px solid #e5ebf5;
+  border-radius: 12px;
+  padding: 18px 20px;
+  margin: 0 32px 16px;
+  display: none;
+}
+.bank-info.show { display: block; }
+.bank-info-row {
+  display: flex;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid #eef2fa;
+}
+.bank-info-row:last-child { border-bottom: none; }
+.bank-info-row .bl { color: #8c95a5; width: 100px; flex-shrink: 0; }
+.bank-info-row .bv { color: #1a1f2e; font-weight: 500; word-break: break-all; }
+.bank-info-row .bv.highlight { color: #e63946; font-weight: 700; }
+
+/* 客服联系方式 */
+.contact-section {
+  margin: 0 32px 16px;
+  padding: 16px 18px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  display: none;
+}
+.contact-section.show { display: block; }
+.contact-section .ct-title { font-size: 13px; font-weight: 600; color: #92400e; margin-bottom: 12px; }
+.contact-link {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; text-decoration: none; color: #1a1f2e;
+  padding: 8px 10px; border-radius: 8px; transition: background 0.15s;
+}
+.contact-link:hover { background: rgba(255,255,255,0.6); color: #1a1f2e; }
+.contact-link .ci { width: 22px; flex-shrink: 0; font-size: 18px; text-align: center; }
+.contact-link .ci.wechat { color: #07c160; }
+.contact-link .ci.whatsapp { color: #25d366; }
+.contact-link .ci.phone { color: #e63946; }
+.contact-link .cl { color: #92400e; width: 80px; flex-shrink: 0; }
+.contact-link .cv { font-weight: 600; font-size: 13px; word-break: break-all; }
+.contact-tip { font-size: 12px; color: #92400e; margin-top: 12px; line-height: 1.6; }
+
+/* 确认按钮 */
+.pay-submit-wrap { padding: 8px 32px 20px; }
+
+.btn-pay-submit {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: #e63946;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(230,57,70,0.3);
+}
+.btn-pay-submit:hover { background: #d62839; box-shadow: 0 6px 20px rgba(230,57,70,0.4); }
+.btn-pay-submit:disabled { background: #c0c9d9; box-shadow: none; cursor: not-allowed; }
+.btn-pay-submit:active { transform: scale(0.99); }
+
+.pay-agreement {
+  font-size: 12px; color: #8c95a5;
+  text-align: center; margin: 12px 0 0;
+}
+.pay-agreement a { color: #4c6fff; text-decoration: none; }
+
+.pay-back { padding: 0 32px 24px; text-align: center; }
+.pay-back a { color: #8c95a5; font-size: 13px; text-decoration: none; }
+.pay-back a:hover { color: #e63946; }
+
+/* Toast */
+.toast-fixed {
+  position: fixed; top: 28px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: #1a1f2e; color: #fff;
+  padding: 12px 28px; border-radius: 10px;
+  font-size: 14px; font-weight: 500;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 3000; pointer-events: none; white-space: nowrap;
+}
+.toast-fixed.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast-fixed.success { background: #0e9f6e; }
+.toast-fixed.warning { background: #d97706; }
+
+@media (max-width:720px) {
+  .pay-success-banner { padding: 20px 20px; }
+  .pay-info-row { padding: 14px 20px; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .pay-info-row .value.price { font-size: 22px; }
+  .pay-deadline { padding: 10px 20px; }
+  .pay-method-title { padding: 20px 20px 0; }
+  .pay-methods { padding: 8px 20px; }
+  .bank-info { margin: 0 20px; }
+  .contact-section { margin: 0 20px; }
+  .pay-submit-wrap { padding: 8px 20px 16px; }
+  .pay-back { padding: 0 20px 20px; }
+  .bank-info-row { flex-direction: column; gap: 4px; }
+  .bank-info-row .bl { width: auto; }
+}
+</style>
+
 <div class="pay-page">
   <div class="pay-container">
 
-    <!-- 订单信息 -->
+    <!-- ===== 订单信息卡片 ===== -->
     <div class="pay-card">
-      <div class="pay-card-header">
-        <div class="check-icon">✅</div>
-        <h5>订单提交成功</h5>
-        <p>请尽快完成支付，以免订单被取消</p>
+      <div class="pay-success-banner">
+        <h4>✅ 订单提交成功</h4>
+        <p>请尽快完成支付，以免订单被自动取消</p>
       </div>
-      <div class="pay-card-body">
-        <div class="pay-info-row">
-          <span class="label">📋 订单编号</span>
-          <span class="value">{{ order_id }}</span>
-        </div>
-        <div class="pay-info-row">
-          <span class="label">📝 订单名称</span>
-          <span class="value" style="font-size:0.82rem;max-width:280px;word-break:break-all;">{{ order_name }}</span>
-        </div>
-        <div class="pay-info-row">
-          <span class="label">💰 应付金额</span>
-          <span class="value price">¥{{ total_price }}</span>
-        </div>
+
+      <div class="pay-info-row">
+        <span class="label">📋 订单编号</span>
+        <span class="value">{{ order_id }}</span>
       </div>
+      <div class="pay-info-row">
+        <span class="label">📝 订单名称</span>
+        <span class="value" style="font-size:0.85rem;max-width:300px;word-break:break-all;">{{ order_name }}</span>
+      </div>
+      <div class="pay-info-row">
+        <span class="label">💰 应付金额</span>
+        <span class="value price">¥{{ total_amount }}</span>
+      </div>
+      {% if freight and freight > 0 %}
+      <div class="pay-info-row">
+        <span class="label">📦 商品金额</span>
+        <span class="value">¥{{ total_price }}</span>
+      </div>
+      <div class="pay-info-row">
+        <span class="label">🚚 运费</span>
+        <span class="value">¥{{ freight }}</span>
+      </div>
+      {% endif %}
+
       <div class="pay-deadline">
         <span>⏰</span>
         <span>请您在 <strong>24 小时</strong> 内完成支付，否则订单会被自动取消。</span>
       </div>
-      <div class="pay-deadline" style="background:#f8fafc;border-top-color:#e5edf5;color:var(--muted,#64748b);padding-top:0.5rem;padding-bottom:0.5rem;">
+      <div class="pay-deadline" style="background:#f8fafc;border-top-color:#e5edf5;color:#64748b;">
         <span>📌</span>
         <span>也可在 <a href="/shop/my_orders">我的订单</a> 中找到此订单</span>
       </div>
     </div>
 
-    <!-- 选择支付方式 -->
+    <!-- ===== 选择支付方式 ===== -->
     <div class="pay-card">
       <div class="pay-method-title">
         <span>💳</span>
         <span>选择支付方式</span>
       </div>
-      <form action="/pay/go_pay" onsubmit="return OnGotoPay(this)" method="post">
+
+      <form id="payForm" action="/pay/go_pay" onsubmit="return OnGotoPay(this)" method="post">
         <div class="pay-methods">
           {% for payment in payments %}
-          <label class="pay-method-item" for="{{ payment.id }}">
+          <label class="pay-method-item online-method" for="{{ payment.id }}">
             <input value="{{ payment.id }}" type="radio" name="payment" id="{{ payment.id }}" />
             <span class="method-icon">
               {%- if '微信' in payment.name or 'WeChat' in payment.name %}💬
@@ -63,16 +280,75 @@
             <span class="method-label">{{ payment.name }}</span>
           </label>
           {% endfor %}
+
+          <!-- 线下支付 / 银行转账 -->
+          <label class="pay-method-item" id="offlinePayment" data-method="offline">
+            <input value="offline" type="radio" name="payment" id="paymentOffline" />
+            <span class="method-icon bank">🏛️</span>
+            <div>
+              <div class="method-label">银行转账 / 对公汇款</div>
+              <div class="method-desc">适合大额批发订单，转账后联系客服确认</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- 银行转账信息 -->
+        <div class="bank-info" id="bankInfo">
+          <div class="bank-info-row">
+            <span class="bl">收款单位</span>
+            <span class="bv">金瑞治（深圳）科技有限公司</span>
+          </div>
+          <div class="bank-info-row">
+            <span class="bl">开户银行</span>
+            <span class="bv">中国工商银行深圳科技园支行</span>
+          </div>
+          <div class="bank-info-row">
+            <span class="bl">银行账号</span>
+            <span class="bv highlight">6222 0212 3456 7890 123</span>
+          </div>
+          <div class="bank-info-row">
+            <span class="bl">转账金额</span>
+            <span class="bv highlight">¥{{ total_amount }}</span>
+          </div>
+          <div class="bank-info-row">
+            <span class="bl">汇款备注</span>
+            <span class="bv">{{ order_id }}</span>
+          </div>
+        </div>
+
+        <!-- 客服联系方式 -->
+        <div class="contact-section" id="contactSection">
+          <div class="ct-title">转账后请联系客服确认订单</div>
+          <div>
+            <a href="weixin://" class="contact-link">
+              <span class="ci wechat">💬</span>
+              <span class="cl">微信客服</span>
+              <span class="cv">GreenRich_Service</span>
+            </a>
+            <a href="https://wa.me/8613888888888" target="_blank" class="contact-link">
+              <span class="ci whatsapp">🌐</span>
+              <span class="cl">WhatsApp</span>
+              <span class="cv">+86 138 8888 8888</span>
+            </a>
+            <a href="tel:4008888888" class="contact-link">
+              <span class="ci phone">📞</span>
+              <span class="cl">客服电话</span>
+              <span class="cv">400-888-8888</span>
+            </a>
+          </div>
+          <div class="contact-tip">
+            转账完成后，请将汇款凭证发送给客服，我们将在 1 个工作日内确认订单并安排发货。
+          </div>
         </div>
 
         <input name="order_name" type="hidden" value="{{ order_name }}" />
         <input name="order_id" type="hidden" value="{{ order_id }}" />
-        <input name="total_price" type="hidden" value="{{ total_price }}" />
+        <input name="total_price" type="hidden" value="{{ total_amount }}" />
         <input name="pay_key" type="hidden" value="{{ pay_key }}" />
 
         <div class="pay-submit-wrap">
           <button type="submit" class="btn-pay-submit" id="paySubmitBtn">
-            🔒 确认支付 ¥{{ total_price }}
+            🔒 确认支付 ¥{{ total_amount }}
           </button>
         </div>
       </form>
@@ -85,33 +361,109 @@
   </div>
 </div>
 
-<script>
-    function OnGotoPay(obj) {
-        var payment = $('input[name="payment"]:checked').val();
-        if (payment == null || payment == undefined) {
-            alert("请选择一个支付方式");
-            return false;
-        }
-        // 禁用按钮防止重复提交
-        $('#paySubmitBtn').prop('disabled', true).text('⏳ 支付处理中...');
-        return true;
-    }
+<!-- Toast -->
+<div class="toast-fixed" id="payToast"></div>
 
-    // 点击卡片区域选中 radio
-    $(document).ready(function(){
-        $('.pay-method-item').on('click', function(e) {
-            // 如果点击的是 label 或 radio 本身，让浏览器默认行为处理
-            if ($(e.target).is('input[type="radio"], label')) return;
-            $(this).find('input[type="radio"]').prop('checked', true);
-            $('.pay-method-item').removeClass('selected');
-            $(this).addClass('selected');
+<script>
+(function() {
+    'use strict';
+
+    // ============================================================
+    // 支付方式选择
+    // ============================================================
+    var currentMethod = '';
+    var bankInfo = document.getElementById('bankInfo');
+    var contactSection = document.getElementById('contactSection');
+    var payBtn = document.getElementById('paySubmitBtn');
+
+    // 切换线下支付
+    document.getElementById('offlinePayment').addEventListener('click', function() {
+        document.getElementById('paymentOffline').checked = true;
+        document.querySelectorAll('.pay-method-item').forEach(function(el) {
+            el.classList.remove('selected');
         });
-        // radio 变化时更新高亮
-        $('input[name="payment"]').on('change', function() {
-            $('.pay-method-item').removeClass('selected');
-            $(this).closest('.pay-method-item').addClass('selected');
+        this.classList.add('selected');
+        currentMethod = 'offline';
+        bankInfo.classList.add('show');
+        contactSection.classList.add('show');
+        payBtn.innerHTML = '<span>📤</span> 我已转账，联系客服确认';
+    });
+
+    // 切换线上支付
+    document.querySelectorAll('.online-method').forEach(function(el) {
+        el.addEventListener('click', function() {
+            var radio = this.querySelector('input[type="radio"]');
+            radio.checked = true;
+            document.querySelectorAll('.pay-method-item').forEach(function(e) {
+                e.classList.remove('selected');
+            });
+            this.classList.add('selected');
+            currentMethod = 'online';
+            bankInfo.classList.remove('show');
+            contactSection.classList.remove('show');
+            payBtn.innerHTML = '🔒 确认支付 ¥{{ total_amount }}';
         });
     });
+
+    // ============================================================
+    // 表单提交处理
+    // ============================================================
+    window.OnGotoPay = function(obj) {
+        var payment = $('input[name="payment"]:checked').val();
+        if (payment == null || payment == undefined) {
+            showToast('请选择一个支付方式', 'warning');
+            return false;
+        }
+
+        // 线下支付 → 直接跳转到订单列表
+        if (payment === 'offline') {
+            payBtn.disabled = true;
+            payBtn.innerHTML = '⏳ 处理中...';
+            showToast('转账后请联系客服确认订单，我们将尽快处理', 'success');
+            setTimeout(function() {
+                window.location.href = '/shop/my_orders';
+            }, 1500);
+            return false;
+        }
+
+        // 线上支付 → 正常提交
+        payBtn.disabled = true;
+        payBtn.innerHTML = '⏳ 支付处理中...';
+        return true;
+    };
+
+    // 根据初始选中状态决定显示
+    var initialChecked = document.querySelector('input[name="payment"]:checked');
+    if (initialChecked) {
+        var parent = initialChecked.closest('.pay-method-item');
+        if (parent) parent.classList.add('selected');
+        if (initialChecked.value === 'offline') {
+            bankInfo.classList.add('show');
+            contactSection.classList.add('show');
+            payBtn.innerHTML = '<span>📤</span> 我已转账，联系客服确认';
+        }
+    }
+
+    // ============================================================
+    // Toast
+    // ============================================================
+    var toastEl = document.getElementById('payToast');
+    var toastTimer = null;
+
+    function showToast(message, type) {
+        toastEl.textContent = message;
+        toastEl.className = 'toast-fixed';
+        if (type) toastEl.classList.add(type);
+        void toastEl.offsetWidth;
+        toastEl.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() {
+            toastEl.classList.remove('show');
+        }, 2600);
+    }
+    window.showToast = showToast;
+
+})();
 </script>
 
 {% endblock %}

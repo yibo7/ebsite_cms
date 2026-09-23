@@ -1,11 +1,13 @@
 import time
 from decimal import Decimal
 
+from bson import ObjectId
 import pymongo
 from flask import jsonify, current_app, render_template, redirect, request, url_for
 from pydantic.v1 import DecimalError
 
 import eb_utils
+
 from bll.address import Address
 from bll.new_content import NewsContent
 from bll.temp_data_provider import TempDataProvider
@@ -61,9 +63,22 @@ def post_order(user_token:UserToken):
     bll = CartManager(user_token.id,user_token.name)
     address_id = http_helper.get_prams("address")
     if address_id:
-        err = bll.post_to_order(address_id)
+        remark = http_helper.get_prams("remark") or ""
+        err = bll.post_to_order(address_id, remark)
         if err:
             print(err)
+            return render_template("post_order.html", err=err)
+        # 提交后跳转到支付页面，order_id 由 post_to_order 内部生成后返回
+        # 重新查询最新订单
+        from eb_modules.eb_shop.datas.shop_orders import ShopOrder
+        orders = ShopOrder().find_list_by_where(
+            {'user_id': ObjectId(user_token.id)},
+            sort_key="add_time",
+            sort_direction=pymongo.DESCENDING,
+            limit=1
+        )
+        if orders:
+            return redirect(url_for('bp_shop_pages.sel_payment', orderid=orders[0].order_id))
         return redirect(url_for('bp_shop_pages.my_orders'))
 
     shopping_cart = bll.get_items()
@@ -73,7 +88,50 @@ def post_order(user_token:UserToken):
 
     addr_datas = Address().get_by_user_id(user_token.id)
 
-    return render_template("post_order.html",addr_datas=addr_datas, shopping_cart=shopping_cart,total_count=total_count,total_price=total_price, err=err)
+    # 获取运费配置
+    config = getattr(bp_shop_pages, 'config', {}) or {}
+    free_shipping_threshold = int(config.get('free_shipping_threshold', 500))
+    flat_shipping_fee = int(config.get('flat_shipping_fee', 20))
+
+    # 计算运费
+    if free_shipping_threshold == 0:
+        shipping_fee = 0
+    elif total_price >= free_shipping_threshold:
+        shipping_fee = 0
+    else:
+        shipping_fee = flat_shipping_fee
+
+    total_amount = round(total_price + shipping_fee, 2)
+
+    # 判断是否有阶梯价促进提示
+    tier_hints = []
+    for item in shopping_cart:
+        group_qty_prices = getattr(item, 'group_qty_prices', []) or []
+        current_price = Decimal(str(item.price))
+        for tier in group_qty_prices:
+            min_qty = tier.get('min_qty', 0)
+            tier_price = Decimal(str(tier.get('price', 0)))
+            if item.quantity < min_qty and tier_price < current_price:
+                diff = min_qty - item.quantity
+                tier_hints.append({
+                    'name': item.product_name,
+                    'diff': diff,
+                    'tier_price': float(tier_price)
+                })
+                break
+
+    return render_template("post_order.html",
+        addr_datas=addr_datas,
+        shopping_cart=shopping_cart,
+        total_count=total_count,
+        total_price=total_price,
+        shipping_fee=shipping_fee,
+        total_amount=total_amount,
+        free_shipping_threshold=free_shipping_threshold,
+        flat_shipping_fee=flat_shipping_fee,
+        tier_hints=tier_hints,
+        err=err
+    )
 
 
 @bp_shop_pages.route('/my_orders', methods=['GET', 'POST'])
@@ -98,18 +156,38 @@ def sel_payment(user_token:UserToken):
     bll = ShopOrder()
     model_order = bll.get_by_order_id(order_id)
     total_price = 0
+    freight = 0
+    total_amount = 0
     if model_order:
         total_price = Decimal(str(model_order.total_price))
-        if total_price <=0:
+        if total_price <= 0:
             raise Exception("支付金额不能小于等于0!")
+        # 读取运费
+        if model_order.freight:
+            freight = Decimal(str(model_order.freight))
+        # 应付总额（含运费）
+        if model_order.total_amount:
+            total_amount = Decimal(str(model_order.total_amount))
+        else:
+            total_amount = total_price + freight
     else:
         raise Exception(f"找不到订单：{order_id}")
 
     payments:[PaymentBase] = current_app.pm.get_by_payment_plugins()
 
     order_name = f"订单号:{order_id} 时间:{model_order.add_time} 下单人:{model_order.address.get('user_name')}"
-    pay_key = eb_utils.md5(f"{order_id}-{total_price}-{current_app.config['RandomKey']}'")
-    return render_template("sel_payment.html",pay_key=pay_key,order_name=order_name,total_price = total_price,order_id=order_id, payments=payments)
+    pay_key = eb_utils.md5(f"{order_id}-{total_amount}-{current_app.config['RandomKey']}'")
+
+    return render_template("sel_payment.html",
+        pay_key=pay_key,
+        order_name=order_name,
+        total_price=total_price,
+        total_amount=total_amount,
+        order_id=order_id,
+        payments=payments,
+        freight=freight,
+        order_model=model_order
+    )
 
 
 # region 管理后台页面

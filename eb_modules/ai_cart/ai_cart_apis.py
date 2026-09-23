@@ -176,10 +176,11 @@ def quote_chat():
 
     try:
         t3 = time.time()
-        sales_result = provider.chat(messages, sales_prompt)
+        raw_sales = provider.chat(messages, sales_prompt)
+        sales_result = _parse_json_reply(raw_sales)
         current_app.logger.warning(f"[⏱ 文案] {(time.time()-t3)*1000:.0f}ms")
         if not isinstance(sales_result, dict):
-            sales_result = {"reply": str(sales_result)}
+            sales_result = {"reply": str(raw_sales.get("reply", ""))}
     except Exception as e:
         current_app.logger.error(f"文案异常: {e}")
         sales_result = {"reply": ""}

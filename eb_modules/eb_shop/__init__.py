@@ -35,23 +35,49 @@ def inject_site_name():
     return {'SiteName': current_app.config['site_name'] or 'ebsite'}
 
 
+@bp_shop_pages.app_template_filter('decimal128')
+def filter_decimal128(value):
+    """
+    Jinja2 过滤器：将 bson.Decimal128 转换为 Python Decimal，支持模板中的比较运算。
+    用法：{{ item.price | decimal128 }}
+    """
+    from decimal import Decimal
+    from bson import Decimal128
+    if isinstance(value, Decimal128):
+        return Decimal(str(value))
+    return value
+
+
 settings_temp = '''
 <div class="mb-3">
-    <label>商品分类 ID <small class="text-muted">（NewsContent 中商品所属的分类 _id）</small></label>
+    <label>商品分类 ID <small class="text-muted">（NewsContent 中商品所属的分类 _id，商品搜索时使用）</small></label>
     <input name="product_class_id" value="{{model.product_class_id}}"
            style="max-width:400px" class="form-control" required>
 </div>
 <div class="mb-3">
-    <label>文章分类 ID <small class="text-muted">（NewsContent 中商城文章的分类 _id）</small></label>
+    <label>文章分类 ID <small class="text-muted">（NewsContent 中商城文章的分类 _id，文章搜索时使用）</small></label>
     <input name="article_class_id" value="{{model.article_class_id}}"
            style="max-width:400px" class="form-control" required>
 </div>
 <div class="mb-3">
-    <label>品牌专题父级 ID <small class="text-muted">（NewsSpecial 中品牌分组的父级 _id）</small></label>
+    <label>品牌专题父级 ID <small class="text-muted">（NewsSpecial 中品牌分组的父级 _id，列表过滤时使用）</small></label>
     <input name="brand_parent_id" value="{{model.brand_parent_id}}"
            style="max-width:400px" class="form-control" required>
 </div>
-<div class="alert alert-info">修改配置后需重启服务才能生效。</div>
+
+<hr class="my-4">
+<h6 class="mb-3">运费设置</h6>
+
+<div class="mb-3">
+    <label>包邮门槛 <small class="text-muted">（订单金额达到此金额时免运费，设为 0 表示全部包邮）</small></label>
+    <input name="free_shipping_threshold" value="{{model.free_shipping_threshold or 500}}"
+           style="max-width:400px" class="form-control" type="number" min="0" step="0.01" required>
+</div>
+<div class="mb-3">
+    <label>统一运费 <small class="text-muted">（订单金额未达包邮门槛时收取的固定运费，设为 0 表示不收运费）</small></label>
+    <input name="flat_shipping_fee" value="{{model.flat_shipping_fee or 20}}"
+           style="max-width:400px" class="form-control" type="number" min="0" step="0.01" required>
+</div>
 '''
 
 # ── 运行时配置（module_init 中从 DB 读取后填充） ─────────────

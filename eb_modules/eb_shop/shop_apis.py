@@ -161,3 +161,172 @@ def cart_count():
     count = cart_mgr.get_count()
     return jsonify({"code": 0, "data": {"count": count}})
 
+
+@bp_shop_apis.route('product/<product_id>/prices', methods=['GET'])
+def product_prices(product_id):
+    """
+    获取某个商品的当前用户可见价格规则。
+
+    前端通过 /shop/api/product/{id}/prices 异步获取。
+    服务端按用户身份过滤：
+      - 零售用户：只返回 marketPrice
+      - 批发会员：返回 marketPrice + member_price + qty_prices
+
+    返回 JSON：
+    {
+      "code": 0,
+      "data": {
+        "product_id": "...",
+        "skus": [
+          {
+            "sku": "GX-IR1435-002",
+            "marketPrice": 20,
+            "costPrice": 14,
+            "member_price": 16,
+            "member_group": "svip",
+            "qty_prices": [
+              {"min_qty": 10, "max_qty": 49, "price": 16},
+              {"min_qty": 50, "max_qty": 99, "price": 12}
+            ]
+          }
+        ]
+      }
+    }
+    """
+    try:
+        # 1. 查找商品
+        content = NewsContent().find_one_by_id(product_id)
+        if not content:
+            return jsonify({"code": -1, "msg": "商品不存在"}), 404
+
+        # 2. 获取当前登录用户信息
+        token = login_utils.get_token()
+        user_group_id = None
+        user_group_name = None
+
+        if token and token.id:
+            from bll.user import User
+            user_bll = User()
+            user = user_bll.find_one_by_id(token.id)
+            if user and user.group_id:
+                user_group_id = str(user.group_id)
+                # 获取组名
+                from bll.user_group import UserGroup
+                group_bll = UserGroup()
+                g = group_bll.find_one_by_id(ObjectId(user_group_id))
+                if g:
+                    user_group_name = g.name
+
+        # 3. 解析 SKU 数据
+        skus_data = content.column_10
+        if isinstance(skus_data, str):
+            skus_data = json.loads(skus_data)
+        if not skus_data or not isinstance(skus_data, list):
+            return jsonify({"code": -1, "msg": "商品无SKU数据"}), 404
+
+        # 4. 按用户身份过滤每个 SKU 的价格规则
+        result_skus = []
+        for sku in skus_data:
+            sku_info = {
+                "sku": sku.get("sku", ""),
+                "marketPrice": sku.get("marketPrice", 0),
+                "costPrice": sku.get("costPrice", 0),
+            }
+
+            # 已登录且有用户组 → 返回会员价和阶梯价
+            if user_group_id and sku.get("group_prices"):
+                member = None
+                for gp in sku["group_prices"]:
+                    if gp.get("group_id") == user_group_id:
+                        member = gp
+                        break
+                if member:
+                    sku_info["member_price"] = member.get("price")
+                    sku_info["member_group"] = member.get("group_name", user_group_name)
+
+            # 阶梯价对所有用户可见（但前端按数量匹配）
+            sku_info["qty_prices"] = sku.get("group_qty_prices", [])
+
+            result_skus.append(sku_info)
+
+        return jsonify({
+            "code": 0,
+            "data": {
+                "product_id": product_id,
+                "skus": result_skus
+            }
+        })
+
+    except Exception as e:
+        print(f'product_prices 异常: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({"code": -1, "msg": str(e)}), 500
+
+
+# ── 关闭订单 ──────────────────────────────────────────
+@bp_shop_apis.route('order_close', methods=['POST'])
+@check_user_login
+def order_close(user_token: UserToken):
+    """关闭订单（取消）"""
+    from eb_utils import http_helper
+    order_id = http_helper.get_prams("order_id")
+    reason = http_helper.get_prams("reason") or "用户取消"
+
+    if not order_id:
+        return jsonify({"code": -1, "msg": "参数错误"})
+
+    bll = ShopOrder()
+    model = bll.get_by_order_id(order_id)
+
+    if not model:
+        return jsonify({"code": -1, "msg": "订单不存在"})
+
+    # 校验所有权：兼容 ObjectId 与字符串
+    owner_id = str(model.user_id or '').strip()
+    caller_id = str(user_token.id or '').strip()
+    if owner_id != caller_id:
+        return jsonify({"code": -1, "msg": "无权操作此订单"})
+
+    if model.order_status != 0:
+        return jsonify({"code": -1, "msg": "当前状态不允许关闭"})
+
+    model.order_status = -1
+    model.close_reason = reason
+    bll.save(model)
+
+    return jsonify({"code": 0, "msg": "订单已关闭"})
+
+
+# ── 确认收货 ──────────────────────────────────────────
+@bp_shop_apis.route('order_receipt', methods=['POST'])
+@check_user_login
+def order_receipt(user_token: UserToken):
+    """确认收货"""
+    from eb_utils import http_helper
+    order_id = http_helper.get_prams("order_id")
+
+    if not order_id:
+        return jsonify({"code": -1, "msg": "参数错误"})
+
+    bll = ShopOrder()
+    model = bll.get_by_order_id(order_id)
+
+    if not model:
+        return jsonify({"code": -1, "msg": "订单不存在"})
+
+    # 校验所有权：兼容 ObjectId 与字符串
+    owner_id = str(model.user_id or '').strip()
+    caller_id = str(user_token.id or '').strip()
+    if owner_id != caller_id:
+        return jsonify({"code": -1, "msg": "无权操作此订单"})
+
+    if model.order_status != 2:
+        return jsonify({"code": -1, "msg": "当前状态不允许确认收货"})
+
+    model.order_status = 3
+    model.finish_date = __import__('datetime').datetime.now()
+    bll.save(model)
+
+    return jsonify({"code": 0, "msg": "已确认收货"})
+

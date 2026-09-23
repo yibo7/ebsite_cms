@@ -38,7 +38,7 @@
                     <span class="order-id">#{{ item.order_id }}</span>
                     <span class="status-badge {{ status_class }}">{{ item.order_statu_name }}</span>
                   </div>
-                  <span class="order-amount">¥{{ item.total_price }}</span>
+                  <span class="order-amount">¥{{ item.total_amount if item.total_amount else item.total_price }}</span>
                 </div>
 
                 <!-- 信息网格：2列 -->
@@ -76,9 +76,9 @@
                 <div class="order-card-actions">
                   {% if item.order_status == 0 %}
                     <a href="/shop/sel_payment?orderid={{ item.order_id }}" class="btn-order btn-order-pay">💳 付款</a>
-                    <button class="btn-order btn-order-close" onclick="OpenCloseOrder({{ item.id }})">✕ 关闭</button>
+                    <button class="btn-order btn-order-close" onclick="OpenCloseOrder('{{ item.order_id }}')">✕ 关闭</button>
                   {% elif item.order_status == 2 %}
-                    <button class="btn-order btn-order-receipt" onclick="SureReceipt({{ item.id }})">✅ 确认收货</button>
+                    <button class="btn-order btn-order-receipt" onclick="SureReceipt('{{ item.order_id }}')">✅ 确认收货</button>
                   {% endif %}
                 </div>
               </div>
@@ -106,15 +106,30 @@
 </div>
 
 <script>
-function OpenCloseOrder(id){
-    if(confirm('确定要关闭该订单吗？')){
-        // 关闭订单逻辑
-    }
+function OpenCloseOrder(orderId){
+    if(!confirm('确定要关闭该订单吗？')) return;
+
+    post_form('/shop/api/order_close', { order_id: orderId }, function(rz){
+        if(rz.code === 0){
+            alert('订单已关闭');
+            location.reload();
+        }else{
+            alert(rz.msg || '操作失败');
+        }
+    });
 }
-function SureReceipt(id){
-    if(confirm('确认已收到商品吗？')){
-        // 确认收货逻辑
-    }
+
+function SureReceipt(orderId){
+    if(!confirm('确认已收到商品吗？')) return;
+
+    post_form('/shop/api/order_receipt', { order_id: orderId }, function(rz){
+        if(rz.code === 0){
+            alert('已确认收货');
+            location.reload();
+        }else{
+            alert(rz.msg || '操作失败');
+        }
+    });
 }
 </script>
 {% endblock %}
