@@ -132,7 +132,7 @@ function ChkSo(ob) {
       navLinks.style.right = '0';
       navLinks.style.background = '#fff';
       navLinks.style.padding = '20px';
-      navLinks.style.boxShadow = '0 10px 30px rgba(30,75,138,.1)';
+      navLinks.style.boxShadow = '0 10px 30px rgba(46,125,50,.1)';
       navLinks.style.gap = '16px';
     });
   }

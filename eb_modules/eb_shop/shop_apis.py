@@ -151,13 +151,19 @@ def order_count():
 def cart_count():
     """
     获取当前登录用户的购物车商品总数量（所有商品 quantity 之和）
+    支持游客模式（通过 cart_token cookie）
     返回 JSON：{ code: 0, data: { count: N } }
     """
     uid, account = _current_user_info()
-    if not uid:
-        return jsonify({"code": 0, "data": {"count": 0}})
+    if uid:
+        cart_mgr = CartManager(user_id=uid, user_account=account)
+    else:
+        # 游客模式：通过 cart_token cookie 识别
+        cart_token = request.cookies.get('cart_token')
+        if not cart_token:
+            return jsonify({"code": 0, "data": {"count": 0}})
+        cart_mgr = CartManager(session_id=cart_token)
 
-    cart_mgr = CartManager(user_id=uid, user_account=account)
     count = cart_mgr.get_count()
     return jsonify({"code": 0, "data": {"count": count}})
 
