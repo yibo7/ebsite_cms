@@ -1,0 +1,198 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ '编辑模板' if template else '新建模板' }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/shop/css/admin_member_price_template.css">
+
+<div style="padding:10px;">
+  {% set active_tab = 'member_template' %}
+  {% include 'shop_admin/_price_template_nav.html' %}
+
+  <!-- 页面头部 -->
+  <h4 class="mt-3 mb-3">{{ '编辑会员价模板' if template else '新建会员价模板' }}</h4>
+
+  <!-- 错误 / 消息提示 -->
+  {% if _errors %}
+    {% for err in _errors %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ err }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% if _msg %}
+    <div class="alert alert-{{ _msg_type }} alert-dismissible fade show" role="alert">
+      {{ _msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <form method="post" action="" onsubmit="return validateForm()">
+    <!-- 模板名称 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">模板名称 <span class="text-danger">*</span></label>
+      <input type="text" name="name" class="form-control" style="max-width:400px;"
+             value="{{ template.name if template else '' }}" required
+             placeholder="例如：塑料制品会员价">
+    </div>
+
+    <!-- 适用分类 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">适用分类 <span class="text-danger">*</span></label>
+      <select name="category_id" class="form-select" style="max-width:400px;" required
+              onchange="this.form.submit()">
+        <option value="">-- 请选择分类 --</option>
+        {% for cat in categories %}
+        <option value="{{ cat._id }}" {% if selected_category_id == cat._id %}selected{% endif %}>
+          {{ cat.class_name }}
+        </option>
+        {% endfor %}
+      </select>
+      <div class="form-text">切换分类后页面将刷新以更新预览数据</div>
+    </div>
+
+    <!-- 计价基准 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">计价基准</label>
+      <div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="pricing_base" id="pb_market"
+                 value="market_price"
+                 {% if not template or template.pricing_base == 'market_price' %}checked{% endif %}
+                 onchange="updatePreview()">
+          <label class="form-check-label" for="pb_market">基于零售价折扣率</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="pricing_base" id="pb_cost"
+                 value="cost_price"
+                 {% if template and template.pricing_base == 'cost_price' %}checked{% endif %}
+                 onchange="updatePreview()">
+          <label class="form-check-label" for="pb_cost">基于成本价加价率</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 会员组系数表格 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">会员组系数</label>
+      <div class="text-muted small mb-2">系统所有会员组已列出，给需要设置的组填写系数。留空表示该模板不设置这个组的会员价。</div>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle" style="max-width:600px;">
+          <thead class="table-light">
+            <tr>
+              <th style="width:120px;">会员组</th>
+              <th style="width:140px;">
+                <span id="rateLabel">折扣率</span>
+              </th>
+              <th style="width:120px;">预览价格</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for group in member_groups %}
+            <tr class="group-rate-row">
+              <td class="group-name-cell">
+                {{ group.group_name }}
+                <input type="hidden" name="group_name_{{ group.group_id }}" value="{{ group.group_name }}">
+              </td>
+              <td>
+                <input type="number" name="group_rate_{{ group.group_id }}"
+                       class="form-control group-rate-input"
+                       value="{{ group.rate if group.rate is not none else '' }}"
+                       step="0.001" min="0" placeholder="留空则不设置"
+                       oninput="updatePreview()">
+              </td>
+              <td class="preview-price-cell" id="preview_{{ group.group_id }}">
+                -
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 说明 -->
+    <div class="alert alert-info py-2 small" role="alert">
+      <strong>说明：</strong>会员组是系统固定集合，全部列出。留空的会员组在应用时不设置价格。
+      {% if sample_product %}
+        示例商品：<strong>{{ sample_product.product_name }}</strong>
+        （零售价 ¥{{ "%.2f"|format(sample_product.marketPrice) }}，
+        成本价 ¥{{ "%.2f"|format(sample_product.costPrice) }}）
+      {% else %}
+        {% if selected_category_id %}
+          该分类下暂无价格数据完整的商品，无法预览。
+        {% else %}
+          请先选择适用分类以查看预览。
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="mt-4">
+      <a href="/shop/member_price_template_list" class="btn btn-secondary">取消</a>
+      <button type="submit" class="btn btn-primary">{{ '保存修改' if template else '创建模板' }}</button>
+    </div>
+  </form>
+</div>
+
+<script>
+{% if sample_product %}
+// 预览数据
+var PREVIEW_MARKET_PRICE = {{ sample_product.marketPrice }};
+var PREVIEW_COST_PRICE = {{ sample_product.costPrice }};
+{% else %}
+var PREVIEW_MARKET_PRICE = 0;
+var PREVIEW_COST_PRICE = 0;
+{% endif %}
+
+function updatePreview() {
+  var pricingBase = document.querySelector('input[name="pricing_base"]:checked');
+  if (!pricingBase) return;
+  var basePrice = pricingBase.value === 'market_price' ? PREVIEW_MARKET_PRICE : PREVIEW_COST_PRICE;
+
+  // 更新标签
+  document.getElementById('rateLabel').textContent = pricingBase.value === 'market_price' ? '折扣率' : '加价率';
+
+  {% for group in member_groups %}
+  var input_{{ loop.index0 }} = document.querySelector('input[name="group_rate_{{ group.group_id }}"]');
+  if (input_{{ loop.index0 }}) {
+    var val = input_{{ loop.index0 }}.value;
+    var previewCell = document.getElementById('preview_{{ group.group_id }}');
+    if (val && val != '' && basePrice > 0) {
+      var rate = parseFloat(val);
+      if (!isNaN(rate)) {
+        var price = Math.floor(basePrice * rate * 100) / 100;
+        previewCell.textContent = '¥ ' + price.toFixed(2);
+      } else {
+        previewCell.textContent = '-';
+      }
+    } else {
+      previewCell.textContent = '-';
+    }
+  }
+  {% endfor %}
+}
+
+function validateForm() {
+  var hasRate = false;
+  {% for group in member_groups %}
+  var input_{{ loop.index0 }} = document.querySelector('input[name="group_rate_{{ group.group_id }}"]');
+  if (input_{{ loop.index0 }} && input_{{ loop.index0 }}.value && input_{{ loop.index0 }}.value != '') {
+    hasRate = true;
+  }
+  {% endfor %}
+  if (!hasRate) {
+    alert('请至少为一个会员组设置系数');
+    return false;
+  }
+  return true;
+}
+
+// 页面加载后初始化预览
+document.addEventListener('DOMContentLoaded', function() {
+  if (PREVIEW_MARKET_PRICE > 0 || PREVIEW_COST_PRICE > 0) {
+    updatePreview();
+  }
+});
+</script>
+{% endblock %}

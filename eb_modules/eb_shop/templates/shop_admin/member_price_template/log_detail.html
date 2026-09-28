@@ -1,0 +1,128 @@
+{% extends 'base_admin.html' %}
+{% block title %}日志详情{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/shop/css/admin_member_price_template.css">
+
+<div style="padding:10px;">
+  {% set active_tab = 'member_log' %}
+  {% include 'shop_admin/_price_template_nav.html' %}
+
+  <!-- 消息提示 -->
+  {% if _msg %}
+    <div class="alert alert-{{ _msg_type }} alert-dismissible fade show" role="alert">
+      {{ _msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <!-- 页面头部 -->
+  <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <h4 class="mb-0">日志详情</h4>
+    <a href="/shop/member_price_template_log" class="btn btn-secondary btn-sm">← 返回日志列表</a>
+  </div>
+
+  {% if log %}
+  <!-- 日志基本信息 -->
+  <div class="apply-card">
+    <div class="info-row">
+      <div class="info-item"><label>模板名称：</label>{{ log.template_name }}</div>
+      <div class="info-item"><label>分类：</label>{{ log.category_name or '-' }}</div>
+      <div class="info-item">
+        <label>应用方式：</label>
+        {% if log.apply_mode == 'fill_empty' %}
+          <span class="badge badge-info">仅补充空白</span>
+        {% else %}
+          <span class="badge badge-warning">强制覆盖</span>
+        {% endif %}
+      </div>
+      <div class="info-item">
+        <label>低于成本价策略：</label>
+        {% if log.below_cost_strategy == 'skip' %}
+          跳过
+        {% elif log.below_cost_strategy == 'floor_to_cost' %}
+          <span class="badge badge-success">按成本价兜底</span>
+        {% elif log.below_cost_strategy == 'reject_all' %}
+          <span class="badge badge-danger">整单拒绝</span>
+        {% else %}
+          {{ log.below_cost_strategy }}
+        {% endif %}
+      </div>
+    </div>
+    <div class="info-row">
+      <div class="info-item"><label>遍历商品总数：</label>{{ log.total_products }}</div>
+      <div class="info-item"><label>会员组数：</label>{{ log.group_count }}</div>
+      <div class="info-item"><label>成功：</label><span class="badge badge-success">{{ log.success_count }}</span></div>
+      <div class="info-item"><label>跳过已有：</label>{{ log.skip_existing_count }}</div>
+      <div class="info-item"><label>跳过缺价：</label>{{ log.skip_missing_price_count }}</div>
+      <div class="info-item"><label>异常：</label>
+        {% if log.error_count > 0 %}
+          <span class="badge badge-danger">{{ log.error_count }}</span>
+        {% else %}
+          {{ log.error_count }}
+        {% endif %}
+      </div>
+      {% if log.floor_count and log.floor_count > 0 %}
+      <div class="info-item"><label>兜底：</label>{{ log.floor_count }}</div>
+      {% endif %}
+    </div>
+    <div class="info-row">
+      <div class="info-item"><label>操作时间：</label>
+        {% if log.created_at %}
+          {% if log.created_at is number %}
+            {{ log.created_at | int | timestamp_to_datetime }}
+          {% else %}
+            {{ log.created_at }}
+          {% endif %}
+        {% else %}
+          -
+        {% endif %}
+      </div>
+      <div class="info-item"><label>操作人：</label>{{ log.created_by_name or '-' }}</div>
+    </div>
+  </div>
+
+  <!-- 异常明细 -->
+  <h5 class="mb-2">异常明细</h5>
+  {% if log.error_details and log.error_details|length > 0 %}
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>商品ID</th>
+          <th>SKU</th>
+          <th>会员组</th>
+          <th>原因</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for detail in log.error_details %}
+        <tr>
+          <td><code>{{ detail.product_id }}</code></td>
+          <td><code>{{ detail.sku }}</code></td>
+          <td>{{ detail.group_name }}</td>
+          <td>{{ detail.reason }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-muted py-3" style="font-size:14px;">本次应用无异常</div>
+  {% endif %}
+
+  <div class="mt-3">
+    <a href="/shop/member_price_template_log" class="btn btn-secondary">← 返回日志列表</a>
+  </div>
+
+  {% else %}
+  <div class="text-center py-5" style="color:#94a3b8;">
+    <div style="font-size:48px;opacity:0.3;margin-bottom:12px;">🔍</div>
+    <div style="font-size:15px;">日志不存在或已被删除</div>
+    <div class="mt-2">
+      <a href="/shop/member_price_template_log" class="btn btn-primary btn-sm">返回日志列表</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

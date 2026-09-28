@@ -1,0 +1,128 @@
+{% extends 'base_admin.html' %}
+{% block title %}应用会员价模板{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/shop/css/admin_member_price_template.css">
+
+<div style="padding:10px;">
+  {% set active_tab = 'member_template' %}
+  {% include 'shop_admin/_price_template_nav.html' %}
+
+  <!-- 页面头部 -->
+  <h4 class="mt-3 mb-3">应用会员价模板确认</h4>
+
+  <!-- 消息提示 -->
+  {% if _msg %}
+    <div class="alert alert-{{ _msg_type }} alert-dismissible fade show" role="alert">
+      {{ _msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <!-- 信息展示 -->
+  <div class="apply-card">
+    <div class="info-row">
+      <div class="info-item"><label>模板名称：</label>{{ template.name }}</div>
+      <div class="info-item"><label>适用分类：</label>{{ category_name }}</div>
+      <div class="info-item">
+        <label>计价基准：</label>
+        {% if template.pricing_base == 'market_price' %}
+          基于零售价折扣率
+        {% else %}
+          基于成本价加价率
+        {% endif %}
+      </div>
+      <div class="info-item"><label>会员组数：</label>{{ group_count }}</div>
+    </div>
+
+    <div class="row mt-2">
+      <div class="col-md-3">
+        <div class="stat-label">预计影响商品数</div>
+        <div class="stat-value">{{ product_count }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用表单 -->
+  <form method="post" action="/shop/member_price_template_apply/{{ template._id }}" onsubmit="return confirmApply()">
+    <div class="mb-3">
+      <label class="form-label fw-semibold">应用方式</label>
+      <div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="apply_mode" id="mode_fill"
+                 value="fill_empty" checked>
+          <label class="form-check-label" for="mode_fill">
+            <strong>仅补充空白</strong>
+            <span class="text-muted"> — 只对尚未设置会员价的商品写入，已有会员价的商品不受影响</span>
+          </label>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="apply_mode" id="mode_force"
+                 value="force_overwrite">
+          <label class="form-check-label" for="mode_force">
+            <strong>强制覆盖</strong>
+            <span class="text-muted"> — 覆盖该分类下所有商品的现有会员价</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold">低于成本价的处理策略</label>
+      <div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="below_cost_strategy" id="strategy_skip"
+                 value="skip" checked>
+          <label class="form-check-label" for="strategy_skip">
+            <strong>跳过</strong>
+            <span class="text-muted"> — 该会员组不写入，记录异常</span>
+          </label>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="below_cost_strategy" id="strategy_floor"
+                 value="floor_to_cost">
+          <label class="form-check-label" for="strategy_floor">
+            <strong>按成本价兜底</strong>
+            <span class="text-muted"> — 该会员组价格替换为成本价，继续写入</span>
+          </label>
+        </div>
+        <div class="form-check mt-2">
+          <input class="form-check-input" type="radio" name="below_cost_strategy" id="strategy_reject"
+                 value="reject_all">
+          <label class="form-check-label" for="strategy_reject">
+            <strong>整单拒绝</strong>
+            <span class="text-muted"> — 该商品所有会员价都不写入，返回错误</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <a href="/shop/member_price_template_list" class="btn btn-secondary">取消</a>
+      <button type="submit" class="btn btn-primary" id="applyBtn">确认应用</button>
+    </div>
+  </form>
+</div>
+
+<script>
+function confirmApply() {
+  var mode = document.querySelector('input[name="apply_mode"]:checked');
+  var strategy = document.querySelector('input[name="below_cost_strategy"]:checked');
+  var modeText = mode && mode.value === 'force_overwrite' ? '强制覆盖' : '仅补充空白';
+  var strategyText = '';
+  if (strategy) {
+    var strategyMap = {'skip': '跳过', 'floor_to_cost': '按成本价兜底', 'reject_all': '整单拒绝'};
+    strategyText = strategyMap[strategy.value] || strategy.value;
+  }
+  var msg = '将使用模板「{{ template.name }}」以「' + modeText + '」方式应用到分类「{{ category_name }}」\n\n'
+          + '低于成本价策略：' + strategyText + '\n'
+          + '预计影响 ' + ({{ product_count }}) + ' 个商品，此操作不可撤销，确认继续？';
+
+  if (mode && mode.value === 'force_overwrite') {
+    msg = '⚠️ ' + msg;
+  }
+
+  return confirm(msg);
+}
+</script>
+{% endblock %}

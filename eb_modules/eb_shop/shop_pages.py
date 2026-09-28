@@ -281,12 +281,457 @@ def del_order(admin_token:UserToken):
     return redirect(url_for('bp_shop_pages.shop_orders'))
 
 
-@bp_shop_pages.route('/level_price', methods=['GET'])
+
+
+# region 阶梯价模板管理
+
+@bp_shop_pages.route('/price_template_list', methods=['GET'])
 @check_admin_login
-def level_price(admin_token:UserToken):
+def price_template_list(admin_token: UserToken):
+    """模板列表"""
+    from eb_modules.eb_shop.datas.price_template import get_template_list
+    templates = get_template_list()
+    # 读取 URL 中传递的消息
+    msg = request.args.get('_msg', '')
+    msg_type = request.args.get('_msg_type', 'success')
+    return render_template("shop_admin/price_template_list.html", templates=templates,
+                           _msg=msg, _msg_type=msg_type)
 
-    return render_template("shop_admin/level_price.html")
+
+@bp_shop_pages.route('/price_template_form', methods=['GET', 'POST'])
+@bp_shop_pages.route('/price_template_form/<template_id>', methods=['GET', 'POST'])
+@check_admin_login
+def price_template_form(admin_token: UserToken, template_id=None):
+    """新建 / 编辑模板"""
+    from eb_modules.eb_shop.datas.price_template import (
+        get_template, create_template, update_template,
+        validate_template, parse_tiers_from_form,
+        get_product_categories, get_sample_product
+    )
+
+    template = None
+    if template_id:
+        template = get_template(template_id)
+
+    categories = get_product_categories()
+
+    # 当前选中的分类 ID
+    selected_category_id = None
+    if template:
+        selected_category_id = template.get('category_id', '')
+
+    errors = []
+
+    if request.method == 'POST':
+        # 获取表单数据
+        name = request.form.get('name', '').strip()
+        category_id = request.form.get('category_id', '').strip()
+        pricing_base = request.form.get('pricing_base', 'market_price')
+        tiers = parse_tiers_from_form(request.form)
+
+        data = {
+            'name': name,
+            'category_id': category_id,
+            'pricing_base': pricing_base,
+            'tiers': tiers,
+        }
+
+        # 校验
+        errors = validate_template(data)
+        if errors:
+            sample_product = None
+            if category_id:
+                sample_product = get_sample_product(category_id)
+            return render_template(
+                "shop_admin/price_template_form.html",
+                template=data,
+                template_id=template_id,
+                categories=categories,
+                selected_category_id=category_id,
+                sample_product=sample_product,
+                _errors=errors,
+            )
+
+        if template_id:
+            # 更新
+            update_template(template_id, data)
+            return redirect(url_for('bp_shop_pages.price_template_list',
+                                    _msg='模板已更新', _msg_type='success'))
+        else:
+            # 创建
+            new_id = create_template(data, str(admin_token.id))
+            return redirect(url_for('bp_shop_pages.price_template_form', template_id=new_id,
+                                    _msg='模板已创建', _msg_type='success'))
+
+    # GET
+    selected_category_id = selected_category_id or request.args.get('category_id', '')
+    sample_product = None
+    if selected_category_id:
+        sample_product = get_sample_product(selected_category_id)
+
+    return render_template(
+        "shop_admin/price_template_form.html",
+        template=template,
+        categories=categories,
+        selected_category_id=selected_category_id,
+        sample_product=sample_product,
+        _errors=errors,
+    )
 
 
+@bp_shop_pages.route('/price_template_delete/<template_id>', methods=['POST'])
+@check_admin_login
+def price_template_delete(admin_token: UserToken, template_id):
+    """删除模板"""
+    from eb_modules.eb_shop.datas.price_template import delete_template
+    if delete_template(template_id):
+        return redirect(url_for('bp_shop_pages.price_template_list',
+                                _msg='模板已删除', _msg_type='success'))
+    else:
+        return redirect(url_for('bp_shop_pages.price_template_list',
+                                _msg='模板删除失败', _msg_type='danger'))
+
+
+@bp_shop_pages.route('/price_template_copy/<template_id>', methods=['POST'])
+@check_admin_login
+def price_template_copy(admin_token: UserToken, template_id):
+    """复制模板"""
+    from eb_modules.eb_shop.datas.price_template import copy_template
+    new_id = copy_template(template_id, str(admin_token.id))
+    if new_id:
+        return redirect(url_for('bp_shop_pages.price_template_form', template_id=new_id,
+                                _msg='模板已复制，请修改名称和系数', _msg_type='success'))
+    else:
+        return redirect(url_for('bp_shop_pages.price_template_list',
+                                _msg='模板复制失败', _msg_type='danger'))
+
+
+@bp_shop_pages.route('/price_template_apply/<template_id>', methods=['GET', 'POST'])
+@check_admin_login
+def price_template_apply(admin_token: UserToken, template_id):
+    """应用模板确认与执行"""
+    from eb_modules.eb_shop.datas.price_template import (
+        get_template, apply_template_to_category,
+        count_products_in_category
+    )
+
+    template = get_template(template_id)
+    if not template:
+        return redirect(url_for('bp_shop_pages.price_template_list',
+                                _msg='模板不存在', _msg_type='danger'))
+
+    # 获取分类名称
+    category_name = ''
+    from bson import ObjectId
+    cat_id = template.get('category_id', '')
+    if cat_id:
+        try:
+            from bll.new_class import NewsClass
+            cat = NewsClass().find_one_by_id(cat_id)
+            if cat:
+                category_name = cat.class_name
+        except Exception:
+            pass
+
+    product_count = count_products_in_category(cat_id) if cat_id else 0
+
+    if request.method == 'POST':
+        apply_mode = request.form.get('apply_mode', 'fill_empty')
+        if apply_mode not in ('fill_empty', 'force_overwrite'):
+            return redirect(url_for('bp_shop_pages.price_template_apply', template_id=template_id,
+                                    _msg='应用方式不合法', _msg_type='danger'))
+
+        admin_name = getattr(admin_token, 'name', '') or ''
+
+        result = apply_template_to_category(
+            template_id, apply_mode,
+            str(admin_token.id), admin_name
+        )
+
+        if result['success']:
+            log_id = result.get('log_id')
+            if log_id:
+                return redirect(url_for('bp_shop_pages.price_template_log_detail', log_id=log_id,
+                                        _msg=result['message'], _msg_type='success'))
+            return redirect(url_for('bp_shop_pages.price_template_log',
+                                    _msg=result['message'], _msg_type='success'))
+        else:
+            return redirect(url_for('bp_shop_pages.price_template_apply', template_id=template_id,
+                                    _msg=result['message'], _msg_type='danger'))
+
+    _msg = request.args.get('_msg', '')
+    _msg_type = request.args.get('_msg_type', 'danger')
+    return render_template(
+        "shop_admin/price_template_apply.html",
+        template=template,
+        category_name=category_name,
+        product_count=product_count,
+        _msg=_msg, _msg_type=_msg_type,
+    )
+
+
+@bp_shop_pages.route('/price_template_log', methods=['GET'])
+@check_admin_login
+def price_template_log(admin_token: UserToken):
+    """应用日志列表"""
+    from eb_modules.eb_shop.datas.price_template_log import get_log_list
+    logs = get_log_list()
+    msg = request.args.get('_msg', '')
+    msg_type = request.args.get('_msg_type', 'success')
+    return render_template("shop_admin/price_template_log.html", logs=logs,
+                           _msg=msg, _msg_type=msg_type)
+
+
+@bp_shop_pages.route('/price_template_log_detail/<log_id>', methods=['GET'])
+@check_admin_login
+def price_template_log_detail(admin_token: UserToken, log_id):
+    """日志详情"""
+    from eb_modules.eb_shop.datas.price_template_log import get_log
+    log = get_log(log_id)
+    msg = request.args.get('_msg', '')
+    msg_type = request.args.get('_msg_type', 'success')
+    return render_template("shop_admin/price_template_log_detail.html", log=log,
+                           _msg=msg, _msg_type=msg_type)
+
+# endregion
+
+# region 会员价模板管理
+
+@bp_shop_pages.route('/member_price_template_list', methods=['GET'])
+@check_admin_login
+def member_price_template_list(admin_token: UserToken):
+    """会员价模板列表"""
+    from eb_modules.eb_shop.datas.member_price_template import get_template_list
+    templates = get_template_list()
+    msg = request.args.get('_msg', '')
+    msg_type = request.args.get('_msg_type', 'success')
+    return render_template("shop_admin/member_price_template/list.html", templates=templates,
+                           _msg=msg, _msg_type=msg_type)
+
+
+@bp_shop_pages.route('/member_price_template_form', methods=['GET', 'POST'])
+@bp_shop_pages.route('/member_price_template_form/<template_id>', methods=['GET', 'POST'])
+@check_admin_login
+def member_price_template_form(admin_token: UserToken, template_id=None):
+    """新建 / 编辑会员价模板"""
+    from eb_modules.eb_shop.datas.member_price_template import (
+        get_template, create_template, update_template,
+        validate_template, parse_group_rates_from_form,
+        get_product_categories, get_sample_product,
+        get_all_member_groups,
+    )
+
+    template = None
+    if template_id:
+        template = get_template(template_id)
+
+    categories = get_product_categories()
+    member_groups = get_all_member_groups()
+
+    # 当前选中的分类 ID
+    selected_category_id = None
+    if template:
+        selected_category_id = template.get('category_id', '')
+
+    errors = []
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        category_id = request.form.get('category_id', '').strip()
+        pricing_base = request.form.get('pricing_base', 'market_price')
+
+        # 构建 group_rates：合并表单提交的系数与已有会员组信息
+        raw_rates = parse_group_rates_from_form(request.form)
+        # 用所有会员组补齐 group_name
+        group_map = {g['group_id']: g['group_name'] for g in member_groups}
+        group_rates = []
+        for r in raw_rates:
+            gid = r['group_id']
+            if gid in group_map:
+                r['group_name'] = group_map[gid]
+            group_rates.append(r)
+
+        data = {
+            'name': name,
+            'category_id': category_id,
+            'pricing_base': pricing_base,
+            'group_rates': group_rates,
+        }
+
+        errors = validate_template(data)
+        if errors:
+            sample_product = None
+            if category_id:
+                sample_product = get_sample_product(category_id)
+            # 把用户输入的系数合并回 member_groups
+            rate_map = {r['group_id']: r['rate'] for r in group_rates}
+            for g in member_groups:
+                g['rate'] = rate_map.get(g['group_id'])
+            return render_template(
+                "shop_admin/member_price_template/form.html",
+                template=data,
+                template_id=template_id,
+                categories=categories,
+                member_groups=member_groups,
+                selected_category_id=category_id,
+                sample_product=sample_product,
+                _errors=errors,
+            )
+
+        if template_id:
+            update_template(template_id, data)
+            return redirect(url_for('bp_shop_pages.member_price_template_list',
+                                    _msg='会员价模板已更新', _msg_type='success'))
+        else:
+            new_id = create_template(data, str(admin_token.id))
+            return redirect(url_for('bp_shop_pages.member_price_template_form', template_id=new_id,
+                                    _msg='会员价模板已创建', _msg_type='success'))
+
+    # GET
+    selected_category_id = selected_category_id or request.args.get('category_id', '')
+    sample_product = None
+    if selected_category_id:
+        sample_product = get_sample_product(selected_category_id)
+
+    # 把模板中已有的系数合并到 member_groups
+    if template:
+        template_rates = template.get('group_rates', []) or []
+        rate_map = {r['group_id']: r['rate'] for r in template_rates}
+        for g in member_groups:
+            g['rate'] = rate_map.get(g['group_id'])
+
+    return render_template(
+        "shop_admin/member_price_template/form.html",
+        template=template,
+        categories=categories,
+        member_groups=member_groups,
+        selected_category_id=selected_category_id,
+        sample_product=sample_product,
+        _errors=errors,
+    )
+
+
+@bp_shop_pages.route('/member_price_template_delete/<template_id>', methods=['POST'])
+@check_admin_login
+def member_price_template_delete(admin_token: UserToken, template_id):
+    """删除会员价模板"""
+    from eb_modules.eb_shop.datas.member_price_template import delete_template
+    if delete_template(template_id):
+        return redirect(url_for('bp_shop_pages.member_price_template_list',
+                                _msg='会员价模板已删除', _msg_type='success'))
+    else:
+        return redirect(url_for('bp_shop_pages.member_price_template_list',
+                                _msg='会员价模板删除失败', _msg_type='danger'))
+
+
+@bp_shop_pages.route('/member_price_template_copy/<template_id>', methods=['POST'])
+@check_admin_login
+def member_price_template_copy(admin_token: UserToken, template_id):
+    """复制会员价模板"""
+    from eb_modules.eb_shop.datas.member_price_template import copy_template
+    new_id = copy_template(template_id, str(admin_token.id))
+    if new_id:
+        return redirect(url_for('bp_shop_pages.member_price_template_form', template_id=new_id,
+                                _msg='会员价模板已复制，请修改名称和系数', _msg_type='success'))
+    else:
+        return redirect(url_for('bp_shop_pages.member_price_template_list',
+                                _msg='会员价模板复制失败', _msg_type='danger'))
+
+
+@bp_shop_pages.route('/member_price_template_apply/<template_id>', methods=['GET', 'POST'])
+@check_admin_login
+def member_price_template_apply(admin_token: UserToken, template_id):
+    """应用会员价模板确认与执行"""
+    from eb_modules.eb_shop.datas.member_price_template import (
+        get_template, apply_template_to_category,
+        count_products_in_category
+    )
+
+    template = get_template(template_id)
+    if not template:
+        return redirect(url_for('bp_shop_pages.member_price_template_list',
+                                _msg='模板不存在', _msg_type='danger'))
+
+    # 分类名称
+    category_name = ''
+    cat_id = template.get('category_id', '')
+    if cat_id:
+        try:
+            from bll.new_class import NewsClass
+            cat = NewsClass().find_one_by_id(cat_id)
+            if cat:
+                category_name = cat.class_name
+        except Exception:
+            pass
+
+    product_count = count_products_in_category(cat_id) if cat_id else 0
+
+    # 有系数的会员组数
+    group_rates = template.get('group_rates', []) or []
+    group_count = sum(1 for g in group_rates if g.get('rate') is not None and g['rate'] != '')
+
+    if request.method == 'POST':
+        apply_mode = request.form.get('apply_mode', 'fill_empty')
+        below_cost_strategy = request.form.get('below_cost_strategy', 'skip')
+
+        if apply_mode not in ('fill_empty', 'force_overwrite'):
+            return redirect(url_for('bp_shop_pages.member_price_template_apply', template_id=template_id,
+                                    _msg='应用方式不合法', _msg_type='danger'))
+        if below_cost_strategy not in ('skip', 'floor_to_cost', 'reject_all'):
+            return redirect(url_for('bp_shop_pages.member_price_template_apply', template_id=template_id,
+                                    _msg='低于成本价策略不合法', _msg_type='danger'))
+
+        admin_name = getattr(admin_token, 'name', '') or ''
+
+        result = apply_template_to_category(
+            template_id, apply_mode, below_cost_strategy,
+            str(admin_token.id), admin_name
+        )
+
+        if result['success']:
+            log_id = result.get('log_id')
+            if log_id:
+                return redirect(url_for('bp_shop_pages.member_price_template_log_detail', log_id=log_id,
+                                        _msg=result['message'], _msg_type='success'))
+            return redirect(url_for('bp_shop_pages.member_price_template_log',
+                                    _msg=result['message'], _msg_type='success'))
+        else:
+            return redirect(url_for('bp_shop_pages.member_price_template_apply', template_id=template_id,
+                                    _msg=result['message'], _msg_type='danger'))
+
+    _msg = request.args.get('_msg', '')
+    _msg_type = request.args.get('_msg_type', 'danger')
+    return render_template(
+        "shop_admin/member_price_template/apply.html",
+        template=template,
+        category_name=category_name,
+        product_count=product_count,
+        group_count=group_count,
+        _msg=_msg, _msg_type=_msg_type,
+    )
+
+
+@bp_shop_pages.route('/member_price_template_log', methods=['GET'])
+@check_admin_login
+def member_price_template_log(admin_token: UserToken):
+    """会员价应用日志列表"""
+    from eb_modules.eb_shop.datas.member_price_template_log import get_log_list
+    logs = get_log_list()
+    msg = request.args.get('_msg', '')
+    msg_type = request.args.get('_msg_type', 'success')
+    return render_template("shop_admin/member_price_template/log.html", logs=logs,
+                           _msg=msg, _msg_type=msg_type)
+
+
+@bp_shop_pages.route('/member_price_template_log_detail/<log_id>', methods=['GET'])
+@check_admin_login
+def member_price_template_log_detail(admin_token: UserToken, log_id):
+    """会员价日志详情"""
+    from eb_modules.eb_shop.datas.member_price_template_log import get_log
+    log = get_log(log_id)
+    msg = request.args.get('_msg', '')
+    msg_type = request.args.get('_msg_type', 'success')
+    return render_template("shop_admin/member_price_template/log_detail.html", log=log,
+                           _msg=msg, _msg_type=msg_type)
 
 # endregion

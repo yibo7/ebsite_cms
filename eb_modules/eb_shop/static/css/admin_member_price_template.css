@@ -1,0 +1,74 @@
+/* ===== 会员价模板管理 · 辅助样式 ===== */
+/* 与阶梯价模板高度相似，直接复用，此处仅补充会员价特有的样式 */
+
+/* ── 会员组表中 input 宽度 ── */
+.group-rate-input {
+  width: 120px;
+}
+
+/* ── 预览价格列 ── */
+.preview-price-cell {
+  font-weight: 600;
+  color: #1e293b;
+  text-align: right;
+}
+.preview-price-cell.empty {
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+/* ── 会员价表格的行样式 ── */
+.group-rate-row td {
+  vertical-align: middle;
+}
+.group-rate-row .group-name-cell {
+  font-weight: 600;
+  color: #334155;
+}
+
+/* ── 信息展示行的紧凑布局 ── */
+.info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 10px 0;
+}
+.info-row .info-item {
+  font-size: 14px;
+  color: #334155;
+}
+.info-row .info-item label {
+  font-weight: 600;
+  color: #64748b;
+  margin-right: 6px;
+}
+
+/* ── 应用确认页的卡片 ── */
+.apply-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* ── 统计数字 ── */
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* ── 状态徽标 ── */
+.badge-success { background: #d1fae5; color: #065f46; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-danger { background: #fee2e2; color: #991b1b; }
+.badge-info { background: #dbeafe; color: #1e40af; }

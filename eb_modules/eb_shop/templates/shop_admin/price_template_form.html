@@ -1,0 +1,288 @@
+{% extends 'base_admin.html' %}
+{% block title %}{{ '编辑模板' if template else '新建模板' }}{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/shop/css/admin_price_template.css">
+
+<div style="padding:10px;">
+  {% set active_tab = 'template' %}
+  {% include 'shop_admin/_price_template_nav.html' %}
+
+  <!-- 页面头部 -->
+  <h4 class="mt-3 mb-3">{{ '编辑模板' if template else '新建模板' }}</h4>
+
+  <!-- 错误 / 消息提示 -->
+  {% if _errors %}
+    {% for err in _errors %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ err }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% if _msg %}
+    <div class="alert alert-{{ _msg_type }} alert-dismissible fade show" role="alert">
+      {{ _msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <form method="post" action="" onsubmit="return validateForm()">
+    <!-- 模板名称 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">模板名称 <span class="text-danger">*</span></label>
+      <input type="text" name="name" class="form-control" style="max-width:400px;"
+             value="{{ template.name if template else '' }}" required
+             placeholder="例如：塑料制品批发价">
+    </div>
+
+    <!-- 适用分类 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">适用分类 <span class="text-danger">*</span></label>
+      <select name="category_id" class="form-select" style="max-width:400px;" required
+              onchange="this.form.submit()">
+        <option value="">-- 请选择分类 --</option>
+        {% for cat in categories %}
+        <option value="{{ cat._id }}" {% if selected_category_id == cat._id %}selected{% endif %}>
+          {{ cat.class_name }}
+        </option>
+        {% endfor %}
+      </select>
+      <div class="form-text">切换分类后页面将刷新以更新预览数据</div>
+    </div>
+
+    <!-- 计价基准 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">计价基准</label>
+      <div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="pricing_base" id="pb_market"
+                 value="market_price"
+                 {% if not template or template.pricing_base == 'market_price' %}checked{% endif %}
+                 onchange="updatePreview()">
+          <label class="form-check-label" for="pb_market">基于零售价折扣率</label>
+        </div>
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="radio" name="pricing_base" id="pb_cost"
+                 value="cost_price"
+                 {% if template and template.pricing_base == 'cost_price' %}checked{% endif %}
+                 onchange="updatePreview()">
+          <label class="form-check-label" for="pb_cost">基于成本价加价率</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阶梯规则表格 -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">阶梯规则</label>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle" id="tierTable" style="max-width:500px;">
+          <thead class="table-light">
+            <tr>
+              <th style="width:100px;">最小数量</th>
+              <th style="width:100px;">最大数量</th>
+              <th style="width:120px;">
+                <span id="rateLabel">折扣率</span>
+              </th>
+              <th style="width:60px;">操作</th>
+            </tr>
+          </thead>
+          <tbody id="tierBody">
+            {% if template and template.tiers %}
+              {% for tier in template.tiers %}
+              <tr>
+                <td><input type="number" name="tier_min_qty_{{ loop.index0 }}" class="form-control tier-input-min"
+                           value="{{ tier.min_qty }}" min="1" step="1" required></td>
+                <td><input type="number" name="tier_max_qty_{{ loop.index0 }}" class="form-control tier-input-max"
+                           value="{{ tier.max_qty if tier.max_qty else '' }}" min="0" step="1"
+                           placeholder="不限"></td>
+                <td><input type="number" name="tier_rate_{{ loop.index0 }}" class="form-control tier-input-rate"
+                           value="{{ tier.rate }}" step="0.001" required
+                           oninput="updatePreview()"></td>
+                <td class="text-center">
+                  <button type="button" class="btn-link-del" onclick="removeTier(this)" title="删除此行">&times;</button>
+                </td>
+              </tr>
+              {% endfor %}
+            {% else %}
+            <tr>
+              <td><input type="number" name="tier_min_qty_0" class="form-control tier-input-min" value="1" min="1" step="1" required></td>
+              <td><input type="number" name="tier_max_qty_0" class="form-control tier-input-max" value="" min="0" step="1" placeholder="不限"></td>
+              <td><input type="number" name="tier_rate_0" class="form-control tier-input-rate" value="0.9" step="0.001" required oninput="updatePreview()"></td>
+              <td class="text-center">
+                <button type="button" class="btn-link-del" onclick="removeTier(this)" title="删除此行">&times;</button>
+              </td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addTier()">+ 添加一档</button>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="mt-4">
+      <a href="/shop/price_template_list" class="btn btn-secondary">取消</a>
+      <button type="submit" class="btn btn-primary">{{ '保存修改' if template else '创建模板' }}</button>
+    </div>
+  </form>
+
+  <!-- 预览区 -->
+  <div class="preview-section" id="previewSection">
+    <div class="preview-title">📊 预览效果</div>
+    {% if sample_product %}
+    <div class="preview-product-info">
+      <span>商品：<strong>{{ sample_product.product_name }}</strong></span>
+      <span>SKU：<code>{{ sample_product.sku }}</code></span>
+      <span>零售价：<strong>¥{{ "%.2f"|format(sample_product.marketPrice) }}</strong></span>
+      <span>成本价：<strong>¥{{ "%.2f"|format(sample_product.costPrice) }}</strong></span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm" id="previewTable" style="max-width:400px;">
+        <thead>
+          <tr>
+            <th>数量区间</th>
+            <th>单价</th>
+          </tr>
+        </thead>
+        <tbody id="previewBody">
+          {% if template and template.tiers %}
+            {% for tier in template.tiers %}
+            <tr>
+              <td>{{ tier.min_qty }}{% if tier.max_qty %} - {{ tier.max_qty }}{% else %}+{% endif %} 件</td>
+              <td>¥ <span class="preview-price" data-min="{{ tier.min_qty }}" data-rate="{{ tier.rate }}">0.00</span></td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td>1+ 件</td>
+              <td>¥ <span class="preview-price" data-min="1" data-rate="0.9">0.00</span></td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    <script>
+      // 预览数据（注入到页面）
+      var PREVIEW_MARKET_PRICE = {{ sample_product.marketPrice }};
+      var PREVIEW_COST_PRICE = {{ sample_product.costPrice }};
+    </script>
+    {% else %}
+    <div class="preview-empty">
+      {% if selected_category_id %}
+        该分类下暂无价格数据完整的商品，无法预览。
+      {% else %}
+        请先选择适用分类以查看预览。
+      {% endif %}
+    </div>
+    <script>
+      var PREVIEW_MARKET_PRICE = 0;
+      var PREVIEW_COST_PRICE = 0;
+    </script>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+// ── 档位行计数器 ──
+var tierIndex = document.querySelectorAll('#tierBody tr').length;
+
+function addTier() {
+  var html = '<tr>' +
+    '<td><input type="number" name="tier_min_qty_' + tierIndex + '" class="form-control tier-input-min" value="" min="1" step="1" required></td>' +
+    '<td><input type="number" name="tier_max_qty_' + tierIndex + '" class="form-control tier-input-max" value="" min="0" step="1" placeholder="不限"></td>' +
+    '<td><input type="number" name="tier_rate_' + tierIndex + '" class="form-control tier-input-rate" value="" step="0.001" required oninput="updatePreview()"></td>' +
+    '<td class="text-center"><button type="button" class="btn-link-del" onclick="removeTier(this)" title="删除此行">&times;</button></td>' +
+    '</tr>';
+  document.getElementById('tierBody').insertAdjacentHTML('beforeend', html);
+  tierIndex++;
+  updatePreview();
+}
+
+function removeTier(btn) {
+  var row = btn.closest('tr');
+  if (document.querySelectorAll('#tierBody tr').length <= 1) {
+    alert('至少保留一个档位');
+    return;
+  }
+  row.remove();
+  updatePreview();
+}
+
+function validateForm() {
+  // 检查至少有一个有效的档位
+  var rows = document.querySelectorAll('#tierBody tr');
+  var hasValid = false;
+  for (var i = 0; i < rows.length; i++) {
+    var minInput = rows[i].querySelector('input[name^="tier_min_qty_"]');
+    var rateInput = rows[i].querySelector('input[name^="tier_rate_"]');
+    if (minInput && minInput.value && rateInput && rateInput.value) {
+      hasValid = true;
+      break;
+    }
+  }
+  if (!hasValid) {
+    alert('请至少添加一个有效的档位（填写最小数量和系数）');
+    return false;
+  }
+  return true;
+}
+
+// ── 实时预览 ──
+function updatePreview() {
+  var pricingBase = document.querySelector('input[name="pricing_base"]:checked');
+  if (!pricingBase) return;
+  var basePrice = pricingBase.value === 'market_price' ? PREVIEW_MARKET_PRICE : PREVIEW_COST_PRICE;
+  if (!basePrice || basePrice <= 0) return;
+
+  // 更新系数标签
+  var rateLabel = document.getElementById('rateLabel');
+  rateLabel.textContent = pricingBase.value === 'market_price' ? '折扣率' : '加价率';
+
+  var rows = document.querySelectorAll('#tierBody tr');
+  var previewBody = document.getElementById('previewBody');
+  previewBody.innerHTML = '';
+
+  for (var i = 0; i < rows.length; i++) {
+    var minInput = rows[i].querySelector('input[name^="tier_min_qty_"]');
+    var maxInput = rows[i].querySelector('input[name^="tier_max_qty_"]');
+    var rateInput = rows[i].querySelector('input[name^="tier_rate_"]');
+
+    var minVal = minInput ? minInput.value : '';
+    var maxVal = maxInput ? maxInput.value : '';
+    var rateVal = rateInput ? rateInput.value : '';
+
+    if (!minVal || !rateVal) continue;
+
+    var rate = parseFloat(rateVal);
+    if (isNaN(rate)) continue;
+
+    var unitPrice = basePrice * rate;
+    unitPrice = Math.floor(unitPrice * 100) / 100;
+
+    var qtyLabel = minVal;
+    if (maxVal && maxVal != '0') {
+      qtyLabel += ' - ' + maxVal;
+    } else {
+      qtyLabel += '+';
+    }
+    qtyLabel += ' 件';
+
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + qtyLabel + '</td><td>¥ ' + unitPrice.toFixed(2) + '</td>';
+    previewBody.appendChild(tr);
+  }
+
+  if (previewBody.children.length === 0) {
+    previewBody.innerHTML = '<tr><td colspan="2" class="preview-empty">请填写档位数据</td></tr>';
+  }
+}
+
+// 页面加载后初始化预览
+document.addEventListener('DOMContentLoaded', function() {
+  if (PREVIEW_MARKET_PRICE > 0 || PREVIEW_COST_PRICE > 0) {
+    updatePreview();
+  }
+});
+</script>
+{% endblock %}

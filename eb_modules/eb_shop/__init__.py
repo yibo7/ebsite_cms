@@ -48,6 +48,18 @@ def filter_decimal128(value):
     return value
 
 
+@bp_shop_pages.app_template_filter('timestamp_to_datetime')
+def filter_timestamp_to_datetime(value):
+    """
+    Jinja2 过滤器：将 Unix 时间戳（秒）转为格式化的日期时间字符串。
+    用法：{{ timestamp | timestamp_to_datetime }}
+    """
+    from datetime import datetime
+    if isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value).strftime("%Y-%m-%d %H:%M")
+    return value or '-'
+
+
 settings_temp = '''
 <div class="mb-3">
     <label>商品分类 ID <small class="text-muted">（NewsContent 中商品所属的分类 _id，商品搜索时使用）</small></label>

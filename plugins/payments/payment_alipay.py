@@ -2,9 +2,12 @@ import json
 import time
 import base64
 import logging
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Tuple, Dict, Any
 from urllib.parse import quote_plus, unquote_plus
+
+import requests
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 from Crypto.Hash import SHA256
@@ -14,14 +17,14 @@ from entity.pay_link_result import PayLinkResult
 from plugins.plugin_base import PaymentBase, plugin_attribute
 
 
-@plugin_attribute("支付宝", "1.0", "eb_site")
+@plugin_attribute("支付宝", "1.1", "eb_site")
 class AlipayPlugin(PaymentBase):
     def __init__(self, current_app):
         super().__init__(current_app)
         self.app_id = ""
         self.private_key = ""
         self.alipay_public_key = ""
-        self.info = "基于支付宝的支付插件"
+        self.info = "基于支付宝的支付插件（v1.1 改进版）"
         self.gateway_url = "https://openapi.alipay.com/gateway.do"
         self.sandbox_gateway_url = "https://openapi.alipaydev.com/gateway.do"
         self.is_sandbox = False
@@ -76,13 +79,14 @@ class AlipayPlugin(PaymentBase):
             return base64.b64encode(signature).decode('utf-8')
         except Exception as e:
             self.logger.error(f"RSA2签名失败: {str(e)}")
-            raise Exception(f"签名失败: {str(e)}")
+            raise
 
     def _verify_signature(self, data: Dict[str, Any], signature: str) -> bool:
         try:
             items = []
             for key in sorted(data.keys()):
-                if key not in ['sign', 'sign_type'] and data[key] is not None and str(data[key]).strip():
+                # 剔除 sign / sign_type 以及 None / 空字符串
+                if key not in ('sign', 'sign_type') and data[key] is not None and str(data[key]).strip():
                     value = unquote_plus(str(data[key]))
                     items.append(f"{key}={value}")
             unsigned_string = "&".join(items)
@@ -98,16 +102,69 @@ class AlipayPlugin(PaymentBase):
             self.logger.error(f"验签失败: {str(e)}")
             return False
 
+    # ==================== HTTP 请求 ====================
+
+    def _request(self, params: Dict[str, str]) -> Dict[str, Any]:
+        """向支付宝网关发送请求并验签"""
+        unsigned_items = [f"{k}={params[k]}" for k in sorted(params.keys())]
+        unsigned_string = "&".join(unsigned_items)
+        signature = self._rsa2_sign(unsigned_string)
+
+        gateway_url = self.sandbox_gateway_url if self.is_sandbox else self.gateway_url
+        query_items = [f"{k}={quote_plus(str(v), safe='')}" for k, v in params.items()]
+        query_items.append(f"sign={quote_plus(signature, safe='')}")
+        url = f"{gateway_url}?{'&'.join(query_items)}"
+
+        self.logger.info(f"支付宝请求: method={params.get('method')}, out_trade_no={params.get('biz_content', '')[:80]}")
+        resp = requests.get(url, timeout=15)
+        resp.encoding = 'utf-8'
+
+        try:
+            body = resp.json()
+        except ValueError:
+            self.logger.error(f"支付宝响应非 JSON: {resp.text[:200]}")
+            raise
+
+        # 验签响应
+        if 'sign' in body:
+            resp_sign = body.pop('sign', '')
+            if not self._verify_signature(body, resp_sign):
+                self.logger.error("支付宝响应验签失败")
+                raise Exception("支付宝响应签名验证失败")
+            body['sign'] = resp_sign  # 还原
+
+        return body
+
     # ==================== 业务参数构建 ====================
 
-    def _build_request_params(self, order_id: str, amount: float, subject: str = None) -> Dict[str, str]:
+    def _build_request_params(self, order_id: str, amount: float,
+                              subject: str = None, **kwargs) -> Dict[str, str]:
         biz_content = {
             "out_trade_no": order_id,
             "product_code": "FAST_INSTANT_TRADE_PAY",
             "total_amount": f"{amount:.2f}",
             "subject": subject or f"订单 {order_id}",
+            # timeout_express 兼容旧版（相对分钟数）
             "timeout_express": "30m",
         }
+
+        # 新版推荐使用 time_expire（绝对时间，rfc3339 格式）
+        time_expire = kwargs.get('time_expire')
+        if time_expire:
+            biz_content["time_expire"] = time_expire
+        else:
+            # 默认 30 分钟后过期
+            expire_time = datetime.now(timezone(timedelta(hours=8))) + timedelta(minutes=30)
+            biz_content["time_expire"] = expire_time.strftime('%Y-%m-%d %H:%M:%S')
+
+        # 可选参数：商品详情、附加信息等
+        if kwargs.get('body'):
+            biz_content['body'] = kwargs['body']
+        if kwargs.get('goods_detail'):
+            biz_content['goods_detail'] = kwargs['goods_detail']
+        if kwargs.get('passback_params'):
+            biz_content['passback_params'] = kwargs['passback_params']
+
         params = {
             "app_id": self.app_id,
             "method": "alipay.trade.page.pay",
@@ -139,8 +196,7 @@ class AlipayPlugin(PaymentBase):
             if not is_valid:
                 return False, error_msg, result
 
-            subject = kwargs.get('subject')
-            params = self._build_request_params(order_id, amount, subject)
+            params = self._build_request_params(order_id, amount, kwargs.get('subject'), **kwargs)
 
             unsigned_items = [f"{k}={params[k]}" for k in sorted(params.keys())]
             unsigned_string = "&".join(unsigned_items)
@@ -170,14 +226,15 @@ class AlipayPlugin(PaymentBase):
             if not data:
                 return False, "回调参数为空", pay_info
 
-            self.logger.info(f"收到支付宝回调: {data}")
+            self.logger.info(f"收到支付宝回调: out_trade_no={data.get('out_trade_no')}, "
+                             f"trade_status={data.get('trade_status')}")
 
             required_params = ['sign', 'sign_type', 'out_trade_no', 'trade_status']
             for param in required_params:
                 if param not in data:
                     return False, f"缺少必要参数: {param}", pay_info
 
-            signature = data.get('sign')
+            signature = data.pop('sign', '')
             if not self._verify_signature(data, signature):
                 return False, "签名验证失败", pay_info
 
@@ -216,6 +273,10 @@ class AlipayPlugin(PaymentBase):
     # ==================== 可选接口 ====================
 
     def query_order(self, order_id: str) -> Tuple[bool, str, PayBackInfo]:
+        """
+        查询支付宝订单状态。
+        文档：https://opendocs.alipay.com/open/02ekfj
+        """
         pay_info = PayBackInfo()
         try:
             if not self._validate_config():
@@ -233,20 +294,32 @@ class AlipayPlugin(PaymentBase):
                 "biz_content": json.dumps(biz_content, separators=(',', ':')),
             }
 
-            unsigned_items = [f"{k}={params[k]}" for k in sorted(params.keys())]
-            unsigned_string = "&".join(unsigned_items)
-            signature = self._rsa2_sign(unsigned_string)
+            body = self._request(params)
 
-            # 实际项目中应发送 HTTP 请求到支付宝接口
-            # 此处预留实现
-            pay_info.order_no = order_id
-            pay_info.info = "查询成功（仅占位，需接入支付宝 API）"
+            resp_data = body.get('alipay_trade_query_response', {})
+            if resp_data.get('code') != '10000':
+                return False, resp_data.get('sub_msg', resp_data.get('msg', '查询失败')), pay_info
+
+            trade_status = resp_data.get('trade_status', '')
+            pay_info.order_no = resp_data.get('out_trade_no', order_id)
+            pay_info.trade_no = resp_data.get('trade_no', '')
+            pay_info.pay_amount = Decimal(str(resp_data.get('total_amount', '0')))
+            pay_info.is_successful = (trade_status == 'TRADE_SUCCESS')
+            pay_info.status_code = 1 if trade_status == 'TRADE_SUCCESS' else 0
+            pay_info.currency = "CNY"
+            pay_info.raw_data = resp_data
+            pay_info.info = resp_data.get('trade_status', 'UNKNOWN')
+
             return True, "查询成功", pay_info
 
         except Exception as e:
             return False, f"查询订单失败: {str(e)}", pay_info
 
     def refund_order(self, order_id: str, amount: float, reason: str = "") -> Tuple[bool, str, PayBackInfo]:
+        """
+        支付宝退款。文档：https://opendocs.alipay.com/open/02e7go
+        注意：如果交易发生了退款，支付宝推荐使用 out_request_no 做幂等。
+        """
         pay_info = PayBackInfo()
         try:
             if not self._validate_config():
@@ -258,6 +331,7 @@ class AlipayPlugin(PaymentBase):
                 "out_trade_no": order_id,
                 "refund_amount": f"{amount:.2f}",
                 "refund_reason": reason or "用户申请退款",
+                "out_request_no": f"R{order_id}{int(time.time())}",
             }
             params = {
                 "app_id": self.app_id,
@@ -270,20 +344,30 @@ class AlipayPlugin(PaymentBase):
                 "biz_content": json.dumps(biz_content, separators=(',', ':')),
             }
 
-            unsigned_items = [f"{k}={params[k]}" for k in sorted(params.keys())]
-            unsigned_string = "&".join(unsigned_items)
-            self._rsa2_sign(unsigned_string)
+            body = self._request(params)
 
-            # 实际项目中应发送 HTTP 请求到支付宝接口
-            pay_info.order_no = order_id
-            pay_info.pay_amount = Decimal(str(amount))
-            pay_info.info = "退款申请成功（仅占位，需接入支付宝 API）"
-            return True, "退款申请成功", pay_info
+            resp_data = body.get('alipay_trade_refund_response', {})
+            if resp_data.get('code') != '10000':
+                return False, resp_data.get('sub_msg', resp_data.get('msg', '退款失败')), pay_info
+
+            # code == 10000 且 fund_change 为 Y 或 refund_fee > 0
+            pay_info.is_successful = True
+            pay_info.order_no = resp_data.get('out_trade_no', order_id)
+            pay_info.trade_no = resp_data.get('trade_no', '')
+            pay_info.pay_amount = Decimal(str(resp_data.get('refund_fee', amount)))
+            pay_info.raw_data = resp_data
+            pay_info.info = "退款成功"
+
+            return True, "退款成功", pay_info
 
         except Exception as e:
             return False, f"退款失败: {str(e)}", pay_info
 
     def close_order(self, order_id: str) -> Tuple[bool, str]:
+        """
+        关闭支付宝订单（仅限未支付订单）。
+        文档：https://opendocs.alipay.com/open/02e7gn
+        """
         try:
             if not self._validate_config():
                 return False, "支付宝配置不完整"
@@ -300,11 +384,13 @@ class AlipayPlugin(PaymentBase):
                 "biz_content": json.dumps(biz_content, separators=(',', ':')),
             }
 
-            unsigned_items = [f"{k}={params[k]}" for k in sorted(params.keys())]
-            unsigned_string = "&".join(unsigned_items)
-            self._rsa2_sign(unsigned_string)
+            body = self._request(params)
 
-            return True, "订单关闭成功"
+            resp_data = body.get('alipay_trade_close_response', {})
+            if resp_data.get('code') != '10000':
+                return False, resp_data.get('sub_msg', resp_data.get('msg', '关闭订单失败'))
+
+            return True, "订单已关闭"
 
         except Exception as e:
             return False, f"关闭订单失败: {str(e)}"
@@ -359,6 +445,7 @@ class AlipayPlugin(PaymentBase):
             6. 前端收到 <strong>pay_url</strong> 后，直接跳转即可打开支付宝支付页面<br>
             7. 沙箱环境使用
             <a href="https://open.alipay.com/develop/sandbox" target="_blank">支付宝沙箱</a>
-            进行开发测试
+            进行开发测试<br>
+            8. v1.1 新增：支持 time_expire 绝对时间、query/refund/close 实际 API 调用
         </div>
         '''

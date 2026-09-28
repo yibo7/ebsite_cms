@@ -1,0 +1,18 @@
+<!-- 标签导航（公共 - 阶梯价模板 + 会员价模板共用） -->
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'orders' %}active{% endif %}" href="/shop/shop_orders">订单管理</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'template' %}active{% endif %}" href="/shop/price_template_list">阶梯价模板</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'log' %}active{% endif %}" href="/shop/price_template_log">阶梯价日志</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'member_template' %}active{% endif %}" href="/shop/member_price_template_list">会员价模板</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if active_tab == 'member_log' %}active{% endif %}" href="/shop/member_price_template_log">会员价日志</a>
+  </li>
+</ul>

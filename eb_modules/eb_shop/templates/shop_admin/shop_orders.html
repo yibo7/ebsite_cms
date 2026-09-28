@@ -3,17 +3,8 @@
 <link rel="stylesheet" href="/shop/css/admin_orders.css">
 
 <div style="padding:10px;">
-  <ul class="nav nav-tabs">
-    <li class="nav-item">
-      <a class="nav-link active" aria-current="page" href="shop_orders">订单管理</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/quote/shop_quotes">报价单管理</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="level_price">价格级别管理</a>
-    </li>
-  </ul>
+  {% set active_tab = 'orders' %}
+  {% include 'shop_admin/_price_template_nav.html' %}
   <br>
 
   <div class="eb-box">

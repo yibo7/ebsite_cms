@@ -1,0 +1,84 @@
+{% extends 'base_admin.html' %}
+{% block title %}阶梯价模板{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="/shop/css/admin_price_template.css">
+
+<div style="padding:10px;">
+  {% set active_tab = 'template' %}
+  {% include 'shop_admin/_price_template_nav.html' %}
+
+  <!-- 页面头部 -->
+  <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
+    <h4 class="mb-0">阶梯价模板</h4>
+    <a href="/shop/price_template_form" class="btn btn-primary">+ 新建模板</a>
+  </div>
+
+  <!-- 消息提示 -->
+  {% if _msg %}
+    <div class="alert alert-{{ _msg_type if _msg_type != 'message' else 'info' }} alert-dismissible fade show" role="alert">
+      {{ _msg }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+  {% endif %}
+
+  <!-- 模板列表表格 -->
+  {% if templates %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>模板名称</th>
+          <th>适用分类</th>
+          <th>计价基准</th>
+          <th style="width:80px;">档位数</th>
+          <th style="width:160px;">更新时间</th>
+          <th style="width:200px;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tpl in templates %}
+        <tr>
+          <td class="fw-semibold">{{ tpl.name }}</td>
+          <td>{{ tpl.category_name or '-' }}</td>
+          <td><span class="badge bg-secondary">{{ tpl.pricing_base_name }}</span></td>
+          <td class="text-center">{{ tpl.tier_count }}</td>
+          <td>
+            {% if tpl.updated_at %}
+              {% if tpl.updated_at is number %}
+                {{ tpl.updated_at | int | timestamp_to_datetime }}
+              {% else %}
+                {{ tpl.updated_at }}
+              {% endif %}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="/shop/price_template_form/{{ tpl._id }}" class="btn btn-sm btn-outline-primary">编辑</a>
+              <a href="/shop/price_template_apply/{{ tpl._id }}" class="btn btn-sm btn-outline-success">应用</a>
+              <form method="post" action="/shop/price_template_copy/{{ tpl._id }}" style="display:inline;" onsubmit="return confirm('确定要复制此模板吗？');">
+                <button type="submit" class="btn btn-sm btn-outline-info">复制</button>
+              </form>
+              <form method="post" action="/shop/price_template_delete/{{ tpl._id }}" style="display:inline;" onsubmit="return confirm('删除后不影响已应用的阶梯价数据，确定删除？');">
+                <button type="submit" class="btn btn-sm btn-outline-danger">删除</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-5" style="color:#94a3b8;">
+    <div style="font-size:48px;opacity:0.3;margin-bottom:12px;">📋</div>
+    <div style="font-size:15px;">暂无阶梯价模板</div>
+    <div class="mt-2">
+      <a href="/shop/price_template_form" class="btn btn-primary btn-sm">创建第一个模板</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

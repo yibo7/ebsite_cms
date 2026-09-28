@@ -13,3 +13,4 @@ flask-caching~=2.3.0
 blinker~=1.8.2
 cos-python-sdk-v5
 python-dotenv~=1.0.1  # 仅本地开发需要，生产环境通过平台设环境变量
+pycryptodome~=3.20.0  # 支付插件 RSA 签名和 AES-GCM 解密（支付宝 + 微信V3）
