@@ -31,6 +31,10 @@ user_reged = my_signals.signal('user-reged')
 # 支付成功后触发
 pay_saved_successful = my_signals.signal('pay-saved-successful')
 
+# 用户登录成功后触发，传递参数 user_id: str
+# 接收方可以从 flask.request.cookies 获取 cart_token 做购物车合并
+user_logged_in = my_signals.signal('user-logged-in')
+
 # 在搜索前触发，传递参数 ctx: dict（可变字典）
 # 模块可以设置 ctx["query"] 自定义搜索条件，设置 ctx["template"] 自定义模板
 # 如果没有任何模块设置 query，则使用默认的 search_full() 搜索 title+info

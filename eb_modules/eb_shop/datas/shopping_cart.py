@@ -18,7 +18,8 @@ class ShoppingCartModel(ModelBase):
         self.small_pic: str = ""  # 商品封面图片地址
         self.class_name: str = ""  # 分类名称
         self.class_n_id: int = 0  # 分类ID
-        self.user_id: ObjectId     # 用户ID
+        self.user_id: ObjectId     # 用户ID（登录用户）
+        self.session_id: str = ""  # 游客标识（UUID），登录用户为空
 
         self.product_name: str = ""  # 商品规格名称
         self.product_sku: str = ""   # 商品SKU（货号）

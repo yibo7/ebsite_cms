@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Optional
 
 from bson import Decimal128
 from bson.objectid import ObjectId
@@ -12,26 +13,55 @@ from eb_modules.eb_shop.datas.shopping_cart import ShoppingCartBll
 
 
 class CartManager:
-    def __init__(self,  user_id: str,  user_account: str):
+    def __init__(self, user_id: str = None, user_account: str = '', session_id: str = None):
+        """
+        购物车管理器，支持登录用户和游客双模式。
 
-        self.user_id = ObjectId(user_id)
+        登录模式：CartManager(user_id='xxx', user_account='xxx')
+        游客模式：CartManager(session_id='xxx')
+
+        Args:
+            user_id: 登录用户的 ID（字符串）
+            user_account: 登录用户的账号
+            session_id: 游客标识（UUID）
+        """
+        self.is_guest = not bool(user_id)
         self.user_account = user_account
         self.bll = ShoppingCartBll()
         self.table = self.bll.table
 
+        if self.is_guest:
+            self.owner_field = 'session_id'
+            self.owner_value = session_id
+            self.user_id = None  # 游客没有 user_id
+        else:
+            self.owner_field = 'user_id'
+            self.owner_value = ObjectId(user_id)
+            self.user_id = self.owner_value
+
+        self._user_group_id = None  # 懒加载
+
+    # ──────────────────────────────────────────────────────────────
+    #  用户组（仅登录用户有效）
+    # ──────────────────────────────────────────────────────────────
+
+    def _get_user_group_id(self):
+        """获取用户所在的用户组 ID，游客返回 None"""
+        if self.is_guest:
+            return None
+        if self._user_group_id is not None:
+            return self._user_group_id
+        from bll.user import User
+        user = User().find_one_by_id(self.user_id)
+        if user and user.group_id:
+            self._user_group_id = str(user.group_id)
+        else:
+            self._user_group_id = None
+        return self._user_group_id
+
     # ──────────────────────────────────────────────────────────────
     #  价格计算（全维度）
     # ──────────────────────────────────────────────────────────────
-    @staticmethod
-    def _get_user_group_id(user_id: ObjectId):
-        """获取用户所在的用户组 ID"""
-        if not user_id:
-            return None
-        from bll.user import User
-        user = User().find_one_by_id(user_id)
-        if user and user.group_id:
-            return str(user.group_id)
-        return None
 
     @staticmethod
     def _calculate_final_price(product_model: dict, quantity: int, user_group_id: str) -> dict:
@@ -106,6 +136,11 @@ class CartManager:
     # ──────────────────────────────────────────────────────────────
     #  购物车操作
     # ──────────────────────────────────────────────────────────────
+
+    def _owner_query(self) -> dict:
+        """构建当前模式下的所有者查询条件"""
+        return {self.owner_field: self.owner_value}
+
     def add_item(self, content_id: str, product_id: str, quantity: int = 1) -> str:
         content_model = NewsContent().find_one_by_id(content_id)
         if not content_model:
@@ -120,12 +155,12 @@ class CartManager:
             return f"库存量不足：{quantity}"
 
         # 计算价格
-        user_group_id = self._get_user_group_id(self.user_id)
+        user_group_id = self._get_user_group_id()
         price_result = self._calculate_final_price(product_model, quantity, user_group_id)
 
         product_oid = product_id
         existing = self.table.find_one({
-            'user_id': self.user_id,
+            **self._owner_query(),
             'product_id': product_oid
         })
         if existing:
@@ -145,7 +180,11 @@ class CartManager:
         else:
             model = self.bll.new_instance()
 
-            model.user_id = self.user_id
+            if self.is_guest:
+                model.session_id = self.owner_value
+            else:
+                model.user_id = self.user_id
+
             model.content_title = content_model.title
             model.content_id = content_model._id
             model.content_n_id = content_model.id
@@ -174,16 +213,16 @@ class CartManager:
     def get_count(self) -> int:
         """获取当前用户的购物车商品总数量（所有商品 quantity 之和）"""
         pipeline = [
-            {'$match': {'user_id': self.user_id}},
+            {'$match': self._owner_query()},
             {'$group': {'_id': None, 'total': {'$sum': '$quantity'}}}
         ]
         result = list(self.table.aggregate(pipeline))
         return result[0]['total'] if result else 0
 
     def get_items(self):
-        cart = self.bll.find_list_by_where({'user_id': self.user_id})
+        cart = self.bll.find_list_by_where(self._owner_query())
         # 重新计算每个商品的价格
-        user_group_id = self._get_user_group_id(self.user_id)
+        user_group_id = self._get_user_group_id()
         for item in cart:
             product_model = {
                 "marketPrice": float(str(item.market_price)) if item.market_price else 0,
@@ -209,11 +248,11 @@ class CartManager:
         else:
             # 重新获取原始定价规则并计算价格
             item = self.table.find_one({
-                'user_id': self.user_id,
+                **self._owner_query(),
                 'product_id': product_id
             })
             if item:
-                user_group_id = self._get_user_group_id(self.user_id)
+                user_group_id = self._get_user_group_id()
                 product_model = {
                     "marketPrice": float(str(item.get('market_price', 0))),
                     "costPrice": float(str(item.get('cost_price', 0))),
@@ -222,7 +261,7 @@ class CartManager:
                 }
                 price_result = self._calculate_final_price(product_model, quantity, user_group_id)
                 self.table.update_one(
-                    {'user_id': self.user_id, 'product_id': product_id},
+                    {'_id': item['_id']},
                     {
                         '$set': {
                             'quantity': quantity,
@@ -235,12 +274,12 @@ class CartManager:
 
     def remove_item(self, product_id: str):
         self.table.delete_one({
-            'user_id': self.user_id,
+            **self._owner_query(),
             'product_id': product_id
         })
 
     def clear_cart(self):
-        self.table.delete_many({'user_id': self.user_id})
+        self.table.delete_many(self._owner_query())
 
     def post_to_order(self, address_id: str, remark: str = "") -> str:
         address_model = Address().find_one_by_id(address_id)
@@ -253,7 +292,7 @@ class CartManager:
             return "购物车中没有商品"
 
         # 重新计算最终价格（锁定价格）
-        user_group_id = self._get_user_group_id(self.user_id)
+        user_group_id = self._get_user_group_id()
         total_price = Decimal('0.0')
         total_market_price = Decimal('0.0')
         total_weight = Decimal('0.0')
@@ -308,7 +347,7 @@ class CartManager:
 
         bll_order = ShopOrder()
         order_model = bll_order.new_instance()
-        order_model.user_id = self.user_id
+        order_model.user_id = self.user_id if not self.is_guest else None
         order_model.order_status = 0
         order_model.user_account = self.user_account
 

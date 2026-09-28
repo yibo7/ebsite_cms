@@ -21,39 +21,104 @@ from plugins.plugin_base import PaymentBase
 
 
 @bp_shop_pages.route('/cart', methods=['GET', 'POST'])
-@check_user_login
-def cart(user_token:UserToken):
+def cart():
+    """
+    购物车页面。
+    根据配置支持两种模式：
+      - cart_force_login=True:  必须登录才能访问（原行为）
+      - cart_force_login=False: 未登录用户可作为游客访问
+    """
+    from eb_modules.eb_shop import bp_shop_pages as _bp
+    config = getattr(_bp, 'config', {}) or {}
+    cart_force_login = config.get('cart_force_login', True)
+
+    from eb_cache.login_utils import get_token
+    user_token = get_token()
+
+    if cart_force_login:
+        if not user_token:
+            return redirect(url_for('pages_blue.login'))
+        return _cart_logged_in(user_token)
+
+    # ── 非强制登录（游客模式） ──
+    import uuid
+    from flask import make_response
+
+    cart_token = request.cookies.get('cart_token')
+    if not cart_token:
+        cart_token = str(uuid.uuid4())
+    need_set_cookie = not request.cookies.get('cart_token')
+
+    if user_token:
+        bll = CartManager(user_id=user_token.id, user_account=user_token.name)
+    else:
+        bll = CartManager(session_id=cart_token)
+
     err = ''
-    bll = CartManager(user_token.id,user_token.name)
+    action = http_helper.get_prams_int("action", 0)
     content_id = http_helper.get_prams("cid")
     product_id = http_helper.get_prams("pid")
-    quantity = http_helper.get_prams_int("num",1)
-    action = http_helper.get_prams_int("action",1)
+    quantity = http_helper.get_prams_int("num", 1)
 
-    if action==1 and content_id and product_id:
-        err = bll.add_item(content_id, product_id,quantity)
+    if action == 2 and content_id and product_id:
+        err = bll.update_quantity(content_id, product_id, quantity)
         if not err:
-            # 当需要刷新页面并去掉所有参数时
-            return redirect(url_for('bp_shop_pages.cart'))
-    elif action==2 and content_id and product_id:
-        err =bll.update_quantity(content_id, product_id, quantity)
-        if not err:
-            return redirect(url_for('bp_shop_pages.cart'))
-
-    elif action==3 and  product_id:
+            resp = redirect(url_for('bp_shop_pages.cart'))
+            if need_set_cookie:
+                resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+            return resp
+    elif action == 3 and product_id:
         bll.remove_item(product_id)
-        return redirect(url_for('bp_shop_pages.cart'))
-
-    elif action==4:
+        resp = redirect(url_for('bp_shop_pages.cart'))
+        if need_set_cookie:
+            resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+        return resp
+    elif action == 4:
         bll.clear_cart()
-        return redirect(url_for('bp_shop_pages.cart'))
+        resp = redirect(url_for('bp_shop_pages.cart'))
+        if need_set_cookie:
+            resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+        return resp
 
     shopping_cart = bll.get_items()
 
     total_count = sum(item.quantity for item in shopping_cart)
     total_price = sum(Decimal(str(item.price)) * item.quantity for item in shopping_cart)
-    total_price = round(total_price, 2)  # 保留 2 位小数
-    return render_template("shopping_cart.html", shopping_cart=shopping_cart,total_count=total_count,total_price=total_price, err=err)
+    total_price = round(total_price, 2)
+
+    resp = make_response(render_template("shopping_cart.html",
+        shopping_cart=shopping_cart, total_count=total_count, total_price=total_price, err=err))
+    if need_set_cookie:
+        resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+    return resp
+
+
+def _cart_logged_in(user_token):
+    """已登录用户的购物车处理（原逻辑）"""
+    err = ''
+    bll = CartManager(user_id=user_token.id, user_account=user_token.name)
+    content_id = http_helper.get_prams("cid")
+    product_id = http_helper.get_prams("pid")
+    quantity = http_helper.get_prams_int("num", 1)
+    action = http_helper.get_prams_int("action", 0)
+
+    if action == 2 and content_id and product_id:
+        err = bll.update_quantity(content_id, product_id, quantity)
+        if not err:
+            return redirect(url_for('bp_shop_pages.cart'))
+    elif action == 3 and product_id:
+        bll.remove_item(product_id)
+        return redirect(url_for('bp_shop_pages.cart'))
+    elif action == 4:
+        bll.clear_cart()
+        return redirect(url_for('bp_shop_pages.cart'))
+
+    shopping_cart = bll.get_items()
+    total_count = sum(item.quantity for item in shopping_cart)
+    total_price = sum(Decimal(str(item.price)) * item.quantity for item in shopping_cart)
+    total_price = round(total_price, 2)
+    return render_template("shopping_cart.html",
+        shopping_cart=shopping_cart, total_count=total_count, total_price=total_price, err=err)
 
 
 @bp_shop_pages.route('/post_order', methods=['GET', 'POST'])

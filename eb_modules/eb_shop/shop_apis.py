@@ -157,9 +157,61 @@ def cart_count():
     if not uid:
         return jsonify({"code": 0, "data": {"count": 0}})
 
-    cart_mgr = CartManager(uid, account)
+    cart_mgr = CartManager(user_id=uid, user_account=account)
     count = cart_mgr.get_count()
     return jsonify({"code": 0, "data": {"count": count}})
+
+
+@bp_shop_apis.route('cart/add', methods=['POST'])
+def api_cart_add():
+    """
+    异步添加商品到购物车（支持游客和登录用户）。
+    前端 fetch POST，不刷新页面。
+    返回 JSON：{ code: 0, msg: "已加入购物车" }
+    """
+    import uuid
+    from eb_modules.eb_shop import bp_shop_pages as _bp
+    config = getattr(_bp, 'config', {}) or {}
+    cart_force_login = config.get('cart_force_login', True)
+
+    # 兼容 form-data 和 JSON body
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        content_id = data.get('cid')
+        product_id = data.get('pid')
+        quantity = int(data.get('num', 1))
+    else:
+        content_id = request.form.get('cid')
+        product_id = request.form.get('pid')
+        quantity = int(request.form.get('num', 1))
+
+    if not content_id or not product_id:
+        return jsonify({"code": -1, "msg": "参数不完整"})
+
+    uid, account = _current_user_info()
+
+    if uid:
+        bll = CartManager(user_id=uid, user_account=account)
+    else:
+        if cart_force_login:
+            return jsonify({"code": -1, "msg": "请先登录后再购买"})
+        cart_token = request.cookies.get('cart_token')
+        if not cart_token:
+            cart_token = str(uuid.uuid4())
+        bll = CartManager(session_id=cart_token)
+
+    err = bll.add_item(content_id, product_id, quantity)
+    if err:
+        return jsonify({"code": -1, "msg": err})
+
+    # 获取最新购物车数量
+    count = bll.get_count()
+
+    resp = jsonify({"code": 0, "msg": "已加入购物车", "count": count})
+    # 游客首次加购，设置 cart_token cookie
+    if not uid and not request.cookies.get('cart_token'):
+        resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+    return resp
 
 
 @bp_shop_apis.route('product/<product_id>/prices', methods=['GET'])

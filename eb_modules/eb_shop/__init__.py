@@ -10,7 +10,7 @@ from bll.new_content import NewsContent
 from eb_utils import http_helper
 from entity.news_content_model import NewsContentModel
 from entity.pay_back_model import PayBackInfo
-from signals import content_saving, pay_saved_successful, search_prepare
+from signals import content_saving, pay_saved_successful, search_prepare, user_logged_in
 from .datas.shop_orders import ShopOrder
 from .. import module_attribute, ModuleInfo
 
@@ -90,6 +90,19 @@ settings_temp = '''
     <input name="flat_shipping_fee" value="{{model.flat_shipping_fee or 20}}"
            style="max-width:400px" class="form-control" type="number" min="0" step="0.01" required>
 </div>
+
+<hr class="my-4">
+<h6 class="mb-3">购物车设置</h6>
+
+<div class="mb-3">
+    <div class="form-check">
+        <input type="checkbox" name="cart_force_login" value="on" class="form-check-input"
+               id="cart_force_login" {% if model.cart_force_login %}checked{% endif %}>
+        <input type="hidden" name="cart_force_login" value="checkbox_unchecked">
+        <label class="form-check-label" for="cart_force_login">购物车必须登录才能访问</label>
+        <small class="text-muted d-block">未勾选时，未登录用户可以将商品加入购物车，提交订单时才要求登录</small>
+    </div>
+</div>
 '''
 
 # ── 运行时配置（module_init 中从 DB 读取后填充） ─────────────
@@ -107,6 +120,7 @@ article_class_id: ObjectId = None
         'product_class_id': 'str',
         'article_class_id': 'str',
         'brand_parent_id': 'str',
+        'cart_force_login': 'bool',
     }
 )
 def module_init(app:Flask, model:ModuleInfo):
@@ -146,6 +160,7 @@ def module_init(app:Flask, model:ModuleInfo):
     content_saving.connect(on_content_saving)
     pay_saved_successful.connect(on_pay_saved_successful)
     search_prepare.connect(on_search_prepare)
+    user_logged_in.connect(on_user_logged_in)
 
     ShopOrder(app).create_index_order_id()
 
@@ -212,6 +227,65 @@ def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
     print(f'订单{model.order_no}支付成功，开始处理订单状态')
     # todo
     return True, 'succesfull'
+
+
+def on_user_logged_in(sender, user_id: str):
+    """
+    用户登录成功后触发，将游客购物车合并到该用户的购物车。
+    从 cookie 中读取 cart_token，如果有对应的游客购物车记录，转为登录用户所有。
+    """
+    try:
+        from flask import request
+        cart_token = request.cookies.get('cart_token')
+        print(f"[购物车合并] user_id={user_id}, cart_token from cookie={cart_token!r}")
+
+        if not cart_token:
+            return
+
+        from eb_modules.eb_shop.datas.shopping_cart import ShoppingCartBll
+        bll = ShoppingCartBll()
+        collection = bll.table
+
+        # 查找该 token 对应的游客购物车记录
+        guest_items = list(collection.find({'session_id': cart_token}))
+        print(f"[购物车合并] 找到 {len(guest_items)} 条游客购物车记录")
+
+        if not guest_items:
+            return
+
+        user_oid = ObjectId(user_id)
+        merged_count = 0
+        delete_count = 0
+
+        # 对每个游客购物车项，检查用户是否已有相同的商品
+        for item in guest_items:
+            product_id = item.get('product_id')
+            existing = collection.find_one({
+                'user_id': user_oid,
+                'product_id': product_id,
+            })
+            if existing:
+                # 已有相同商品，合并数量
+                new_qty = (existing.get('quantity', 0) or 0) + (item.get('quantity', 0) or 0)
+                collection.update_one(
+                    {'_id': existing['_id']},
+                    {'$set': {'quantity': new_qty}}
+                )
+                collection.delete_one({'_id': item['_id']})
+                delete_count += 1
+                print(f"[购物车合并] 商品 {product_id} 合并数量，新数量={new_qty}")
+            else:
+                # 没有相同商品，转为登录用户所有
+                collection.update_one(
+                    {'_id': item['_id']},
+                    {'$set': {'user_id': user_oid}, '$unset': {'session_id': ""}}
+                )
+                merged_count += 1
+                print(f"[购物车合并] 商品 {product_id} 转为登录用户")
+
+        print(f"[购物车合并] 完成：{merged_count} 条转用户，{delete_count} 条合并删除")
+    except Exception as e:
+        print(f"[购物车合并] 失败: {e}")
 
 
 # ---------------------------- 商品/文章分类ID（从数据库配置读取）────

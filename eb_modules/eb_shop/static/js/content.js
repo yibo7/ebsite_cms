@@ -263,24 +263,55 @@ In.ready('vue', function () {
                 this.recalcAll();
             },
 
-            // ── 加入购物车 ──
+            // ── 加入购物车（异步） ──
             go_to_car: function () {
-                if (!this.SelProduct) {
-                    this.showToast('请先选择商品规格', 'warning');
+                var self = this;
+                if (!self.SelProduct) {
+                    self.showToast('请先选择商品规格', 'warning');
                     return;
                 }
-                if (this.Quantity < 1) {
-                    this.showToast('购买数量必须大于0', 'warning');
+                if (self.Quantity < 1) {
+                    self.showToast('购买数量必须大于0', 'warning');
                     return;
                 }
-                if (this.Quantity > this.SelProduct.stock) {
-                    this.showToast('库存不足，当前最多可购买 ' + this.SelProduct.stock + ' 件', 'warning');
+                if (self.Quantity > self.SelProduct.stock) {
+                    self.showToast('库存不足，当前最多可购买 ' + self.SelProduct.stock + ' 件', 'warning');
                     return;
                 }
 
                 // 后端会在 add_item 时重新计算价格并校验
-                var url = "/shop/cart?cid=" + this.ContentId + "&pid=" + this.SelProduct.productId + "&num=" + this.Quantity + "&action=1";
-                window.location.href = url;
+                var body = new URLSearchParams();
+                body.append('cid', self.ContentId);
+                body.append('pid', self.SelProduct.productId);
+                body.append('num', self.Quantity);
+
+                fetch('/shop/api/cart/add', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: body.toString()
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.code === 0) {
+                        self.showToast(data.msg || '已加入购物车', 'success');
+                        // 更新右上角购物车角标
+                        var badge = document.getElementById('quoteBadge');
+                        if (badge) {
+                            var c = data.count || 0;
+                            badge.textContent = c;
+                            if (c > 0) {
+                                badge.classList.remove('hidden');
+                            } else {
+                                badge.classList.add('hidden');
+                            }
+                        }
+                    } else {
+                        self.showToast(data.msg || '添加失败', 'error');
+                    }
+                })
+                .catch(function () {
+                    self.showToast('网络异常，请稍后重试', 'error');
+                });
             },
 
             // ── 收藏 ──

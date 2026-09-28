@@ -14,7 +14,7 @@ from bll_orders.credit_logs import CreditLogs
 from eb_cache import login_utils
 from eb_utils import string_check, flask_utils
 from entity.user_model import UserModel
-from signals import user_reged
+from signals import user_reged, user_logged_in
 
 
 class User(BllBase[UserModel]):
@@ -196,6 +196,7 @@ class User(BllBase[UserModel]):
                     user.last_login_date = time.time()
                     user.login_count += 1
                     self.update(user)
+                    user_logged_in.send(user, user_id=str(user._id))
                 else:
                     msg = "用户名或密码错误"
             else:
@@ -306,6 +307,7 @@ class User(BllBase[UserModel]):
                     model.last_login_date = time.time()
                     model.login_count += 1
                     self.update(model)
+                    user_logged_in.send(model, user_id=str(model._id))
                 else:
                     msg = "用户名或密码错误"
             else:
