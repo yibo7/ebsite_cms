@@ -1,11 +1,5 @@
-import json
-from collections import Counter
-
 from flask import Flask, Blueprint, current_app
 
-from entity.pay_back_model import PayBackInfo
-from signals import content_saving, pay_saved_successful
-from .datas.quote_record import ShopQuoteRecord
 from .. import module_attribute, ModuleInfo
 
 module_url_prefix = "/ai_cart"
@@ -40,12 +34,6 @@ _SETTINGS_AI = '''
 '''
 
 
-def on_pay_saved_successful(model: PayBackInfo) -> (bool, str):
-    print(f'订单{model.order_no}支付成功，开始处理订单状态')
-    # todo
-    return True, 'succesfull'
-
-
 # ═════════════════════════════════════════════════════════════════
 #  模块内部导入（触发 AI 供应商 & Handler 注册）
 # ═════════════════════════════════════════════════════════════════
@@ -78,7 +66,7 @@ settings_temp = f'''
 '''
 
 
-@module_attribute('智能询价系统','通过AI调用商品数据给客户报价，目前依赖于eb_shop的商品表运行。',"/eb_quote/shop_quotes",settings_temp,'ebsite',config_fields={
+@module_attribute('智能询价系统','通过AI调用商品数据给客户报价，目前依赖于eb_shop的商品表运行。',"/ai_cart/shop_quote_prompts",settings_temp,'ebsite',config_fields={
         'ai_provider': 'str','ai_key': 'str','ai_model': 'str','product_type': 'str'
 
     })
@@ -102,10 +90,6 @@ def module_init(app:Flask, model:ModuleInfo):
 
     app.register_blueprint(bp_ai_cart_pages)
     app.register_blueprint(bp_ai_cart_apis)
-
-    # content_saving.connect(on_content_saving)
-    pay_saved_successful.connect(on_pay_saved_successful)
-    ShopQuoteRecord(app).create_index_record_id()
 
     # 将默认提示词写入数据库（首次启动时）
     from .datas.prompts_config import ShopQuotePrompts
