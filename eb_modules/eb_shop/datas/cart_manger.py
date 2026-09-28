@@ -188,7 +188,9 @@ class CartManager:
             model.content_title = content_model.title
             model.content_id = content_model._id
             model.content_n_id = content_model.id
-            model.small_pic = content_model.small_pic
+            # 优先使用 SKU 规格图片，没有则回退到商品主图
+            sku_image = product_model.get("image") or product_model.get("thumb") or ""
+            model.small_pic = sku_image or content_model.small_pic
             model.class_name = content_model.class_name
             model.class_n_id = content_model.class_n_id
 

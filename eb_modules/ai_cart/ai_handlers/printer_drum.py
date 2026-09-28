@@ -145,6 +145,7 @@ class PrinterDrumHandler(AiHandlerBase):
                 url = ""
             current_app.logger.warning(f"[DEBUG url] id={p.id} _id={p._id} url={url}")
             products.append({
+                "_id": str(p._id) if p._id else "",
                 "title": p.title or "",
                 "small_pic": p.small_pic or "",
                 "unit_price": float(p.column_11 or 0),

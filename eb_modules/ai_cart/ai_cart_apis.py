@@ -133,28 +133,44 @@ def quote_chat():
     sp = _get_prompt("sales_prompt_tpl")
     current_app.logger.warning(f"[DEBUG sales_prompt_tpl 前100字] {sp[:100]}")
 
-    # 完全提取不到（ok=false 且 partial=false）→ 引导客户
+    # 完全提取不到（ok=false 且 partial=false）→ 先做原文兜底搜索
     # 注意：partial=true 表示有部分参数（如只有品牌），应继续搜索
+    fallback_hit = False
     if not extract_result.get("ok") and not extract_result.get("partial"):
-        try:
-            t_guide_start = time.time()
-            raw = provider.chat(
-                [{"role": "user", "content": latest_msg}],
-                _get_prompt("guide_prompt").format(user_msg=latest_msg[:300])
-            )
-            guide_result = _parse_json_reply(raw)
-            current_app.logger.warning(f"[⏱ 引导] {(time.time()-t_guide_start)*1000:.0f}ms")
-            if isinstance(guide_result, dict) and guide_result.get("reply"):
-                return jsonify({"reply": guide_result["reply"], "matches": []})
-        except Exception as e:
-            current_app.logger.error(f"引导异常: {e}")
-        # 兜底
-        return jsonify({"reply": handler.guide_fallback_reply(), "matches": []})
+        # 用用户原始输入作为关键词做一次兜底搜索
+        fallback_params = {"model": latest_msg.strip(), "brand": "", "oem": ""}
+        t2 = time.time()
+        fallback_products = handler.search(fallback_params)
+        current_app.logger.warning(f"[⏱ 兜底搜索] {(time.time()-t2)*1000:.0f}ms → {len(fallback_products)} 个")
+
+        if fallback_products:
+            # 兜底搜到了 → 跳过引导，直接走销售文案流程
+            matched_products = fallback_products
+            extract_result = {"ok": True, "partial": True, "brand": "", "model": latest_msg.strip()}
+            fallback_hit = True
+            current_app.logger.warning(f"[🔍 兜底命中] 原文「{latest_msg}」搜索到 {len(matched_products)} 个商品")
+        else:
+            # 兜底也没搜到 → 引导客户
+            try:
+                t_guide_start = time.time()
+                raw = provider.chat(
+                    [{"role": "user", "content": latest_msg}],
+                    _get_prompt("guide_prompt").format(user_msg=latest_msg[:300])
+                )
+                guide_result = _parse_json_reply(raw)
+                current_app.logger.warning(f"[⏱ 引导] {(time.time()-t_guide_start)*1000:.0f}ms")
+                if isinstance(guide_result, dict) and guide_result.get("reply"):
+                    return jsonify({"reply": guide_result["reply"], "matches": []})
+            except Exception as e:
+                current_app.logger.error(f"引导异常: {e}")
+            # 兜底
+            return jsonify({"reply": handler.guide_fallback_reply(), "matches": []})
 
     # ── Step 2: 搜索商品（由品类 Handler 实现）──
-    t2 = time.time()
-    matched_products = handler.search(extract_result)
-    current_app.logger.warning(f"[⏱ 搜索] {(time.time()-t2)*1000:.0f}ms → {len(matched_products)} 个")
+    if not fallback_hit:
+        t2 = time.time()
+        matched_products = handler.search(extract_result)
+        current_app.logger.warning(f"[⏱ 搜索] {(time.time()-t2)*1000:.0f}ms → {len(matched_products)} 个")
 
     if not matched_products:
         current_app.logger.warning(f"[⏱ 总耗时] {(time.time()-t0)*1000:.0f}ms")
@@ -182,9 +198,25 @@ def quote_chat():
         current_app.logger.error(f"文案异常: {e}")
         sales_result = {"reply": ""}
 
+    def _build_match(product, sku_code, product_id, doc_id, sku_image="", sku_price=0):
+        """从商品和 SKU 构造一条匹配项"""
+        return {
+            "id": doc_id,
+            "title": product.get("title", ""),
+            "small_pic": sku_image or product.get("small_pic", ""),
+            "unit_price": float(sku_price or product.get("unit_price", 0)),
+            "market_price": float(sku_price or product.get("market_price", 0)),
+            "class_name": product.get("class_name", ""),
+            "content_id": product.get("sku", ""),
+            "sku": sku_code or product.get("sku", ""),
+            "product_id": product_id,
+            "url": product.get("url", ""),
+            "qty": 1,
+        }
+
     matches = []
     for p in matched_products:
-        # 从 column_10 提取第一个真实 SKU 码（用于前端显示）
+        # 解析 column_10 获取所有 SKU
         raw_skus = p.get("column_10", "[]")
         if isinstance(raw_skus, str):
             try: skus_list = json.loads(raw_skus)
@@ -193,29 +225,25 @@ def quote_chat():
             skus_list = raw_skus
         else:
             skus_list = []
-        first_sku = skus_list[0].get("sku", "") if skus_list else ""
-        first_product_id = skus_list[0].get("productId", "") if skus_list else ""
 
-        matches.append({
-            "id": str(p.get("_id", "")),          # MongoDB _id，用作 cid
-            "title": p.get("title", ""),
-            "small_pic": p.get("small_pic", ""),
-            "unit_price": float(p.get("unit_price", 0)),
-            "market_price": float(p.get("market_price", 0)),
-            "class_name": p.get("class_name", ""),
-            "content_id": p.get("sku", ""),        # 兼容旧字段
-            "sku": first_sku or p.get("sku", ""),  # 真实 SKU 码
-            "product_id": first_product_id,        # 规格的 productId（MD5），用作 pid
-            "url": p.get("url", ""),
-            "qty": 1,
-        })
+        # 如果商品没有 SKU，用商品本身作为一条匹配
+        if not skus_list:
+            matches.append(_build_match(p, p.get("sku", ""), p.get("sku", ""), str(p.get("_id", ""))))
+        else:
+            # 每个 SKU 生成一张独立卡片，使用 SKU 自己的价格
+            for s in skus_list:
+                sku_code = s.get("sku", "")
+                product_id = s.get("productId", "")
+                sku_image = s.get("image", "")
+                sku_price = s.get("marketPrice", 0)
+                matches.append(_build_match(p, sku_code, product_id, str(p.get("_id", "")), sku_image, sku_price))
 
     if not sales_result.get("reply"):
         sales_result["reply"] = (
             f"<p>为您找到以下产品：</p>"
             + "".join(f"<p>• {p['title']}</p>"
                      for p in matched_products[:3])
-            + "<p>点击 <strong>[+]</strong> 加入询价单，可在其中修改数量。</p>"
+            + "<p>点击 <strong>[+]</strong> 加入购物车单，可在其中修改数量。</p>"
         )
 
     sales_result["matches"] = matches

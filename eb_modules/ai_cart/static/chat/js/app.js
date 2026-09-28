@@ -137,11 +137,12 @@ async function sendMessage() {
     if (matches.length > 0) {
       if (!window.PRODUCT_MAP) window.PRODUCT_MAP = {};
       matches.forEach(m => {
-        const contentId = m.content_id || m.sku || m.title || '';
+        // 用 product_id 作为唯一 key（每个 SKU 有自己的 product_id）
+        const uniqueKey = m.product_id || m.content_id || m.sku || m.title || '';
         const displaySku = m.sku || m.title || '';
         // 存入 PRODUCT_MAP，供 "添加到购物车" 按钮查找
-        window.PRODUCT_MAP[contentId] = {
-          _id: m.id || contentId,
+        window.PRODUCT_MAP[uniqueKey] = {
+          _id: m.id || uniqueKey,
           title: m.title || '',
           unit_price: m.unit_price || 0,
           market_price: m.market_price || 0,
@@ -156,7 +157,7 @@ async function sendMessage() {
           ? `<img src="${m.small_pic}" alt="${m.title}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`
           : '🖨️';
         matchedProducts.push({
-          id: contentId,
+          id: uniqueKey,
           name: m.title || '',
           unit_price: m.unit_price || 0,
           market_price: m.market_price || 0,

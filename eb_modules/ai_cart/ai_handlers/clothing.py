@@ -81,6 +81,7 @@ class ClothingHandler(AiHandlerBase):
             from eb_utils import url_links
             url = url_links.get_content_url(p.id) if p.id else (url_links.get_content_url(str(p._id)) if p._id else "")
             products.append({
+                "_id": str(p._id) if p._id else "",
                 "title": p.title or "",
                 "small_pic": p.small_pic or "",
                 "unit_price": float(p.column_11 or 0),
