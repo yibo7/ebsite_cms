@@ -214,6 +214,138 @@ def api_cart_add():
     return resp
 
 
+# ── 辅助：从请求中获取 CartManager ──────────────────────
+def _resolve_cart_manager() -> tuple:
+    """
+    根据请求的 cookie/token 创建 CartManager，返回 (manager, cart_token, is_guest)。
+    is_guest=False 表示已登录用户。
+    如果 cart_force_login=True 且未登录，返回 (None, None, None)。
+    """
+    import uuid
+    from eb_modules.eb_shop import bp_shop_pages as _bp
+    config = getattr(_bp, 'config', {}) or {}
+    cart_force_login = config.get('cart_force_login', True)
+
+    uid, account = _current_user_info()
+    if uid:
+        return CartManager(user_id=uid, user_account=account), None, False
+
+    if cart_force_login:
+        return None, None, None
+
+    cart_token = request.cookies.get('cart_token')
+    if not cart_token:
+        cart_token = str(uuid.uuid4())
+    return CartManager(session_id=cart_token), cart_token, True
+
+
+@bp_shop_apis.route('cart/items', methods=['GET'])
+def api_cart_items():
+    """
+    获取当前购物车商品列表（支持游客和登录用户）。
+    返回 JSON：{ code: 0, data: { items: [...], count: N } }
+    """
+    mgr, cart_token, is_guest = _resolve_cart_manager()
+    if mgr is None:
+        return jsonify({"code": 0, "data": {"items": [], "count": 0}})
+
+    items = mgr.get_items()
+    result = []
+    for item in items:
+        gqp = getattr(item, 'group_qty_prices', None)
+        if gqp is None:
+            gqp = []
+        result.append({
+            "content_id": str(item.content_id) if item.content_id else "",
+            "product_id": item.product_id or "",
+            "title": item.content_title or "",
+            "product_name": item.product_name or "",
+            "sku": item.product_sku or "",
+            "qty": item.quantity or 0,
+            "price": float(str(item.price)) if item.price else 0,
+            "market_price": float(str(item.market_price)) if item.market_price else 0,
+            "small_pic": item.small_pic or "",
+            "class_name": item.class_name or "",
+            "url": item.get_url or "",
+            "price_source": item.price_source or "",
+            "group_qty_prices": gqp,
+        })
+    count = sum(i.quantity for i in items)
+
+    resp = jsonify({"code": 0, "data": {"items": result, "count": count}})
+    if is_guest and cart_token and not request.cookies.get('cart_token'):
+        resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+    return resp
+
+
+@bp_shop_apis.route('cart/update', methods=['POST'])
+def api_cart_update():
+    """
+    更新购物车商品数量。
+    请求体：{ pid: "...", num: N }
+    返回 JSON：{ code: 0, msg: "ok" }
+    """
+    pid = request.form.get('pid') or (request.get_json(silent=True) or {}).get('pid')
+    num = int(request.form.get('num', 1) or (request.get_json(silent=True) or {}).get('num', 1))
+
+    if not pid:
+        return jsonify({"code": -1, "msg": "参数不完整"})
+
+    mgr, cart_token, is_guest = _resolve_cart_manager()
+    if mgr is None:
+        return jsonify({"code": -1, "msg": "请先登录"})
+
+    err = mgr.update_quantity("", pid, num)
+    if err:
+        return jsonify({"code": -1, "msg": err})
+
+    resp = jsonify({"code": 0, "msg": "ok"})
+    if is_guest and cart_token and not request.cookies.get('cart_token'):
+        resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+    return resp
+
+
+@bp_shop_apis.route('cart/remove', methods=['POST'])
+def api_cart_remove():
+    """
+    从购物车删除商品。
+    请求体：{ pid: "..." }
+    返回 JSON：{ code: 0, msg: "已删除" }
+    """
+    pid = request.form.get('pid') or (request.get_json(silent=True) or {}).get('pid')
+    if not pid:
+        return jsonify({"code": -1, "msg": "参数不完整"})
+
+    mgr, cart_token, is_guest = _resolve_cart_manager()
+    if mgr is None:
+        return jsonify({"code": 0, "msg": "ok"})
+
+    mgr.remove_item(pid)
+
+    resp = jsonify({"code": 0, "msg": "已删除"})
+    if is_guest and cart_token and not request.cookies.get('cart_token'):
+        resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+    return resp
+
+
+@bp_shop_apis.route('cart/clear', methods=['POST'])
+def api_cart_clear():
+    """
+    清空购物车。
+    返回 JSON：{ code: 0, msg: "已清空" }
+    """
+    mgr, cart_token, is_guest = _resolve_cart_manager()
+    if mgr is None:
+        return jsonify({"code": 0, "msg": "ok"})
+
+    mgr.clear_cart()
+
+    resp = jsonify({"code": 0, "msg": "已清空"})
+    if is_guest and cart_token and not request.cookies.get('cart_token'):
+        resp.set_cookie('cart_token', cart_token, max_age=30*24*3600, path='/')
+    return resp
+
+
 @bp_shop_apis.route('product/<product_id>/prices', methods=['GET'])
 def product_prices(product_id):
     """

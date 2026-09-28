@@ -84,12 +84,12 @@
       <div class="qf-row"><span>商品款数</span><b><span id="qfCountDesktop">0</span> 款</b></div>
       <div class="qf-row"><span>总数量</span><b><span id="qfQtyDesktop">0</span> 支</b></div>
       <div id="qfPriceDesktop">
-      <div class="qf-row"><span>原价合计</span><b>¥<span id="qfOriginalDesktop">0.00</span></b></div>
+      <div class="qf-row"><span>原价合计</span><b style="text-decoration:line-through;color:#b8c0cc;">¥<span id="qfOriginalDesktop">0.00</span></b></div>
       <div class="qf-row discount"><span>优惠折扣</span><b id="qfDiscountDesktop">-¥0.00</b></div>
       <div class="qf-row total"><span>报价合计</span><b>¥<span id="qfTotalDesktop">0.00</span></b></div>
       </div>
       <div class="qf-actions">
-        <button class="btn btn-accent" onclick="submitToCart()">📄 生成报价单</button>
+        <button class="btn btn-accent" onclick="submitToCart()">🛒 去购物车结算</button>
       </div>
     </div>
 
@@ -123,7 +123,7 @@
       <div class="qf-row total"><span>报价合计</span><b>¥<span id="qfTotalMobile">0.00</span></b></div>
       </div>
       <div class="qf-actions">
-        <button class="btn btn-accent" >📄 生成报价单</button>
+        <button class="btn btn-accent" onclick="submitToCart()">🛒 去购物车结算</button>
       </div>
     </div>
   </div>
@@ -131,23 +131,6 @@
 
 <!-- Toast -->
 <div class="toast" id="toast">✅ 操作成功</div>
-
-<!-- 报价链接弹窗 -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal-box">
-    <div class="modal-icon">✅</div>
-    <h3>报价链接已生成</h3>
-    <p>点击下方链接，即可打开您的专属询价篮页面，查看本次咨询的所有产品与报价。</p>
-    <div class="modal-link">
-      <input type="text" id="quoteLink" readonly value="">
-      <button onclick="copyLink()">复制</button>
-    </div>
-    <div class="modal-actions">
-      <a href="cart.html" class="btn btn-accent">🛒 打开报价单</a>
-      <button class="btn btn-outline" onclick="closeModal()">继续咨询</button>
-    </div>
-  </div>
-</div>
 
 <script src="js/app.js"></script>
 

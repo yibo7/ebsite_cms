@@ -16,7 +16,7 @@ from entity.user_token import UserToken
 
 @bp_ai_cart_pages.route('/', methods=['GET', 'POST'])
 def credits_index():
-    return redirect('ask/index.html')
+    return redirect('chat/index.html')
 
 @bp_ai_cart_pages.route('/quote/<record_id>', methods=['GET'])
 def quote_view(record_id: str):

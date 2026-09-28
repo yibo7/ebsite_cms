@@ -42,50 +42,15 @@ async function loadProducts() {
 let QUOTE_SESSION = [];
 
 /* ===================================================================
-   ===== 询价单状态 =====
+   ===== 购物车面板（通过 API 读取后端购物车） =====
    =================================================================== */
-let quoteItems = [];
 
-function saveQuoteItems() {
-  localStorage.setItem('ai_cart_items', JSON.stringify(quoteItems));
+/**
+ * 刷新右侧购物车面板：从 API 获取最新数据并渲染
+ */
+function refreshQuotePanel() {
+  renderQuote();
 }
-
-function loadQuoteItems() {
-  try {
-    const saved = localStorage.getItem('ai_cart_items');
-    if (saved) {
-      quoteItems = JSON.parse(saved) || [];
-      // 兼容旧版 localStorage 数据：将 price 迁移到 unit_price
-      quoteItems.forEach(item => {
-        // 旧版数据可能有 price 字段，迁移到 unit_price
-        if (item.price && !item.unit_price) {
-          item.unit_price = item.price;
-        }
-        delete item.price;
-        if (!item.class_name && item.life) {
-          item.class_name = item.life;
-        }
-        if (!item.small_pic && item.icon) {
-          item.small_pic = item.icon;
-        }
-        if (!item.url) {
-          // 从 id 尝试构造 URL（旧数据没有 url 字段）
-          const idStr = String(item.id || '');
-          if (idStr.length === 24) { // MongoDB ObjectId — 无法推断文章 ID，跳过
-          } else if (idStr.match(/^\d+$/)) {
-            item.url = '/a' + idStr + '.html';
-          }
-        }
-      });
-      if (typeof renderQuote === 'function') setTimeout(renderQuote, 0);
-    }
-  } catch(e) {
-    quoteItems = [];
-  }
-}
-
-// 页面加载时恢复询价单
-loadQuoteItems();
 
 /* ===================================================================
    ===== DOM 引用 =====
@@ -174,15 +139,16 @@ async function sendMessage() {
       matches.forEach(m => {
         const contentId = m.content_id || m.sku || m.title || '';
         const displaySku = m.sku || m.title || '';
-        // 存入 PRODUCT_MAP，供 "添加到询价篮" 按钮查找
+        // 存入 PRODUCT_MAP，供 "添加到购物车" 按钮查找
         window.PRODUCT_MAP[contentId] = {
-          _id: contentId,
+          _id: m.id || contentId,
           title: m.title || '',
           unit_price: m.unit_price || 0,
           market_price: m.market_price || 0,
           small_pic: m.small_pic || '',
           class_name: m.class_name || '',
           sku: displaySku,
+          product_id: m.product_id || '',
           url: m.url || '',
           remarks: m.remarks || ''
         };
@@ -197,6 +163,7 @@ async function sendMessage() {
           qty: m.qty || 1,
           class_name: m.class_name || '',
           sku: displaySku,
+          product_id: m.product_id || '',
           url: m.url || '',
           icon: thumbHtml
         });
@@ -421,129 +388,156 @@ function calcDiscountPrice(originalPrice) {
 }
 
 /* ===================================================================
-   ===== 询价单操作 =====
+   ===== 购物车 API 操作 =====
    =================================================================== */
 function addToQuote(productId, btn, qty) {
-  // 从 AI 回复时动态构建的 PRODUCT_MAP 查找
-  let product = (window.PRODUCT_MAP || {})[productId];
+  // productId 是 PRODUCT_MAP 的 key，即 content_id
+  var product = (window.PRODUCT_MAP || {})[productId];
   if (!product) {
-    // 兜底：可能是旧版硬编码 ID
-    const legacy = {
-      'IR1730': { title: '佳能 IR1730 鼓芯', unit_price: 20 },
-      'IR2016': { title: '佳能 IR2016 鼓芯', unit_price: 23 },
-      'TOSHIBA-2505': { title: '东芝 2505 鼓芯', unit_price: 26 },
-    }[productId];
-    if (!legacy) return;
-    product = { _id: productId, title: legacy.title, unit_price: legacy.unit_price };
+    showToast('商品数据异常');
+    return;
   }
 
-  const existing = quoteItems.find(item => item.id === productId);
-  const addQty = qty || 1;
-  if (existing) {
-    existing.qty += addQty;
-    saveQuoteItems();
-    showToast(`已增加 ${addQty} 支：${product.title}`);
-  } else {
-    const thumbHtml = product.small_pic
-      ? (product.small_pic.startsWith('http') || product.small_pic.startsWith('/')
-        ? `<img src="${product.small_pic}" alt="${product.title}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">`
-        : product.small_pic)
-      : '🖨️';
-    quoteItems.push({
-      id: productId,
-      name: product.title,
-      unit_price: product.unit_price || 0,
-      market_price: product.market_price || 0,
-      qty: addQty,
-      class_name: product.class_name || '',
-      sku: product.sku || productId,
-      url: product.url || '',
-      remarks: product.remarks || '',
-      small_pic: product.small_pic || '',
-      icon: thumbHtml
-    });
-    saveQuoteItems();
-    showToast(`已加入询价单：${product.title}`);
+  var cid = product._id || productId;
+  var pid = product.product_id || '';
+  var num = qty || 1;
+
+  if (!pid) {
+    showToast('该商品暂无可用规格，无法加入购物车');
+    return;
   }
-  if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
-  renderQuote();
+
+  var body = new URLSearchParams();
+  body.append('cid', cid);
+  body.append('pid', pid);
+  body.append('num', num);
+
+  fetch('/shop/api/cart/add', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  })
+  .then(function (r) { return r.json(); })
+  .then(function (data) {
+    if (data.code === 0) {
+      showToast('已加入购物车');
+      if (btn) { btn.classList.add('added'); btn.textContent = '✓'; }
+      renderQuote();
+    } else {
+      showToast(data.msg || '添加失败');
+    }
+  })
+  .catch(function () {
+    showToast('网络异常，请稍后重试');
+  });
 }
 
 function renderQuote() {
-  const hasItems = quoteItems.length > 0;
+  fetch('/shop/api/cart/items')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var items = (data.data && data.data.items) || [];
+      renderQuoteItems(items);
+    })
+    .catch(function () {
+      renderQuoteItems([]);
+    });
+}
 
-  let itemsHtml = '';
+function getNextTierHint(qtyPrices, currentQty, currentPrice) {
+  if (!qtyPrices || qtyPrices.length === 0) return null;
+  for (var i = 0; i < qtyPrices.length; i++) {
+    var tier = qtyPrices[i];
+    if (currentQty >= tier.min_qty) continue;
+    if (tier.price >= currentPrice) continue;
+    var diff = tier.min_qty - currentQty;
+    return '再买 ' + diff + ' 件可享批发价 ¥' + Number(tier.price).toFixed(2);
+  }
+  return null;
+}
+
+function renderQuoteItems(items) {
+  var hasItems = items.length > 0;
+
+  var itemsHtml = '';
   if (hasItems) {
-    quoteItems.forEach(item => {
-      const up = item.unit_price || 0;
-      const hasPrice = up > 0;
-      const dp = calcDiscountPrice(up);
-      const subtotal = hasPrice ? dp * item.qty : 0;
-      const priceDisplay = hasPrice ? `<span class="qi-original">¥${up.toFixed(2)}</span><span class="qi-level-price">¥${dp.toFixed(2)}</span>` : ``;
-      const itemUrl = item.url || '';
-      const itemLinkAttrs = itemUrl ? `href="${itemUrl}" target="_blank" rel="noopener"` : `href="#" onclick="event.stopPropagation();return false;"`;
-      const thumbLink = itemUrl
-        ? `<a href="${itemUrl}" target="_blank" rel="noopener" class="qi-thumb-link">${item.small_pic ? `<img src="${item.small_pic}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</a>`
-        : `<div class="qi-thumb">${item.small_pic ? `<img src="${item.small_pic}" alt="${item.name}" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">` : (item.icon || '🖨️')}</div>`;
-      const subtotalDisplay = hasPrice ? `¥${subtotal.toFixed(2)}` : ``;
-      itemsHtml += `
-        <div class="quote-item">
-          ${thumbLink}
-          <div class="qi-info">
-            <h4><a ${itemLinkAttrs} class="qi-title-link">${item.name}</a></h4>
-            <div class="qi-meta">
-              ${priceDisplay}
-            </div>
-            <div class="qi-qty">
-              <button onclick="changeQuoteQty('${item.id}', -1)">−</button>
-              <input type="number" value="${item.qty}" min="1" max="9999" onchange="setQuoteQty('${item.id}', this.value)">
-              <button onclick="changeQuoteQty('${item.id}', 1)">+</button>
-            </div>
-          </div>
-          <div class="qi-right">
-            <div class="qi-subtotal">${subtotalDisplay}<small>${item.qty} 支</small></div>
-            <button class="qi-remove" onclick="removeFromQuote('${item.id}')">✕ 移除</button>
-          </div>
-        </div>
-      `;
+    items.forEach(function (item) {
+      var up = item.price || 0;
+      var mp = item.market_price || 0;
+      var subtotal = up * item.qty;
+      var thumbHtml = item.small_pic
+        ? '<img src="' + item.small_pic + '" alt="' + item.title + '" style="width:48px;height:48px;object-fit:cover;border-radius:8px;">'
+        : '📦';
+      var itemUrl = item.url || '';
+      var thumbLink = itemUrl
+        ? '<a href="' + itemUrl + '" target="_blank" rel="noopener" class="qi-thumb-link">' + thumbHtml + '</a>'
+        : '<div class="qi-thumb">' + thumbHtml + '</div>';
+
+      // 价格来源标签
+      var sourceBadge = '';
+      if (item.price_source && item.price_source !== '零售价') {
+        sourceBadge = '<span style="display:inline-block;font-size:10px;color:#4c6fff;background:#eef2ff;padding:0 6px;border-radius:8px;font-weight:500;line-height:1.6;margin-top:2px;">' + item.price_source + '</span>';
+      }
+
+      // 阶梯价提示
+      var tierHint = getNextTierHint(item.group_qty_prices, item.qty, up);
+      var tierHtml = tierHint
+        ? '<div style="font-size:11px;color:#e67e22;margin-top:3px;">💡 ' + tierHint + '</div>'
+        : '';
+
+      itemsHtml += [
+        '<div class="quote-item">',
+          thumbLink,
+          '<div class="qi-info">',
+            '<h4>' + (item.title || '') + '</h4>',
+            '<div class="qi-meta"><span class="tag">' + (item.sku || '') + '</span></div>',
+            '<div style="font-size:13px;font-weight:700;color:var(--accent);">¥' + up.toFixed(2) +
+              (mp > up ? ' <small style="font-size:11px;color:#b8c0cc;text-decoration:line-through;font-weight:400;">¥' + mp.toFixed(2) + '</small>' : '') +
+            '</div>',
+            sourceBadge,
+            tierHtml,
+            '<div class="qi-qty">',
+              '<button onclick="changeQuoteQty(\'' + item.product_id + '\', -1)">−</button>',
+              '<input type="number" value="' + item.qty + '" min="1" max="9999" onchange="setQuoteQty(\'' + item.product_id + '\', this.value)">',
+              '<button onclick="changeQuoteQty(\'' + item.product_id + '\', 1)">+</button>',
+            '</div>',
+          '</div>',
+          '<div class="qi-right">',
+            '<div class="qi-subtotal">¥' + subtotal.toFixed(2) + '<small>' + item.qty + ' 件</small></div>',
+            '<button class="qi-remove" onclick="removeFromQuote(\'' + item.product_id + '\')">✕ 移除</button>',
+          '</div>',
+        '</div>'
+      ].join('');
     });
   } else {
-    itemsHtml = `
-      <div class="quote-empty">
-        <div class="qe-icon">📋</div>
-        <p>还没有添加产品<br>在左侧对话中咨询，AI 会自动为您加入询价单</p>
-      </div>
-    `;
+    itemsHtml = [
+      '<div class="quote-empty">',
+        '<div class="qe-icon">📋</div>',
+        '<p>还没有添加商品<br>在左侧对话中咨询，AI 会自动为您推荐</p>',
+      '</div>'
+    ].join('');
   }
 
   quoteBodyDesktop.innerHTML = itemsHtml;
   quoteBodyMobile.innerHTML = itemsHtml;
 
-  let totalCount = quoteItems.length;
-  let totalQty = quoteItems.reduce((s, i) => s + i.qty, 0);
-  let hasAnyPrice = quoteItems.some(i => (i.unit_price || 0) > 0);
-  let originalTotal = hasAnyPrice ? quoteItems.reduce((s, i) => s + (i.unit_price || 0) * i.qty, 0) : 0;
-  let discountTotal = hasAnyPrice ? quoteItems.reduce((s, i) => s + calcDiscountPrice(i.unit_price || 0) * i.qty, 0) : 0;
-  let discountAmount = originalTotal - discountTotal;
-  let totalDisplay = hasAnyPrice ? formatMoney(discountTotal) : '';
+  var totalCount = items.length;
+  var totalQty = items.reduce(function (s, i) { return s + i.qty; }, 0);
+  var totalPrice = items.reduce(function (s, i) { return s + (i.price || 0) * i.qty; }, 0);
+  var totalOriginal = items.reduce(function (s, i) { return s + (i.market_price || 0) * i.qty; }, 0);
+  var discountAmount = totalOriginal - totalPrice;
 
   document.getElementById('qfCountDesktop').textContent = totalCount;
   document.getElementById('qfQtyDesktop').textContent = totalQty;
-  document.getElementById('qfOriginalDesktop').textContent = hasAnyPrice ? formatMoney(originalTotal) : '—';
-  document.getElementById('qfDiscountDesktop').textContent = hasAnyPrice ? `-¥${formatMoney(discountAmount)}` : '—';
-  document.getElementById('qfTotalDesktop').textContent = totalDisplay;
+  document.getElementById('qfOriginalDesktop').textContent = totalOriginal.toFixed(2);
+  document.getElementById('qfDiscountDesktop').textContent = discountAmount > 0 ? '-¥' + discountAmount.toFixed(2) : '—';
+  document.getElementById('qfTotalDesktop').textContent = '¥' + totalPrice.toFixed(2);
 
   document.getElementById('qfCountMobile').textContent = totalCount;
   document.getElementById('qfQtyMobile').textContent = totalQty;
-  document.getElementById('qfOriginalMobile').textContent = hasAnyPrice ? formatMoney(originalTotal) : '—';
-  document.getElementById('qfDiscountMobile').textContent = hasAnyPrice ? `-¥${formatMoney(discountAmount)}` : '—';
-  document.getElementById('qfTotalMobile').textContent = totalDisplay;
-
-  // 显示/隐藏价格区域（未定价时不展示任何金额）
-  const priceDesktop = document.getElementById('qfPriceDesktop');
-  const priceMobile = document.getElementById('qfPriceMobile');
-  if (priceDesktop) priceDesktop.style.display = hasAnyPrice ? '' : 'none';
-  if (priceMobile) priceMobile.style.display = hasAnyPrice ? '' : 'none';
+  document.getElementById('qfOriginalMobile').textContent = totalOriginal.toFixed(2);
+  document.getElementById('qfDiscountMobile').textContent = discountAmount > 0 ? '-¥' + discountAmount.toFixed(2) : '—';
+  document.getElementById('qfTotalMobile').textContent = '¥' + totalPrice.toFixed(2);
 
   quoteFooterDesktop.style.display = hasItems ? 'block' : 'none';
   quoteFooterMobile.style.display = hasItems ? 'block' : 'none';
@@ -552,9 +546,9 @@ function renderQuote() {
 }
 
 function updateBadges(qty) {
-  const headerBadge = document.getElementById('headerCartBadge');
-  const mobileBadge = document.getElementById('mobileQuoteBadge');
-  [headerBadge, mobileBadge].forEach(badge => {
+  var headerBadge = document.getElementById('headerCartBadge');
+  var mobileBadge = document.getElementById('mobileQuoteBadge');
+  [headerBadge, mobileBadge].forEach(function (badge) {
     if (!badge) return;
     if (qty > 0) {
       badge.textContent = qty > 99 ? '99+' : qty;
@@ -565,148 +559,66 @@ function updateBadges(qty) {
   });
 }
 
-function changeQuoteQty(id, delta) {
-  const item = quoteItems.find(i => i.id === id);
-  if (!item) return;
-  item.qty += delta;
-  if (item.qty < 1) item.qty = 1;
-  if (item.qty > 9999) item.qty = 9999;
-  renderQuote();
+function changeQuoteQty(pid, delta) {
+  fetch('/shop/api/cart/items')
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      var items = (data.data && data.data.items) || [];
+      var item = items.find(function (i) { return i.product_id === pid; });
+      if (!item) return;
+      var newQty = item.qty + delta;
+      if (newQty < 1) newQty = 1;
+      if (newQty > 9999) newQty = 9999;
+      updateCartQty(pid, newQty);
+    })
+    .catch(function () {});
 }
 
-function setQuoteQty(id, val) {
-  const item = quoteItems.find(i => i.id === id);
-  if (!item) return;
-  let qty = parseInt(val, 10) || 1;
+function setQuoteQty(pid, val) {
+  var qty = parseInt(val, 10) || 1;
   if (qty < 1) qty = 1;
   if (qty > 9999) qty = 9999;
-  item.qty = qty;
-  renderQuote();
+  updateCartQty(pid, qty);
 }
 
-function removeFromQuote(id) {
-  quoteItems = quoteItems.filter(i => i.id !== id);
-  saveQuoteItems();
-  renderQuote();
-  showToast('已从询价单移除');
-}
+function updateCartQty(pid, qty) {
+  var body = new URLSearchParams();
+  body.append('pid', pid);
+  body.append('num', qty);
 
-/* ===================================================================
-   ===== 生成报价单 =====
-   =================================================================== */
-async function submitToCart() {
-  if (quoteItems.length === 0) {
-    showToast('询价单为空，请先添加产品');
-    return;
-  }
-
-  const items = quoteItems.map(item => ({
-    id: item.id,
-    content_id: item.id,
-    qty: item.qty,
-    title: item.name,
-    unit_price: item.unit_price || 0,
-    market_price: item.market_price || 0,
-    class_name: item.class_name || '',
-    sku: item.sku || '',
-    url: item.url || '',
-    remarks: item.remarks || '',
-    small_pic: item.small_pic || ''
-  }));
-
-  try {
-    const resp = await fetch('/ai_cart/api/quote/submit', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: SESSION_ID,
-        userAccount: SESSION_ID,
-        items: items,
-        discount_rate: FIXED_DISCOUNT
-      })
-    });
-    const result = await resp.json();
-
-    if (result.code === 0 && result.url) {
-      // 清除询价单
-      quoteItems = [];
-      saveQuoteItems();
-      renderQuote();
-      // 重定向到报价单页面
-      window.location.href = result.url;
-    } else {
-      showToast(result.msg || '生成报价单失败，请稍后重试');
-    }
-  } catch (e) {
-    console.error('生成报价单异常:', e);
-    showToast('网络异常，请稍后重试');
-  }
-}
-
-/* ===================================================================
-   ===== 保存询价记录（异步，不影响主流程） =====
-   =================================================================== */
-function saveQuoteRecord() {
-  if (quoteItems.length === 0) return;
-
-  const summary = quoteItems.map(i => `${i.name}×${i.qty}支`).join(', ');
-  const total = quoteItems.reduce((s, i) => s + calcDiscountPrice(i.unit_price || 0) * i.qty, 0);
-
-  fetch('/ai_cart/api/quote/save_record', {
+  fetch('/shop/api/cart/update', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: SESSION_ID,
-      items: quoteItems.map(i => ({
-        id: i.id,
-        content_id: i.id,
-        product_id: i.id,
-        qty: i.qty,
-        title: i.name,
-        sku: i.sku || '',
-        unit_price: i.unit_price || 0
-      })),
-      summary: summary,
-      total: total
-    })
-  }).catch(() => {}); // 静默失败，不影响用户体验
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  })
+  .then(function (r) { return r.json(); })
+  .then(function (data) {
+    if (data.code === 0) renderQuote();
+  })
+  .catch(function () {});
+}
+
+function removeFromQuote(pid) {
+  var body = new URLSearchParams();
+  body.append('pid', pid);
+
+  fetch('/shop/api/cart/remove', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  })
+  .then(function (r) { return r.json(); })
+  .then(function (data) {
+    if (data.code === 0) renderQuote();
+  })
+  .catch(function () {});
 }
 
 /* ===================================================================
-   ===== 生成报价链接 =====
+   ===== 去购物车结算 =====
    =================================================================== */
-function generateQuoteLink() {
-  if (quoteItems.length === 0) {
-    showToast('请先添加产品到询价单');
-    return;
-  }
-  const token = 'GR' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
-  const baseUrl = window.location.origin + window.location.pathname.replace('index.html', 'cart.html');
-  const quoteUrl = `${baseUrl}?quote=${token}`;
-  document.getElementById('quoteLink').value = quoteUrl;
-  try {
-    localStorage.setItem('greenrich_quote_' + token, JSON.stringify({
-      token: token, discount: FIXED_DISCOUNT, items: quoteItems, createdAt: new Date().toISOString()
-    }));
-  } catch (e) { /* ignore */ }
-  document.getElementById('modalOverlay').classList.add('show');
-}
-
-function copyLink() {
-  const input = document.getElementById('quoteLink');
-  input.select();
-  input.setSelectionRange(0, 99999);
-  try {
-    navigator.clipboard.writeText(input.value);
-    showToast('链接已复制到剪贴板');
-  } catch (e) {
-    document.execCommand('copy');
-    showToast('链接已复制');
-  }
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
+function submitToCart() {
+  window.location.href = '/shop/cart';
 }
 
 /* ===================================================================
@@ -773,11 +685,9 @@ function markdownToHtml(text) {
    ===== 初始化 =====
    =================================================================== */
 async function init() {
-  // 1. 先加载产品
-  await loadProducts();
-  // 2. 渲染询价单
+  // 1. 加载购物车数据并渲染右侧面板
   renderQuote();
-  // 3. 初始化聊天
+  // 2. 初始化聊天
   initChatHistory();
 }
 init();

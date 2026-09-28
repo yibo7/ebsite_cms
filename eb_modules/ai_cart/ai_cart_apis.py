@@ -197,15 +197,18 @@ def quote_chat():
         else:
             skus_list = []
         first_sku = skus_list[0].get("sku", "") if skus_list else ""
+        first_product_id = skus_list[0].get("productId", "") if skus_list else ""
 
         matches.append({
+            "id": str(p.get("_id", "")),          # MongoDB _id，用作 cid
             "title": p.get("title", ""),
             "small_pic": p.get("small_pic", ""),
             "unit_price": float(p.get("unit_price", 0)),
             "market_price": float(p.get("market_price", 0)),
             "class_name": p.get("class_name", ""),
-            "content_id": p.get("sku", ""),        # MongoDB ObjectId，供后端定价查找
-            "sku": first_sku or p.get("sku", ""),  # 真实 SKU 码，无则回退 ObjectId
+            "content_id": p.get("sku", ""),        # 兼容旧字段
+            "sku": first_sku or p.get("sku", ""),  # 真实 SKU 码
+            "product_id": first_product_id,        # 规格的 productId（MD5），用作 pid
             "url": p.get("url", ""),
             "qty": 1,
         })
