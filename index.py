@@ -1,3 +1,6 @@
+from gevent import monkey
+monkey.patch_all()
+
 import json
 import os
 
@@ -182,6 +185,6 @@ if __name__ == '__main__':
         print("dev site starting...")
         app.run(host='0.0.0.0', port=port, debug=False)
     else:
-        http_server = WSGIServer(("0.0.0.0", port), app)
+        http_server = WSGIServer(("0.0.0.0", port), app, log=None) # log=None，不打印访问日志
         print("pro site starting...")
         http_server.serve_forever()

@@ -1590,12 +1590,16 @@ body {
 }
 
 /* ---- 社交登录按钮（登录页） ---- */
+.social-login-group {
+  display: flex;
+  gap: 12px;
+}
 .social-login-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
   height: 48px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--border);
@@ -1608,9 +1612,6 @@ body {
   cursor: pointer;
 }
 .social-login-btn:hover {
-  border-color: #07C160;
-  color: #07C160;
-  background: #f0faf4;
   text-decoration: none;
 }
 .social-login-btn svg {
@@ -1620,6 +1621,16 @@ body {
 }
 .social-login-btn .wx-icon {
   color: #07C160;
+}
+.social-login-btn:hover.wx-btn {
+  border-color: #07C160;
+  color: #07C160;
+  background: #f0faf4;
+}
+.social-login-btn.google-btn:hover {
+  border-color: #4285F4;
+  color: #4285F4;
+  background: #f0f4ff;
 }
 
 /* ---- 分隔线 ---- */

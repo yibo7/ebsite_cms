@@ -1,9 +1,13 @@
-@echo off
-echo ÕıÔÚÔËĞĞ index.py...
+ï»¿@echo off
+chcp 65001 >nul
+
+echo Running index.py...
 python index.py
-if %errorlevel% neq 0 (
-    echo ÔËĞĞ³ö´í£¡´íÎó´úÂë: %errorlevel%
+
+if errorlevel 1 (
+    echo è¿è¡Œå‡ºé”™ï¼é”™è¯¯ä»£ç : %errorlevel%
 ) else (
-    echo ÔËĞĞ³É¹¦£¡
+    echo è¿è¡ŒæˆåŠŸï¼
 )
+
 pause
