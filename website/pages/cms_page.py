@@ -80,6 +80,29 @@ def list(id: int, p: int):
 #                 return render_template(temp_model.file_path, model=model, class_model=class_model)
 #     abort(404)
 
+# 1×1 透明 GIF，用于浏览量计数信标
+_PIXEL_GIF = (b'GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff!'
+              b'\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+
+
+def _inject_hit_beacon(html: str, content_id: int) -> str:
+    """
+    在 </body> 前插入 1×1 浏览量计数信标。
+
+    采用自动注入而不是要求模板自己写：主题目录下有 5 份 content.html，
+    另有存放在数据库里的“代码模板”(Templates.temp_code)，逐个修改既麻烦
+    又必然遗漏。若模板已自行放置 /hit/ 信标，则不再重复注入。
+    """
+    if '/hit/' in html:
+        return html
+    beacon = (f'<img src="/hit/{content_id}.gif" width="1" height="1" alt="" '
+              f'style="position:absolute;left:-9999px;top:0" aria-hidden="true">')
+    idx = html.rfind('</body>')
+    if idx == -1:
+        return html + beacon
+    return html[:idx] + beacon + html[idx:]
+
+
 @pages_blue.route('/a<int:id>.html')
 def content(id):
     bll = NewsContent()
@@ -99,17 +122,11 @@ def content(id):
     temp_data = TempDataProvider()
     related_datas = temp_data.get_related_by_tags(str(model._id), top=10)
 
-    cookie_key = f'viewed_{id}'
-    cookie_test_key = 'can_cookie'
-    viewed = request.cookies.get(cookie_key)
-    can_cookie = request.cookies.get(cookie_test_key)
-
-    response = None
-
-    # 根据模板类型选择渲染方式
+    # 纯渲染：视图内不设置任何 cookie、也不做计数 —— 响应因而可被 CDN 完整缓存，
+    # 并且对所有访客完全相同。浏览量改由页面末尾的 1×1 信标（/hit/<id>.gif）统计。
     if temp_model.temp_model == 1:
         # 代码模板
-        render_func = lambda: render_template_string(
+        html = render_template_string(
             temp_model.temp_code,
             model=model,
             class_model=class_model,
@@ -118,7 +135,7 @@ def content(id):
         )
     else:
         # 文件模板
-        render_func = lambda: render_template(
+        html = render_template(
             temp_model.file_path,
             model=model,
             class_model=class_model,
@@ -126,23 +143,33 @@ def content(id):
             related_datas=related_datas
         )
 
-    if can_cookie:
-        # 客户端支持 Cookie，只有第一次没 viewed 才统计 hits
-        if not viewed:
-            threading.Thread(target=bll.update_hits, args=(model._id,), daemon=True).start()
-            # 设置 viewed cookie，防止短时间重复统计
-            max_age = 300  # 5分钟
-            response = make_response(render_func())
-            response.set_cookie(cookie_key, '1', max_age=max_age, httponly=True)
-        else:
-            # 已有 viewed，不统计
-            response = make_response(render_func())
-    else:
-        # 第一次访问，没 can_cookie，设置 can_cookie 但不统计
-        response = make_response(render_func())
-        response.set_cookie(cookie_test_key, '1', max_age=3600, httponly=True)  # 1小时有效
+    return _inject_hit_beacon(html, id)
 
-    return response
+
+@pages_blue.route('/hit/<int:id>.gif')
+def hit(id):
+    """
+    浏览量计数信标。
+
+    它是独立请求，所以内容页可以整体进 CDN 缓存；而本响应自身 no-store，
+    保证每次页面加载都会回源计数（不被浏览器或 CDN 缓存掉）。
+    5 分钟内同一浏览器对同一内容只计一次。
+    """
+    cookie_key = f'viewed_{id}'
+    already = request.cookies.get(cookie_key)
+    if not already:
+        # $inc 为原子操作，并发访客同时触发也不会丢计数
+        threading.Thread(target=NewsContent().update_hits_by_int_id,
+                         args=(id,), daemon=True).start()
+
+    resp = make_response(_PIXEL_GIF)
+    resp.headers['Content-Type'] = 'image/gif'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    if not already:
+        # path 限定在 /hit/ 下，这些 cookie 不会污染其他页面的请求头
+        resp.set_cookie(cookie_key, '1', max_age=300, httponly=True,
+                        path='/hit/', samesite='Lax')
+    return resp
 
 
 @pages_blue.route('/u<user_id>.html', defaults={'p': 1}, methods=['GET'])

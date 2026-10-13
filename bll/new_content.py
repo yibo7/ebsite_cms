@@ -46,6 +46,10 @@ class NewsContent(BllBase[NewsContentModel]):
     def update_hits(self,content_id:ObjectId):
         self.table.update_one({'_id': content_id}, {'$inc': {'hits': 1}})
 
+    def update_hits_by_int_id(self, content_id: int):
+        """按内容的自增 id（非 ObjectId）累加浏览量，供浏览量计数信标使用"""
+        self.table.update_one({'id': content_id}, {'$inc': {'hits': 1}})
+
     def get_new_datas(self, class_id: str, top: int) -> list[NewsContentModel]:
         """
         获取最新数据
