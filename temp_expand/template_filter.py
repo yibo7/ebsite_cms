@@ -24,11 +24,16 @@ def reg_temp_expand_filter(app):
         return '不存在'
 
     @app.template_filter()
-    def to_bool_name(truefalse: str):
-        if truefalse and truefalse.lower() == 'true':
-            return '是'
-        else:
-            return '否'
+    def to_bool_name(truefalse):
+        """把字段值渲染成“是 / 否”。
+
+        同一个字段在不同数据里可能是布尔值 True/False、字符串 'true'/'false'
+        或 0/1（历史数据、表单提交、模型控件各不一致），因此这里统一兼容，
+        避免出现 "'bool' object has no attribute 'lower'" 之类的报错。
+        """
+        if isinstance(truefalse, str):
+            return '是' if truefalse.strip().lower() in ('true', '1', 'yes') else '否'
+        return '是' if truefalse else '否'
 
     @app.template_filter()
     def adminer_status(truefalse: int):
