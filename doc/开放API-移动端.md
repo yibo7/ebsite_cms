@@ -283,9 +283,14 @@
 
 ---
 
-### `POST /api/app/openlogin`
+### `POST /api/openlogin`
 
 获取第三方登录的连接 URL（通过插件机制）。
+
+> **路径变更提醒**：此接口已从 APP-APIS 模块迁移到网站 API（`website/apis/apis_login.py`），
+> 路径由 `/api/app/openlogin` 变更为 `/api/openlogin`，回调地址由
+> `/api/app/open_login_back` 变更为 `/api/open_login_back`。
+> 已接入旧路径的 APP / 小程序 / H5 客户端，以及第三方平台后台登记的回调 URI，都需要同步更新。
 
 | 参数  | 类型   | 必填 | 说明            |
 |-------|--------|------|-----------------|

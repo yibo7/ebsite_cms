@@ -649,7 +649,7 @@ function on_custom_form(form){
 }
 
 function openlogin(plugin_id){
-    get_json('/api/app/openlogin?pid='+plugin_id,(rz)=>{
+    get_json('/api/openlogin?pid='+plugin_id,(rz)=>{
         if(rz.code==0){
             gotourl(rz.data)
         }else{

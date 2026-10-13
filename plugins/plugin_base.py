@@ -188,6 +188,29 @@ class Uploader(PluginBase):
 '''
 class OpenLoginBase(PluginBase):
 
+    # 访问第三方接口的默认超时（秒）。
+    # 不设超时会在对方不可达时长时间挂住 worker（gevent 下影响整条请求链）。
+    request_timeout = 10
+
+    def __init__(self, current_app):
+        # 注意：属性必须在 super().__init__() 之前声明，
+        # 因为父类会调用 refush_config()，只有已存在的属性才会被数据库配置覆盖。
+        self.proxy = ''      # HTTP 代理地址，如 http://172.17.0.1:7890；留空则直连
+        super().__init__(current_app)
+
+    def request_kwargs(self) -> dict:
+        """
+        构造 requests 调用的通用参数（超时 + 可选代理）。
+
+        中国大陆服务器直连 Google / GitHub 等平台会超时，
+        此时在后台插件配置里填写 HTTP 代理即可（例如 Clash 的 http://172.17.0.1:7890）。
+        """
+        kwargs = {'timeout': self.request_timeout}
+        proxy = (self.proxy or '').strip()
+        if proxy:
+            kwargs['proxies'] = {'http': proxy, 'https': proxy}
+        return kwargs
+
     @abstractmethod
     def login(self) -> Tuple[bool, str]:
         """
@@ -247,7 +270,7 @@ class OpenLoginBase(PluginBase):
 
         :return: 完整的回调 URL 字符串（如需嵌入查询参数，调用方自行 URL 编码）
         """
-        return f'{request.host_url}api/app/open_login_back?plugin={self.id}'
+        return f'{request.host_url}api/open_login_back?plugin={self.id}'
 
 
 '''

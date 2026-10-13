@@ -90,7 +90,13 @@ class OpenLoginGoogle(OpenLoginBase):
             'redirect_uri': back_url,
             'grant_type': 'authorization_code',
         }
-        token_resp = requests.post(self.GOOGLE_TOKEN_URL, data=token_data)
+        token_resp = None
+        try:
+            token_resp = requests.post(self.GOOGLE_TOKEN_URL, data=token_data,
+                                       **self.request_kwargs())
+        except requests.RequestException as e:
+            return False, (f'无法连接 Google 令牌接口：{e}。'
+                           f'若服务器位于中国大陆，请在插件配置中填写 HTTP 代理。'), user_info
         if token_resp.status_code != 200:
             return False, f'获取 access_token 失败（HTTP {token_resp.status_code}）', user_info
 
@@ -101,7 +107,12 @@ class OpenLoginGoogle(OpenLoginBase):
 
         # -- 用 access_token 获取用户信息 --
         headers = {'Authorization': f'Bearer {access_token}'}
-        user_resp = requests.get(self.GOOGLE_USER_INFO_URL, headers=headers)
+        try:
+            user_resp = requests.get(self.GOOGLE_USER_INFO_URL, headers=headers,
+                                     **self.request_kwargs())
+        except requests.RequestException as e:
+            return False, (f'无法连接 Google 用户信息接口：{e}。'
+                           f'若服务器位于中国大陆，请在插件配置中填写 HTTP 代理。'), user_info
         if user_resp.status_code != 200:
             return False, f'获取用户信息失败（HTTP {user_resp.status_code}）', user_info
 
@@ -125,7 +136,7 @@ class OpenLoginGoogle(OpenLoginBase):
         """
         在后台保存插件配置时，实现在模板中添加保存参数。
         """
-        callback_url = f'{request.host_url}api/app/open_login_back?plugin={self.id}'
+        callback_url = f'{request.host_url}api/open_login_back?plugin={self.id}'
         return f'''
         <div class="alert alert-info">
             <strong>回调地址</strong>（请在 Google Cloud Console 的「已获授权的重定向 URI」中添加此地址）：
@@ -155,5 +166,15 @@ class OpenLoginGoogle(OpenLoginBase):
             <label>Client Secret</label>
             <input name="client_secret" value="{{{{model.client_secret}}}}" style="max-width:500px" class="form-control" required>
             <small class="form-text text-muted">与 Client ID 对应的客户端密钥</small>
+        </div>
+        <div class="mb-3">
+            <label>HTTP 代理（可选）</label>
+            <input name="proxy" value="{{{{model.proxy}}}}" style="max-width:500px" class="form-control" placeholder="http://172.17.0.1:7890">
+            <small class="form-text text-muted">
+                服务器位于中国大陆时<strong>必填</strong>，否则用 code 换取 access_token 时会连接
+                <code>oauth2.googleapis.com</code> 超时。
+                填写服务器上代理软件的地址；容器访问宿主机代理可用
+                <code>http://172.17.0.1:端口</code> 或 <code>http://host.docker.internal:端口</code>。
+            </small>
         </div>
         '''

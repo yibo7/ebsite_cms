@@ -1,9 +1,7 @@
-from flask import   jsonify,  current_app, redirect, request
+from flask import   jsonify
 
-import time
 import eb_cache
 import eb_utils
-import eb_utils.flask_utils
 from bll.user import User
 from decorators import rate_limit_ip, check_img_code, check_mobile_email_code
 from eb_cache import login_utils
@@ -13,6 +11,9 @@ from eb_utils.image_code import ImageCode
 from eb_utils.mobile_code import MobileCode
 from eb_utils.string_check import is_email, is_mobile
 from entity import api_msg
+
+# 说明：三方登录接口（openlogin / open_login_back）已迁移到 website/apis/apis_login.py，
+# 因为网站前台会使用它，不应依赖「APP-APIS」模块是否启用。对应路径为 /api/openlogin、/api/open_login_back。
 
 
 @bp_app_apis.route('img_safe_code', methods=['POST'])
@@ -186,109 +187,3 @@ def find_pass3():
             err_info = msg
 
     return jsonify(api_msg.api_err(err_info))
-
-
-
-@bp_app_apis.route('openlogin', methods=['GET', 'POST'])
-def openlogin():
-    """
-    获取三方登录连接
-    """
-    plugin_id = http_helper.get_prams('pid')
-    pm = current_app.pm
-    pl = pm.get_by_id(plugin_id)
-    is_succesful,msg = pl.login()
-    if is_succesful:
-        return jsonify(api_msg.api_succesful(msg))
-    else:
-        return jsonify(api_msg.api_err(msg))
-
-
-@bp_app_apis.route('open_login_back', methods=['GET'])
-def open_login_back():
-    """
-    三方登录回调处理（OAuth 第二步）。
-
-    第三方平台授权后重定向到此地址，完成：
-    1. 调用插件 call_back 获取标准化的用户信息
-    2. 按 email → openid 分层查找用户，自动关联或注册
-    3. 生成会话 token 并设置 cookie
-    4. 重定向回首页
-    """
-    from urllib.parse import quote
-
-    plugin_id = http_helper.get_prams('plugin')
-    if not plugin_id:
-        return redirect('/?login_error=' + quote('缺少 plugin 参数'))
-
-    pm = current_app.pm
-    plugin = pm.get_by_id(plugin_id)
-    if not plugin:
-        return redirect('/?login_error=' + quote('未找到登录插件'))
-
-    # 1. 调用插件的回调处理方法
-    is_ok, msg, user_info = plugin.call_back(request)
-    if not is_ok:
-        return redirect('/?login_error=' + quote(msg or '第三方登录失败'))
-
-    bll = User()
-    need_update = False
-    user = None
-
-    # ---------------------------------------------------------------
-    # 2. 按 email 优先查找（Google/Apple 等有邮箱的平台）
-    #    这是主流做法：用户能通过第三方登录，证明他已拥有该邮箱，
-    #    系统应自动关联到此邮箱的已有账号，而非创建新账号。
-    # ---------------------------------------------------------------
-    if user_info.email:
-        user = bll.find_by_email(user_info.email)
-        if user:
-            # 关联第三方账号到已有用户
-            if not user.openid:
-                user.openid = user_info.user_open_id
-                need_update = True
-            if user_info.avatar_url and user.avatar != user_info.avatar_url:
-                user.avatar = user_info.avatar_url
-                need_update = True
-            if user_info.user_ni_name and user.ni_name != user_info.user_ni_name:
-                user.ni_name = user_info.user_ni_name
-                need_update = True
-
-    # 3. 按 openid 查找（微信等无邮箱的平台 / email 未匹配到）
-    if not user:
-        user = bll.get_by_openid(user_info.user_open_id)
-        if user:
-            # 已有用户，更新资料
-            if user_info.avatar_url and user.avatar != user_info.avatar_url:
-                user.avatar = user_info.avatar_url
-                need_update = True
-            if user_info.user_ni_name and user.ni_name != user_info.user_ni_name:
-                user.ni_name = user_info.user_ni_name
-                need_update = True
-            if user_info.email and not user.email_address:
-                user.email_address = user_info.email
-                need_update = True
-
-    # 4. 完全没找到 → 注册新用户
-    if not user:
-        is_reg_ok, result = bll.reg_open_user(
-            openid=user_info.user_open_id,
-            mobile='',
-            nickname=user_info.user_ni_name,
-            avatar=user_info.avatar_url,
-            email=user_info.email,
-        )
-        if not is_reg_ok:
-            return redirect('/?login_error=' + quote(str(result)))
-        user = result
-    elif need_update:
-        user.last_login_ip = eb_utils.flask_utils.get_client_ip()
-        user.last_login_date = time.time()
-        user.login_count += 1
-        bll.update(user)
-
-    # 5. 生成 token 并设置 cookie
-    login_utils.update_app_token(user)
-    resp = redirect('/')
-    login_utils.set_cookie_token(user, resp)
-    return resp

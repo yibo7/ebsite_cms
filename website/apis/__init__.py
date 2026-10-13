@@ -28,6 +28,7 @@ def before_req():
 
 from . import apis_cms
 from . import apis_file
+from . import apis_login
 from . import apis_user
 
 

@@ -64,11 +64,19 @@ class OpenLoginWixin(OpenLoginBase):
             f"&code={code}"
             f"&grant_type=authorization_code"
         )
-        token_resp = requests.get(token_url)
-        if token_resp.status_code != 200 or 'access_token' not in token_resp.json():
-            return False, '获取 access_token 失败', user_info
+        try:
+            token_resp = requests.get(token_url, **self.request_kwargs())
+            token_data = token_resp.json()
+        except requests.RequestException as e:
+            return False, f'无法连接微信接口（网络不通或未配置代理）：{e}', user_info
+        except ValueError:
+            return False, '微信接口返回了非 JSON 内容，请检查 AppId / AppSecret 是否正确', user_info
 
-        token_data = token_resp.json()
+        if token_resp.status_code != 200 or not isinstance(token_data, dict) \
+                or 'access_token' not in token_data:
+            err_msg = token_data.get('errmsg', '') if isinstance(token_data, dict) else ''
+            return False, f'获取 access_token 失败：{err_msg or "未知错误"}', user_info
+
         access_token = token_data['access_token']
         open_id = token_data['openid']
 
@@ -78,11 +86,18 @@ class OpenLoginWixin(OpenLoginBase):
             f"?access_token={access_token}"
             f"&openid={open_id}"
         )
-        user_resp = requests.get(user_info_url)
-        if user_resp.status_code != 200 or 'openid' not in user_resp.json():
-            return False, '获取微信用户信息失败', user_info
+        try:
+            user_resp = requests.get(user_info_url, **self.request_kwargs())
+            wx_user = user_resp.json()
+        except requests.RequestException as e:
+            return False, f'无法连接微信接口（网络不通或未配置代理）：{e}', user_info
+        except ValueError:
+            return False, '微信用户信息接口返回了非 JSON 内容', user_info
 
-        wx_user = user_resp.json()
+        if user_resp.status_code != 200 or not isinstance(wx_user, dict) \
+                or 'openid' not in wx_user:
+            err_msg = wx_user.get('errmsg', '') if isinstance(wx_user, dict) else ''
+            return False, f'获取微信用户信息失败：{err_msg or "未知错误"}', user_info
 
         # 3. 填充标准化的用户信息模型
         user_info.user_open_id = wx_user.get('openid', '')
@@ -112,7 +127,7 @@ class OpenLoginWixin(OpenLoginBase):
             注册开发者账号，创建 <strong>网站应用</strong><br>
             2. 提交审核通过后，获取 <strong>AppId</strong> 和 <strong>AppSecret</strong><br>
             3. 在开放平台 → 网站应用 → 接口权限 中设置 <strong>授权回调域</strong> 为：<br>
-            <code>/api/app/open_login_back?plugin=OpenLoginWixin</code>
+            <code>/api/open_login_back?plugin=OpenLoginWixin</code>
             （只需填写域名部分，不要带 http://）<br>
             4. 用户点击"微信登录"后将弹出微信二维码，扫码完成即自动登录/注册<br>
             5. 首次登录自动创建账号，之后再次登录自动识别

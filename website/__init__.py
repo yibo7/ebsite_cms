@@ -4,6 +4,7 @@ import glob as glob_module
 
 from flask import Flask
 from jinja2 import ChoiceLoader, FileSystemLoader
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.routing import BaseConverter
 
 import eb_utils
@@ -158,6 +159,15 @@ def create_app():  # run_mode
             return self.inner(environ, start_response)
 
     app.wsgi_app = _LangInjectedMiddleware(app.wsgi_app)
+
+    # ── 反向代理协议还原（必须包在 WSGI 中间件最外层）──
+    # Nginx / OpenResty / Cloudflare 终止 TLS 后，转发到容器的是明文 HTTP，
+    # Flask 只认 wsgi.url_scheme，会把 https 站点误判为 http，
+    # 导致 request.host_url 生成 http:// 开头的地址。表现为：
+    #   - Google OAuth 报 400: redirect_uri_mismatch
+    #   - PayPal 的 return_url / cancel_url 指向 http 地址
+    # 前提：代理层需转发 X-Forwarded-Proto（及 X-Forwarded-Host）。
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     # endregion
 
     init_eb_db(app)
