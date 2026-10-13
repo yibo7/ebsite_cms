@@ -5,7 +5,7 @@
 
 {% block content %}
 
-{% set _list_result = temp_data.get_my_content_list(page) %}
+{% set _list_result = temp_data.get_my_content_list(page=page) %}
 {% set data_list = _list_result[0] if _list_result else [] %}
 {% set pager = _list_result[1] if _list_result else '' %}
 {% set stats = temp_data.get_user_content_stats() %}

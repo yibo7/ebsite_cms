@@ -216,4 +216,16 @@ def reg_info():
 
 @pages_blue.route('/imgcode')
 def img_code():
-    return ImageCode().getImgCode()
+    response = ImageCode().getImgCode()
+    # 验证码图片不可缓存，保证每次都能拿到新图
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    # 验证码的分区键（safe_code_{session_id}）依赖 session_id，而 getImgCode()
+    # 在本请求内已按 ensure_session_id() 生成的 sid 写入了缓存，因此在这里把
+    # 同一个 sid 下发给浏览器即可；其他页面/静态资源不再带 Set-Cookie。
+    sid = getattr(g, 'new_session_id', None)
+    if sid:
+        response.set_cookie(
+            'session_id', sid, max_age=30 * 24 * 3600,
+            path='/', httponly=True, samesite='Lax',
+        )
+    return response

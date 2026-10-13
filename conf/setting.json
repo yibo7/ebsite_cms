@@ -1,7 +1,7 @@
 {
     "ThemeName": "aitanqin",
-    "IsDebug": false,
-    "IsVercel": false,
+    "IsDebug": true,
+    "IsVercel": true,
     "Port": 8066,
     "DefaultLang": "en",
     "FileStorageSubdir": "atq"

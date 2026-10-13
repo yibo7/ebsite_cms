@@ -3,12 +3,12 @@ monkey.patch_all()
 
 import json
 import os
+import uuid
 
 from flask import request, render_template, g, current_app
 from flask_cors import CORS
 from gevent.pywsgi import WSGIServer
 
-from decorators import check_session
 from eb_utils.eb_exceptions import EbTipError
 from website import create_app
 
@@ -139,13 +139,39 @@ def localize_url(url):
 
 
 @app.before_request
-def after_request():
-    request.session_id = request.cookies.get('session_id')
+def ensure_session_id():
+    """
+    注意：这是自定义的session_id，可以叫任何名字，目前只在验证码里使用（为了兼容vercel这种无状态服务不使用缓存），在有需要的地方也可以参考使用这个解决方案。
+    读取访客标识并写回 request.session_id（验证码分区键依赖它）。
+
+    若请求未携带 session_id，则先在本次请求内生成一个（g.new_session_id），
+    由真正需要它的响应（/imgcode）负责下发 cookie。这样页面与静态资源的
+    响应都不带 Set-Cookie，Cloudflare 才不会拒绝缓存。
+    """
+    sid = request.cookies.get('session_id')
+    if not sid:
+        sid = str(uuid.uuid4())
+        g.new_session_id = sid
+    request.session_id = sid
 
 
 @app.after_request
-@check_session
-def after_request(response):
+def set_static_cache_header(response):
+    """
+    恢复静态资源的可缓存性。
+
+    Flask 默认给静态文件发 ``Cache-Control: no-cache``，而 Cloudflare 遇到
+    no-cache 或 Set-Cookie 都会拒绝缓存，因此这里显式改成 public + max-age。
+    只作用于静态路由（endpoint 为 static / *.static），不影响
+    send_from_directory 的业务接口（如乐谱下载）。
+    """
+    endpoint = request.endpoint or ''
+    if (
+        request.method == 'GET'
+        and response.status_code == 200
+        and (endpoint == 'static' or endpoint.endswith('.static'))
+    ):
+        response.headers['Cache-Control'] = 'public, max-age=86400'
     return response
 
 

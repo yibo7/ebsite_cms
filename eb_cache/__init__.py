@@ -171,20 +171,36 @@ def set_ex_minutes(obj, ex_minutes: int, key=None):
 
 def next_id(key, timeout=None):
     """
-    生成某个键下的自增Id，如果键不存在，则从 initial 开始
+    生成某个键下的自增Id，如果键不存在，则从 0 开始自增
+
     :param key: 缓存键
     :param timeout: 缓存超时时间
     :return: 当前的值
     """
-    # 优先使用后端的原子自增（如 MongoCache.incr 或 RedisCache.incr）
-    incr = getattr(cache, "incr", None)
-    if incr:
-        new_value = incr(key)
-    else:
-        # 兜底：get-then-set（非原子，适用于低并发场景）
-        current_value = cache.get(key)
-        if not current_value:
-            current_value = 0
-        new_value = current_value + 1
-        cache.set(key, new_value, timeout=timeout)
+    # 优先使用后端的原子自增。注意：flask_caching 的 Cache 类既不暴露 inc
+    # 也不暴露 incr（也没有 __getattr__ 代理），必须取后端实例（Cache.cache）
+    # 才能拿到 MongoCache.inc / RedisCache.inc。
+    backend = getattr(cache, "cache", None)
+    inc = getattr(backend, "inc", None) if backend is not None else None
+
+    if inc is not None:
+        try:
+            # MongoCache.inc 额外支持 timeout，用于给新建的计数键写入过期时间
+            return inc(key, 1, timeout)
+        except TypeError:
+            # RedisCache.inc(key, delta=1) 只接受两个位置参数
+            try:
+                return inc(key, 1)
+            except NotImplementedError:
+                pass
+        except NotImplementedError:
+            # 后端未实现原子自增（如 SimpleCache），退回下面的兜底实现
+            pass
+
+    # 兜底：get-then-set（非原子，仅适用于单进程/低并发场景）
+    current_value = cache.get(key)
+    if not current_value:
+        current_value = 0
+    new_value = current_value + 1
+    cache.set(key, new_value, timeout=timeout)
     return new_value
