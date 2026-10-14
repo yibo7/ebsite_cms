@@ -5,7 +5,7 @@ import json
 import os
 import uuid
 
-from flask import request, render_template, g, current_app
+from flask import request, render_template, g, current_app, redirect
 from flask_cors import CORS
 from gevent.pywsgi import WSGIServer
 
@@ -14,6 +14,34 @@ from website import create_app
 
 app = create_app()
 app.config['cdn'] = 'https://cdn.jsdmirror.com'
+
+# ──────────────────────────────────────────────
+# URL 规范化：语言首页补结尾斜杠（必须排在语言检测之前）
+# ──────────────────────────────────────────────
+@app.before_request
+def normalize_lang_prefix_slash():
+    """
+    把不带结尾斜杠的语言首页 /{code} 永久重定向到 /{code}/，避免同一份内容有两个 URL。
+
+    语言集合取自启动时扫描 i18n/ 目录的自动发现结果（SUPPORTED_LANGS），
+    因此新增语言只要放一个 {code}.json 即可，这里无需任何改动。
+    默认语言本身没有前缀，不在处理范围内。
+    """
+    orig = request.environ.get('ORIG_PATH_INFO', '')
+    if orig.count('/') != 1:
+        return                       # 只处理 /xx 这种单段路径（/、/zh/、/zh/a.html 均跳过）
+    code = orig.lstrip('/')
+    if not code:
+        return                       # 根路径 '/'
+
+    supported = current_app.config.get('SUPPORTED_LANGS', set())
+    resolved_default = current_app.config.get('DEFAULT_LANG_RESOLVED', 'zh')
+    if code in supported and code != resolved_default:
+        target = f'/{code}/'
+        if request.query_string:
+            target += '?' + request.query_string.decode('latin-1')
+        return redirect(target, code=301)
+
 
 # ──────────────────────────────────────────────
 # 全局语言检测（在所有 before_request 之前执行）

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{% if current_lang == 'en' %}en{% else %}zh-CN{% endif %}">
+<html lang="{{ 'zh-CN' if current_lang == 'zh' else current_lang }}">
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
@@ -7,10 +7,14 @@
   <link rel="icon" href="/favicon.svg" />
   <meta name="keywords" content="{% block head_keywords %}{% endblock %}" />
   <meta name="description" content="{% block head_description %}{% endblock %}" />
-  <!-- hreflang 多语言 -->
-  <link rel="alternate" hreflang="zh" href="{% if current_lang == 'en' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
-  <link rel="alternate" hreflang="en" href="{% if current_lang == 'zh' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
-  <link rel="canonical" href="{% if current_lang == 'en' %}/en{% endif %}{{ request.environ.get('PATH_INFO', '/') }}" />
+  <!-- hreflang / canonical：语言前缀一律由 default_lang 变量推导，禁止硬编码语言代码。
+       _path 取自 PATH_INFO（中间件已剥掉前缀），故此处需按 default_lang 决定是否补回。 -->
+  {% set _path = request.environ.get('PATH_INFO', '/') %}
+  <link rel="canonical" href="{{ ('' if current_lang == default_lang else '/' ~ current_lang) ~ _path }}" />
+  {% for _code in available_langs %}
+  <link rel="alternate" hreflang="{{ _code }}" href="{{ ('' if _code == default_lang else '/' ~ _code) ~ _path }}" />
+  {% endfor %}
+  <link rel="alternate" hreflang="x-default" href="{{ _path }}" />
   <script src="{{config.cdn}}/gh/yibo7/ebcdn@1.2/jquery/jquery-3.7.1.min.js" defer></script>
   <link rel="stylesheet" href="{{config.cdn}}/gh/yibo7/ebcdn@1.2/bootstrap/5/css/bootstrap.min.css" type="text/css">
   <link rel='stylesheet' href='/css/index.css?ver=0.1' type='text/css' media='all' />
